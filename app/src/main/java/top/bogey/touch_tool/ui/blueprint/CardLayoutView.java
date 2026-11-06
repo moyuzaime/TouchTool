@@ -353,7 +353,8 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
 
     private void onSavedGroupButtonClick() {
         if (isSavedGroupAddMode()) {
-            savedCardGroups.add(new SavedCardGroup("", currentSelectionIds()));
+            Set<String> ids = currentSelectionIds();
+            savedCardGroups.add(new SavedCardGroup(buildDefaultGroupName(ids), ids));
             highlightedGroup = savedCardGroups.size() - 1;
             savedGroupPanelOpen = true;
             saveSavedGroups();
@@ -361,6 +362,35 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
             savedGroupPanelOpen = !savedGroupPanelOpen;
         }
         refreshSavedGroupViews();
+    }
+
+    // 新建组默认用卡片备注命名；都没有备注时用卡片名
+    private String buildDefaultGroupName(Set<String> ids) {
+        List<ActionCard> groupCards = new ArrayList<>();
+        for (String id : ids) {
+            ActionCard card = cards.get(id);
+            if (card != null) groupCards.add(card);
+        }
+        // 按位置排序，保证「第一张」每次都是同一张
+        groupCards.sort((o1, o2) -> {
+            Point p1 = o1.getAction().getPos();
+            Point p2 = o2.getAction().getPos();
+            int byY = Integer.compare(p1.y, p2.y);
+            return byY != 0 ? byY : Integer.compare(p1.x, p2.x);
+        });
+
+        for (ActionCard card : groupCards) {
+            String description = card.getAction().getDescription();
+            if (description != null && !description.trim().isEmpty()) return trimGroupName(description);
+        }
+        if (!groupCards.isEmpty()) return trimGroupName(groupCards.get(0).getAction().getTitle());
+        return "";
+    }
+
+    private String trimGroupName(String name) {
+        if (name == null) return "";
+        String result = name.trim().replace('\n', ' ');
+        return result.length() > 16 ? result.substring(0, 16) + "…" : result;
     }
 
     // 组内容变化后写回本地，切换任务或重启后仍能恢复
