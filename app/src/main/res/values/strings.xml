@@ -216,6 +216,14 @@
     <string name="picker_color_offset">相似度：%d</string>
     <string name="picker_image_title">选择图片</string>
     <string name="picker_image_offset">相似度：%d</string>
+    <string name="picker_image_similarity">相似度 %d</string>
+    <string name="picker_image_similarity_empty">相似度 —</string>
+    <string name="picker_test_scope">识别范围</string>
+    <string name="picker_test_scope_full">全屏</string>
+    <string name="picker_test_scope_region">区域</string>
+    <string name="picker_test_region_select">框选区域</string>
+    <string name="picker_test_region_reselect">重选区域</string>
+    <string name="picker_test_copy_area">复制区域</string>
     <string name="picker_point_title">选择位置</string>
     <string name="picker_touch_title">采集手势</string>
     <string name="picker_node_title">选择控件</string>

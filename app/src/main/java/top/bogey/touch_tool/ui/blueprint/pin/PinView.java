@@ -45,6 +45,16 @@ public abstract class PinView extends FrameLayout implements PinListener {
 
     protected PinSlotView slotView;
 
+    // 把值写入针脚剪贴板，其他同类针脚即可粘贴
+    public static void copyPinValue(PinObject pinObject) {
+        if (pinObject == null) return;
+        PinBase copy = pinObject.copy();
+        if (copy instanceof PinObject object) {
+            copyValue = object;
+            BlueprintView.tryRefreshPinView();
+        }
+    }
+
     public PinView(@NonNull Context context, ActionCard card, Pin pin, boolean custom) {
         super(context);
         this.card = card;
