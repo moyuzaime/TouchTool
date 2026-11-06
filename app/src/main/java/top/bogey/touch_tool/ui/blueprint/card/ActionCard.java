@@ -2,9 +2,7 @@ package top.bogey.touch_tool.ui.blueprint.card;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.graphics.Canvas;
-import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.RectF;
@@ -46,9 +44,7 @@ public abstract class ActionCard extends MaterialCardView implements ActionListe
     private boolean needDraw = true;
 
     private boolean savedGroupHighlight = false;
-    private ColorStateList savedGroupBackground;
-    private int savedGroupStrokeWidth;
-    private final Paint savedGroupDashPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint savedGroupBorderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     private MaterialTextView posView;
 
@@ -378,19 +374,10 @@ public abstract class ActionCard extends MaterialCardView implements ActionListe
         return pinViews;
     }
 
-    // 卡片组暂存时的临时高亮：记住原底色和描边，取消高亮时还原
+    // 卡片组暂存时的临时高亮：只叠加一圈实线描边，不改卡片本身的底色和描边，
+    // 避免和选中态互相覆盖
     public void setSavedGroupHighlight(boolean highlight) {
         if (savedGroupHighlight == highlight) return;
-        if (highlight) {
-            savedGroupBackground = getCardBackgroundColor();
-            savedGroupStrokeWidth = getStrokeWidth();
-            setCardBackgroundColor(DisplayUtil.getAttrColor(getContext(), com.google.android.material.R.attr.colorSecondaryContainer));
-            setStrokeWidth(0);
-        } else {
-            if (savedGroupBackground != null) setCardBackgroundColor(savedGroupBackground);
-            setStrokeWidth(savedGroupStrokeWidth);
-            savedGroupBackground = null;
-        }
         savedGroupHighlight = highlight;
         invalidate();
     }
@@ -400,14 +387,13 @@ public abstract class ActionCard extends MaterialCardView implements ActionListe
         super.dispatchDraw(canvas);
         if (!savedGroupHighlight) return;
 
-        // 暂存高亮的外圈虚线
-        float inset = DisplayUtil.dp2px(getContext(), 2);
-        float dash = DisplayUtil.dp2px(getContext(), 8);
-        savedGroupDashPaint.setStyle(Paint.Style.STROKE);
-        savedGroupDashPaint.setColor(DisplayUtil.getAttrColor(getContext(), androidx.appcompat.R.attr.colorPrimary));
-        savedGroupDashPaint.setStrokeWidth(DisplayUtil.dp2px(getContext(), 2));
-        savedGroupDashPaint.setPathEffect(new DashPathEffect(new float[]{dash, dash * 0.7f}, 0));
-        float radius = getRadius();
-        canvas.drawRoundRect(new RectF(inset, inset, getWidth() - inset, getHeight() - inset), radius, radius, savedGroupDashPaint);
+        // 组高亮用「实线 + tertiary 色」，与选中态的「虚线 + primary 色」区分开
+        float inset = DisplayUtil.dp2px(getContext(), 3);
+        savedGroupBorderPaint.setStyle(Paint.Style.STROKE);
+        savedGroupBorderPaint.setColor(DisplayUtil.getAttrColor(getContext(), com.google.android.material.R.attr.colorTertiary));
+        savedGroupBorderPaint.setStrokeWidth(DisplayUtil.dp2px(getContext(), 2));
+        savedGroupBorderPaint.setPathEffect(null);
+        float radius = Math.max(0, getRadius() - inset);
+        canvas.drawRoundRect(new RectF(inset, inset, getWidth() - inset, getHeight() - inset), radius, radius, savedGroupBorderPaint);
     }
 }
