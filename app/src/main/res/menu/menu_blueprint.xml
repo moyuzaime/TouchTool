@@ -13,4 +13,9 @@
     <item
         android:id="@+id/taskCapture"
         android:title="@string/task_capture" />
+
+    <item
+        android:id="@+id/editTools"
+        android:checkable="true"
+        android:title="@string/blueprint_edit_tools" />
 </menu>

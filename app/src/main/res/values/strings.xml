@@ -224,6 +224,7 @@
     <string name="picker_test_region_select">框选区域</string>
     <string name="picker_test_region_reselect">重选区域</string>
     <string name="picker_test_copy_area">复制区域</string>
+    <string name="blueprint_edit_tools">辅助工具</string>
     <string name="picker_point_title">选择位置</string>
     <string name="picker_touch_title">采集手势</string>
     <string name="picker_node_title">选择控件</string>

@@ -60,6 +60,42 @@ public class BlueprintView extends Fragment {
 
     private ViewBlueprintBinding binding;
     private boolean needDelete = false;
+    private static boolean showEditTools = false;
+
+    // 搜索结果数量角标：为空时隐藏底色与阴影
+    public void setResultCount(CharSequence text) {
+        boolean visible = text != null && text.length() > 0;
+        binding.resultCount.setText(text);
+        binding.resultCountBox.setCardBackgroundColor(visible
+                ? DisplayUtil.getAttrColor(requireContext(), com.google.android.material.R.attr.colorTertiaryContainer) : 0);
+        binding.resultCountBox.setCardElevation(visible ? DisplayUtil.dp2px(requireContext(), 10) : 0f);
+    }
+
+    // 辅助工具：四边跳转按钮 + 缩放条
+    private void initEditTools() {
+        binding.edgeTopButton.setOnClickListener(v -> binding.cardLayout.jumpToEdge(1));
+        binding.edgeBottomButton.setOnClickListener(v -> binding.cardLayout.jumpToEdge(3));
+        binding.edgeLeftButton.setOnClickListener(v -> binding.cardLayout.jumpToEdge(0));
+        binding.edgeRightButton.setOnClickListener(v -> binding.cardLayout.jumpToEdge(2));
+        binding.zoomSlider.addOnChangeListener((slider, value, fromUser) -> {
+            if (fromUser) binding.cardLayout.setScaleValue(value / 100f);
+        });
+        binding.cardLayout.setOnScaleChangedListener(scaleValue ->
+                binding.zoomSlider.setValue(Math.max(20f, Math.min(200f, scaleValue * 100f))));
+        applyEditToolsVisible(binding.searchButton.isChecked());
+    }
+
+    private void applyEditToolsVisible(boolean searching) {
+        int visible = showEditTools ? View.VISIBLE : View.GONE;
+        binding.edgeTopBox.setVisibility(!showEditTools || searching ? View.GONE : View.VISIBLE);
+        binding.edgeBottomBox.setVisibility(visible);
+        binding.edgeLeftBox.setVisibility(visible);
+        binding.edgeRightBox.setVisibility(visible);
+        binding.zoomSliderBox.setVisibility(visible);
+        if (showEditTools) {
+            binding.zoomSlider.setValue(Math.max(20f, Math.min(200f, binding.cardLayout.getScaleValue() * 100f)));
+        }
+    }
 
     public static boolean tryPushStack(Task task) {
         Fragment fragment = MainActivity.getCurrentFragment();
@@ -196,6 +232,8 @@ public class BlueprintView extends Fragment {
             binding.searchBox.setVisibility(isChecked ? View.VISIBLE : View.GONE);
             binding.searchOptionBox.setVisibility(isChecked ? View.VISIBLE : View.GONE);
             binding.searchEdit.setText("");
+            // 搜索时隐藏顶部跳转按钮，避免和搜索栏重叠
+            applyEditToolsVisible(isChecked);
         });
 
         List<Action> searchActions = new ArrayList<>();
@@ -283,6 +321,7 @@ public class BlueprintView extends Fragment {
             MenuItem menuItem = popupMenu.getMenu().findItem(R.id.taskDetailLog);
             menuItem.setChecked(task.hasFlag(Task.FLAG_DEBUG));
             menuItem.setVisible(task.getParent() == null);
+            popupMenu.getMenu().findItem(R.id.editTools).setChecked(showEditTools);
 
             popupMenu.setOnMenuItemClickListener(item -> {
                 int itemId = item.getItemId();
@@ -296,6 +335,11 @@ public class BlueprintView extends Fragment {
                     currTask.toggleFlag(Task.FLAG_DEBUG);
                     currTask.save();
                     item.setChecked(currTask.hasFlag(Task.FLAG_DEBUG));
+                    return true;
+                } else if (itemId == R.id.editTools) {
+                    showEditTools = !showEditTools;
+                    item.setChecked(showEditTools);
+                    applyEditToolsVisible(binding.searchButton.isChecked());
                     return true;
                 } else if (itemId == R.id.taskCapture) {
                     Bitmap bitmap = binding.cardLayout.takeTaskCapture();
@@ -475,6 +519,9 @@ public class BlueprintView extends Fragment {
         });
 
         refreshUI();
+
+        initEditTools();
+        setResultCount("");
 
         pushStack(task);
         requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), callback);

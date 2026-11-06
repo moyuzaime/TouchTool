@@ -191,6 +191,7 @@
 
         <com.google.android.material.card.MaterialCardView
             style="?attr/materialCardViewFilledStyle"
+            android:id="@+id/resultCountBox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="?attr/defaultPadding"
@@ -266,6 +267,110 @@
         android:id="@+id/cardLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/edgeTopBox"
+        style="?attr/materialCardViewFilledStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="72dp"
+        android:visibility="gone"
+        app:cardBackgroundColor="?attr/colorSurface"
+        app:cardElevation="5dp"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/edgeTopButton"
+            style="?attr/iconButton"
+            app:icon="@drawable/icon_keyboard_arrow_up" />
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/edgeBottomBox"
+        style="?attr/materialCardViewFilledStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="112dp"
+        android:visibility="gone"
+        app:cardBackgroundColor="?attr/colorSurface"
+        app:cardElevation="5dp"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/edgeBottomButton"
+            style="?attr/iconButton"
+            app:icon="@drawable/icon_keyboard_arrow_down" />
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/edgeLeftBox"
+        style="?attr/materialCardViewFilledStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start|center_vertical"
+        android:layout_marginStart="?attr/defaultPadding"
+        android:visibility="gone"
+        app:cardBackgroundColor="?attr/colorSurface"
+        app:cardElevation="5dp"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/edgeLeftButton"
+            style="?attr/iconButton"
+            app:icon="@drawable/icon_keyboard_arrow_left" />
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/edgeRightBox"
+        style="?attr/materialCardViewFilledStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|center_vertical"
+        android:layout_marginEnd="?attr/defaultPadding"
+        android:visibility="gone"
+        app:cardBackgroundColor="?attr/colorSurface"
+        app:cardElevation="5dp"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/edgeRightButton"
+            style="?attr/iconButton"
+            app:icon="@drawable/icon_keyboard_arrow_right" />
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/zoomSliderBox"
+        style="?attr/materialCardViewFilledStyle"
+        android:layout_width="?attr/iconButtonSize"
+        android:layout_height="200dp"
+        android:layout_gravity="start|bottom"
+        android:layout_marginBottom="?attr/minTouchTargetSize"
+        android:layout_marginStart="?attr/defaultPadding"
+        android:visibility="gone"
+        app:cardBackgroundColor="?attr/colorSurface"
+        app:cardElevation="5dp"
+        app:contentPadding="0dp"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full">
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/zoomSlider"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:rotation="270"
+            android:value="75"
+            android:valueFrom="20"
+            android:valueTo="200"
+            app:labelBehavior="gone"
+            app:tickVisible="false" />
+
+    </com.google.android.material.card.MaterialCardView>
 
     <FrameLayout
         android:id="@+id/cachedPinBar"

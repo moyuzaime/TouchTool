@@ -83,6 +83,12 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
 
     private static final long LONG_TOUCH_TIME = 300L;
 
+    public interface OnScaleChangedListener {
+        void onScaleChanged(float scale);
+    }
+
+    private OnScaleChangedListener scaleChangedListener;
+
     private final Handler longTouchHandler;
     private final Handler doubleTouchHandler;
 
@@ -161,6 +167,7 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
 
                 updateCardsPos();
                 invalidate();
+                if (scaleChangedListener != null) scaleChangedListener.onScaleChanged(scale);
                 return true;
             }
 
@@ -186,6 +193,74 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
         super.onDetachedFromWindow();
         TaskSaver.getInstance().removeListener(this);
         VariableSaver.getInstance().removeListener(this);
+    }
+
+    public float getScaleValue() {
+        return scale;
+    }
+
+    // 以视图中心为锚点缩放，供缩放条调用
+    public void setScaleValue(float value) {
+        float newScale = Math.clamp(value, 0.2f, 2f);
+        float ratio = 1 - newScale / scale;
+        float centerX = getWidth() / 2f;
+        float centerY = getHeight() / 2f;
+        offsetX += (centerX - offsetX) * ratio;
+        offsetY += (centerY - offsetY) * ratio;
+        scale = newScale;
+        updateCardsPos();
+        invalidate();
+        if (scaleChangedListener != null) scaleChangedListener.onScaleChanged(scale);
+    }
+
+    public void setOnScaleChangedListener(OnScaleChangedListener listener) {
+        scaleChangedListener = listener;
+        if (listener != null) listener.onScaleChanged(scale);
+    }
+
+    // 跳到指定方向上最远的卡片：0 左、1 上、2 右、3 下
+    public void jumpToEdge(int direction) {
+        if (cards.isEmpty()) return;
+
+        ActionCard target = null;
+        int edgeValue = 0;
+        for (ActionCard card : cards.values()) {
+            Point pos = card.getAction().getPos();
+            if (pos == null) continue;
+            int value = (direction == 0 || direction == 2) ? pos.x : pos.y;
+            if (target == null || ((direction == 0 || direction == 1) ? value < edgeValue : value > edgeValue)) {
+                target = card;
+                edgeValue = value;
+            }
+        }
+        if (target == null) return;
+
+        Point pos = target.getAction().getPos();
+        float grid = getScaleGridSize();
+        if (direction == 0 || direction == 2) {
+            animateOffsetTo(-pos.x * grid + (getWidth() - target.getWidth() * scale) / 2f, offsetY);
+        } else {
+            animateOffsetTo(offsetX, -pos.y * grid + (getHeight() - target.getHeight() * scale) / 3f);
+        }
+
+        if (selectedCards.isEmpty()) {
+            cleanSelectedCards();
+            addSelectedCard(target);
+        }
+        target.bringToFront();
+    }
+
+    private void animateOffsetTo(float toX, float toY) {
+        float fromX = offsetX;
+        float fromY = offsetY;
+        ValueAnimator animator = ValueAnimator.ofFloat(0f, 1f);
+        animator.addUpdateListener(a -> {
+            float fraction = (float) a.getAnimatedValue();
+            offsetX = fromX + (toX - fromX) * fraction;
+            offsetY = fromY + (toY - fromY) * fraction;
+            updateCardsPos();
+        });
+        animator.start();
     }
 
     public void setTask(Task task) {
