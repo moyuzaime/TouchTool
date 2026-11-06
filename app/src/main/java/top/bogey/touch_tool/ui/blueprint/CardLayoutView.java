@@ -16,6 +16,7 @@ import android.graphics.LightingColorFilter;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.drawable.GradientDrawable;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.RectF;
@@ -444,7 +445,7 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
         }
 
         boolean open = savedGroupPanelOpen && !empty;
-        savedGroupPanel.setVisibility(open ? View.VISIBLE : View.GONE);
+        setSavedGroupPanelOpen(open);
         if (!open) return;
 
         int rowHeight = (int) DisplayUtil.dp2px(getContext(), 36);
@@ -469,10 +470,15 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
             indexView.setGravity(Gravity.CENTER);
             indexView.setTextSize(12);
             indexView.setTextColor(DisplayUtil.getAttrColor(getContext(), androidx.appcompat.R.attr.colorPrimary));
+            indexView.setPadding((int) DisplayUtil.dp2px(getContext(), 6), 0, (int) DisplayUtil.dp2px(getContext(), 6), 0);
             indexView.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f));
-            if (i == highlightedGroup) {
-                indexView.setBackgroundColor(DisplayUtil.getAttrColor(getContext(), com.google.android.material.R.attr.colorTertiaryContainer));
-            }
+            // 当前组用圆角底色标出，避免整块方块贴边的生硬感
+            GradientDrawable rowBackground = new GradientDrawable();
+            rowBackground.setCornerRadius(DisplayUtil.dp2px(getContext(), 8));
+            rowBackground.setColor(i == highlightedGroup
+                    ? DisplayUtil.getAttrColor(getContext(), com.google.android.material.R.attr.colorTertiaryContainer)
+                    : Color.TRANSPARENT);
+            indexView.setBackground(rowBackground);
             indexView.setOnClickListener(v -> focusSavedGroup(index));
             row.addView(indexView);
 
@@ -481,6 +487,24 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
             row.addView(makeSavedGroupActionButton(buttonSize, R.drawable.icon_my_location, R.string.blueprint_move_selected_here,
                     v -> moveSavedGroupToViewCenter(index)));
             savedGroupListBox.addView(row);
+        }
+    }
+
+    // 面板带动画展开/收起，避免硬切造成的突兀感
+    private void setSavedGroupPanelOpen(boolean open) {
+        if (savedGroupPanel == null) return;
+        float shift = DisplayUtil.dp2px(getContext(), 8);
+        savedGroupPanel.animate().cancel();
+        if (open) {
+            if (savedGroupPanel.getVisibility() != View.VISIBLE) {
+                savedGroupPanel.setVisibility(View.VISIBLE);
+                savedGroupPanel.setAlpha(0f);
+                savedGroupPanel.setTranslationY(shift);
+            }
+            savedGroupPanel.animate().alpha(1f).translationY(0f).setDuration(160).start();
+        } else if (savedGroupPanel.getVisibility() == View.VISIBLE) {
+            savedGroupPanel.animate().alpha(0f).translationY(shift).setDuration(140)
+                    .withEndAction(() -> savedGroupPanel.setVisibility(View.GONE)).start();
         }
     }
 
@@ -948,6 +972,11 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
 
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN -> {
+                // 点画布任意位置收起暂存面板
+                if (savedGroupPanelOpen) {
+                    savedGroupPanelOpen = false;
+                    refreshSavedGroupViews();
+                }
                 startX = x;
                 startY = y;
                 realStartX = realX;

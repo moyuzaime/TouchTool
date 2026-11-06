@@ -537,13 +537,14 @@
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/savedGroupPanel"
             style="?attr/materialCardViewFilledStyle"
-            android:layout_width="132dp"
+            android:layout_width="wrap_content"
             android:layout_height="152dp"
+            android:minWidth="148dp"
             android:visibility="gone"
             app:cardBackgroundColor="?attr/colorSurface"
-            app:cardElevation="5dp"
-            app:contentPadding="0dp"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Small">
+            app:cardElevation="8dp"
+            app:contentPadding="4dp"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium">
 
             <ScrollView
                 android:layout_width="match_parent"
