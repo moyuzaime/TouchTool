@@ -426,8 +426,8 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
 
         boolean addMode = isSavedGroupAddMode();
         boolean empty = savedCardGroups.isEmpty();
-        View parent = (View) savedGroupButton.getParent();
-        if (parent != null) parent.setVisibility(!empty || addMode ? View.VISIBLE : View.GONE);
+        // 按钮本身挂在底部工具栏里，只切换它自己的可见性，不能动整个按钮组
+        savedGroupButton.setVisibility(!empty || addMode ? View.VISIBLE : View.GONE);
 
         if (savedGroupButton instanceof MaterialButton button) {
             button.setIconResource(addMode ? R.drawable.icon_radio_button_unchecked : R.drawable.icon_radio_button_checked);

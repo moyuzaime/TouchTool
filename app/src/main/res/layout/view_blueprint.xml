@@ -476,6 +476,16 @@
             android:spacing="0dp">
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/savedGroupButton"
+                style="?attr/defaultIconButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/blueprint_saved_group_list"
+                android:visibility="gone"
+                app:icon="@drawable/icon_radio_button_unchecked"
+                app:iconTint="@color/button_container_check" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/exchangeButton"
                 style="?attr/defaultIconButton"
                 android:layout_width="wrap_content"
@@ -519,40 +529,16 @@
         android:id="@+id/savedGroupBox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="end|top"
-        android:layout_marginEnd="?attr/defaultPadding"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="112dp"
         android:gravity="end"
         android:orientation="vertical">
-
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/savedGroupButtonCard"
-            style="?attr/materialCardViewFilledStyle"
-            android:layout_width="36dp"
-            android:layout_height="54dp"
-            android:visibility="gone"
-            app:cardBackgroundColor="?attr/colorSurface"
-            app:cardElevation="5dp"
-            app:contentPadding="0dp"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/savedGroupButton"
-                style="?attr/iconButton"
-                android:layout_width="?attr/iconButtonSize"
-                android:layout_height="?attr/iconButtonSize"
-                android:layout_gravity="center"
-                android:contentDescription="@string/blueprint_saved_group_list"
-                app:icon="@drawable/icon_radio_button_unchecked"
-                app:iconTint="?attr/colorPrimary" />
-
-        </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/savedGroupPanel"
             style="?attr/materialCardViewFilledStyle"
             android:layout_width="132dp"
             android:layout_height="152dp"
-            android:layout_marginTop="?attr/defaultOffset"
             android:visibility="gone"
             app:cardBackgroundColor="?attr/colorSurface"
             app:cardElevation="5dp"
