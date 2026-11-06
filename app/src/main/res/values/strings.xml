@@ -229,6 +229,8 @@
     <string name="blueprint_saved_group_cleared">已清空暂存的卡片组</string>
     <string name="blueprint_saved_group_clear">清空暂存的卡片组</string>
     <string name="blueprint_saved_group_clear_confirm">将删除全部暂存的卡片组，此操作不可撤销</string>
+    <string name="blueprint_saved_group_name">卡片组名称</string>
+    <string name="blueprint_saved_group_default">组 %1$d</string>
     <string name="blueprint_move_selected_here">把选中的卡片移到当前视野中央</string>
     <string name="blueprint_move_selected_here_noop">卡片已在当前视野中央，或已全部锁定</string>
     <string name="blueprint_focus_link_title">选择要跳转的线条</string>

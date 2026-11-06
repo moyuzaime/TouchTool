@@ -23,6 +23,7 @@ import android.graphics.RectF;
 import android.graphics.Shader;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
@@ -58,6 +59,8 @@ import top.bogey.touch_tool.bean.action.Action;
 import top.bogey.touch_tool.bean.action.ActionInfo;
 import top.bogey.touch_tool.bean.action.parent.SyncAction;
 import top.bogey.touch_tool.bean.pin.Pin;
+import top.bogey.touch_tool.bean.save.SavedCardGroup;
+import top.bogey.touch_tool.bean.save.SavedGroupSaver;
 import top.bogey.touch_tool.bean.save.task.TaskSaveListener;
 import top.bogey.touch_tool.bean.save.task.TaskSaver;
 import top.bogey.touch_tool.bean.save.variable.VariableSaveListener;
@@ -70,6 +73,7 @@ import top.bogey.touch_tool.ui.blueprint.pin.PinCachedView;
 import top.bogey.touch_tool.ui.blueprint.pin.PinView;
 import top.bogey.touch_tool.ui.blueprint.selecter.select_action.SelectActionByPinDialog;
 import top.bogey.touch_tool.ui.blueprint.selecter.select_action.SelectActionDialog;
+import top.bogey.touch_tool.utils.AppUtil;
 import top.bogey.touch_tool.utils.DisplayUtil;
 
 public class CardLayoutView extends FrameLayout implements TaskSaveListener, VariableSaveListener {
@@ -99,7 +103,7 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
     private OnScaleChangedListener scaleChangedListener;
 
     // 卡片组暂存：每组是一批动作 id，只存内存不落盘
-    private final List<Set<String>> savedCardGroups = new ArrayList<>();
+    private final List<SavedCardGroup> savedCardGroups = new ArrayList<>();
     private final List<ActionCard> savedGroupHighlightCards = new ArrayList<>();
     private int highlightedGroup = -1;
     private boolean savedGroupPanelOpen = false;
@@ -319,6 +323,7 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
                         highlightedGroup = -1;
                         savedGroupPanelOpen = false;
                         clearSavedGroupHighlight();
+                        saveSavedGroups();
                         refreshSavedGroupViews();
                         Toast.makeText(getContext(), R.string.blueprint_saved_group_cleared, Toast.LENGTH_SHORT).show();
                     })
@@ -340,27 +345,34 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
     private boolean isSavedGroupAddMode() {
         Set<String> ids = currentSelectionIds();
         if (ids.isEmpty()) return false;
-        for (Set<String> group : savedCardGroups) {
-            if (group.containsAll(ids)) return false;
+        for (SavedCardGroup group : savedCardGroups) {
+            if (group.getIds().containsAll(ids)) return false;
         }
         return true;
     }
 
     private void onSavedGroupButtonClick() {
         if (isSavedGroupAddMode()) {
-            savedCardGroups.add(currentSelectionIds());
+            savedCardGroups.add(new SavedCardGroup("", currentSelectionIds()));
             highlightedGroup = savedCardGroups.size() - 1;
             savedGroupPanelOpen = true;
+            saveSavedGroups();
         } else {
             savedGroupPanelOpen = !savedGroupPanelOpen;
         }
         refreshSavedGroupViews();
     }
 
+    // 组内容变化后写回本地，切换任务或重启后仍能恢复
+    private void saveSavedGroups() {
+        if (task == null) return;
+        SavedGroupSaver.getInstance().saveGroups(task.getId(), savedCardGroups);
+    }
+
     private List<ActionCard> resolveSavedGroup(int index) {
         List<ActionCard> result = new ArrayList<>();
         if (index >= 0 && index < savedCardGroups.size()) {
-            for (String id : savedCardGroups.get(index)) {
+            for (String id : savedCardGroups.get(index).getIds()) {
                 ActionCard card = cards.get(id);
                 if (card != null) result.add(card);
             }
@@ -429,6 +441,7 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
             highlightedGroup--;
             applySavedGroupHighlight(resolveSavedGroup(highlightedGroup));
         }
+        saveSavedGroups();
         refreshSavedGroupViews();
     }
 
@@ -465,9 +478,14 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
             row.setGravity(Gravity.CENTER_VERTICAL);
             row.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, rowHeight));
 
+            SavedCardGroup group = savedCardGroups.get(i);
             TextView indexView = new TextView(getContext());
-            indexView.setText((i + 1) + " · " + savedCardGroups.get(i).size());
-            indexView.setGravity(Gravity.CENTER);
+            String name = group.getName();
+            if (name.isEmpty()) name = getContext().getString(R.string.blueprint_saved_group_default, i + 1);
+            indexView.setText(name + " · " + group.getIds().size());
+            indexView.setMaxLines(1);
+            indexView.setEllipsize(TextUtils.TruncateAt.END);
+            indexView.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
             indexView.setTextSize(12);
             indexView.setTextColor(DisplayUtil.getAttrColor(getContext(), androidx.appcompat.R.attr.colorPrimary));
             indexView.setPadding((int) DisplayUtil.dp2px(getContext(), 6), 0, (int) DisplayUtil.dp2px(getContext(), 6), 0);
@@ -480,6 +498,15 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
                     : Color.TRANSPARENT);
             indexView.setBackground(rowBackground);
             indexView.setOnClickListener(v -> focusSavedGroup(index));
+            // 长按编号给这一组改名
+            indexView.setOnLongClickListener(v -> {
+                AppUtil.showEditDialog(getContext(), R.string.blueprint_saved_group_name, group.getName(), newName -> {
+                    group.setName(newName == null ? "" : newName);
+                    saveSavedGroups();
+                    refreshSavedGroupViews();
+                });
+                return true;
+            });
             row.addView(indexView);
 
             row.addView(makeSavedGroupActionButton(buttonSize, R.drawable.icon_delete, R.string.remove_task,
@@ -531,7 +558,7 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
         boolean clearHighlight = false;
         int shift = 0;
         for (int i = savedCardGroups.size() - 1; i >= 0; i--) {
-            Set<String> group = savedCardGroups.get(i);
+            Set<String> group = savedCardGroups.get(i).getIds();
             if (!group.remove(id)) continue;
             if (group.isEmpty()) {
                 savedCardGroups.remove(i);
@@ -554,6 +581,7 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
         } else {
             highlightedGroup -= shift;
         }
+        saveSavedGroups();
         refreshSavedGroupViews();
         return true;
     }
@@ -690,6 +718,14 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
         scale = layoutInfo.getScale();
         cleanSelectedCards();
         clearCachePins();
+
+        // 切换任务时载入该任务自己的卡片组
+        savedCardGroups.clear();
+        savedCardGroups.addAll(SavedGroupSaver.getInstance().getGroups(task.getId()));
+        highlightedGroup = -1;
+        savedGroupPanelOpen = false;
+        clearSavedGroupHighlight();
+        refreshSavedGroupViews();
 
         cards.values().forEach(this::removeView);
         cards.clear();

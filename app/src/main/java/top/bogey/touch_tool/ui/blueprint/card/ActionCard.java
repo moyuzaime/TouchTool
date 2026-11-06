@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Canvas;
+import android.graphics.DashPathEffect;
+import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.view.ViewGroup;
@@ -46,6 +48,7 @@ public abstract class ActionCard extends MaterialCardView implements ActionListe
     private boolean savedGroupHighlight = false;
     private ColorStateList savedGroupBackground;
     private int savedGroupStrokeWidth;
+    private final Paint savedGroupDashPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     private MaterialTextView posView;
 
@@ -390,5 +393,21 @@ public abstract class ActionCard extends MaterialCardView implements ActionListe
         }
         savedGroupHighlight = highlight;
         invalidate();
+    }
+
+    @Override
+    protected void dispatchDraw(Canvas canvas) {
+        super.dispatchDraw(canvas);
+        if (!savedGroupHighlight) return;
+
+        // 暂存高亮的外圈虚线
+        float inset = DisplayUtil.dp2px(getContext(), 2);
+        float dash = DisplayUtil.dp2px(getContext(), 8);
+        savedGroupDashPaint.setStyle(Paint.Style.STROKE);
+        savedGroupDashPaint.setColor(DisplayUtil.getAttrColor(getContext(), androidx.appcompat.R.attr.colorPrimary));
+        savedGroupDashPaint.setStrokeWidth(DisplayUtil.dp2px(getContext(), 2));
+        savedGroupDashPaint.setPathEffect(new DashPathEffect(new float[]{dash, dash * 0.7f}, 0));
+        float radius = getRadius();
+        canvas.drawRoundRect(new RectF(inset, inset, getWidth() - inset, getHeight() - inset), radius, radius, savedGroupDashPaint);
     }
 }

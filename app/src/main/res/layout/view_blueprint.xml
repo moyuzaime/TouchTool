@@ -537,9 +537,8 @@
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/savedGroupPanel"
             style="?attr/materialCardViewFilledStyle"
-            android:layout_width="wrap_content"
+            android:layout_width="176dp"
             android:layout_height="152dp"
-            android:minWidth="148dp"
             android:visibility="gone"
             app:cardBackgroundColor="?attr/colorSurface"
             app:cardElevation="8dp"
