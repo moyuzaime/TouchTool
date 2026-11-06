@@ -307,15 +307,22 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
         savedGroupListBox = listBox;
         savedGroupButton = button;
         button.setOnClickListener(v -> onSavedGroupButtonClick());
-        // 长按清空全部暂存组
+        // 长按清空全部暂存组，先确认，避免误触把整组配置清掉
         button.setOnLongClickListener(v -> {
             if (isSavedGroupAddMode()) return true;
-            savedCardGroups.clear();
-            highlightedGroup = -1;
-            savedGroupPanelOpen = false;
-            clearSavedGroupHighlight();
-            refreshSavedGroupViews();
-            Toast.makeText(getContext(), R.string.blueprint_saved_group_cleared, Toast.LENGTH_SHORT).show();
+            new MaterialAlertDialogBuilder(getContext())
+                    .setTitle(R.string.blueprint_saved_group_clear)
+                    .setMessage(R.string.blueprint_saved_group_clear_confirm)
+                    .setPositiveButton(R.string.remove_task, (dialog, which) -> {
+                        savedCardGroups.clear();
+                        highlightedGroup = -1;
+                        savedGroupPanelOpen = false;
+                        clearSavedGroupHighlight();
+                        refreshSavedGroupViews();
+                        Toast.makeText(getContext(), R.string.blueprint_saved_group_cleared, Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton(R.string.cancel, null)
+                    .show();
             return true;
         });
         refreshSavedGroupViews();
@@ -385,6 +392,9 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
         List<ActionCard> groupCards = resolveSavedGroup(index);
         if (groupCards.isEmpty()) return false;
         highlightedGroup = index;
+        // 跳转的同时把组内卡片选中，方便接着拖动或复制
+        cleanSelectedCards();
+        for (ActionCard card : groupCards) addSelectedCard(card);
         RectF area = calculateCardsArea(groupCards);
         animateOffsetTo(getWidth() / 2f - area.centerX(), getHeight() / 2f - area.centerY(),
                 () -> applySavedGroupHighlight(groupCards));
@@ -455,7 +465,7 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
             row.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, rowHeight));
 
             TextView indexView = new TextView(getContext());
-            indexView.setText(String.valueOf(i + 1));
+            indexView.setText((i + 1) + " · " + savedCardGroups.get(i).size());
             indexView.setGravity(Gravity.CENTER);
             indexView.setTextSize(12);
             indexView.setTextColor(DisplayUtil.getAttrColor(getContext(), androidx.appcompat.R.attr.colorPrimary));
