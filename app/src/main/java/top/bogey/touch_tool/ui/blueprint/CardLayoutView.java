@@ -316,24 +316,30 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
         button.setOnClickListener(v -> onSavedGroupButtonClick());
         // 长按清空全部暂存组，先确认，避免误触把整组配置清掉
         button.setOnLongClickListener(v -> {
-            if (isSavedGroupAddMode()) return true;
-            new MaterialAlertDialogBuilder(getContext())
-                    .setTitle(R.string.blueprint_saved_group_clear)
-                    .setMessage(R.string.blueprint_saved_group_clear_confirm)
-                    .setPositiveButton(R.string.remove_task, (dialog, which) -> {
-                        savedCardGroups.clear();
-                        highlightedGroup = -1;
-                        savedGroupPanelOpen = false;
-                        clearSavedGroupHighlight();
-                        saveSavedGroups();
-                        refreshSavedGroupViews();
-                        Toast.makeText(getContext(), R.string.blueprint_saved_group_cleared, Toast.LENGTH_SHORT).show();
-                    })
-                    .setNegativeButton(R.string.cancel, null)
-                    .show();
+            confirmClearSavedGroups();
             return true;
         });
         refreshSavedGroupViews();
+    }
+
+    // 清空全部暂存组：先弹确认框
+    private void confirmClearSavedGroups() {
+        if (savedCardGroups.isEmpty()) return;
+        if (isSavedGroupAddMode()) return;
+        new MaterialAlertDialogBuilder(getContext())
+                .setTitle(R.string.blueprint_saved_group_clear)
+                .setMessage(R.string.blueprint_saved_group_clear_confirm)
+                .setPositiveButton(R.string.remove_task, (dialog, which) -> {
+                    savedCardGroups.clear();
+                    highlightedGroup = -1;
+                    savedGroupPanelOpen = false;
+                    clearSavedGroupHighlight();
+                    saveSavedGroups();
+                    refreshSavedGroupViews();
+                    Toast.makeText(getContext(), R.string.blueprint_saved_group_cleared, Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
     }
 
     // 顶栏常驻入口：只要存在暂存组就显示，没有选中卡片时也能打开面板
@@ -343,6 +349,11 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
             if (savedCardGroups.isEmpty()) return;
             savedGroupPanelOpen = !savedGroupPanelOpen;
             refreshSavedGroupViews();
+        });
+        // 与选中工具栏里的暂存按钮一致：长按可清空
+        button.setOnLongClickListener(v -> {
+            confirmClearSavedGroups();
+            return true;
         });
         refreshSavedGroupViews();
     }
