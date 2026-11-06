@@ -22,4 +22,8 @@
         android:id="@+id/autoGiveCapturePermission"
         android:title="@string/setting_auto_give_capture_permission" />
 
+    <item
+        android:id="@+id/giveRestrictedSettings"
+        android:title="@string/setting_give_restricted_settings" />
+
 </menu>

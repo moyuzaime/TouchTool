@@ -18,6 +18,7 @@ import com.google.android.material.timepicker.MaterialTimePicker;
 import com.google.android.material.timepicker.TimeFormat;
 
 import java.util.Calendar;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 import top.bogey.touch_tool.R;
@@ -165,6 +166,19 @@ public class PinWidgetNumber extends PinWidget<PinNumber<?>> {
                 binding.editText.setEnabled(false);
                 binding.pickButton.setIconResource(R.drawable.icon_calendar_month);
                 binding.pickButton.setVisibility(VISIBLE);
+                binding.spinner.setVisibility(VISIBLE);
+                binding.spinner.setText(R.string.pin_date_today);
+                binding.spinner.setContentDescription(getContext().getString(R.string.pin_date_today));
+                binding.spinner.setOnClickListener(v -> {
+                    // 取本地当天日期再换算成 UTC 零点，与 MaterialDatePicker 的取值约定保持一致
+                    Calendar local = Calendar.getInstance();
+                    Calendar utcOfToday = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+                    utcOfToday.clear();
+                    utcOfToday.set(local.get(Calendar.YEAR), local.get(Calendar.MONTH), local.get(Calendar.DAY_OF_MONTH));
+                    date.setValue(Long.valueOf(utcOfToday.getTimeInMillis()));
+                    pinView.getPin().notifyValueUpdated(card.getTask());
+                    binding.editText.setText(AppUtil.formatDate(getContext(), date.getValue(), true));
+                });
                 binding.pickButton.setOnClickListener(v -> {
                     CalendarConstraints calendarConstraints = new CalendarConstraints.Builder()
                             .setValidator(DateValidatorPointForward.from(System.currentTimeMillis() - 48 * 60 * 60 * 1000))

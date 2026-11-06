@@ -85,6 +85,9 @@ public class SettingView extends Fragment {
                             .show();
                 }
                 return true;
+            } else if (menuItem.getItemId() == R.id.giveRestrictedSettings) {
+                showRestrictedSettingsCmd();
+                return true;
             } else if (menuItem.getItemId() == R.id.helpDoc) {
                 AppUtil.gotoUrl(requireContext(), getString(R.string.setting_help_doc_url));
             } else if (menuItem.getItemId() == R.id.helpVideo) {
@@ -93,6 +96,24 @@ public class SettingView extends Fragment {
             return false;
         }
     };
+
+    // 部分机型禁止侧载应用开启无障碍，需要放开「受限设置」，用 appops 指令授予
+    private void showRestrictedSettingsCmd() {
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.setting_give_restricted_settings)
+                .setMessage(R.string.setting_give_restricted_settings_des);
+        String cmd = String.format("appops set %s ACCESS_RESTRICTED_SETTINGS allow", requireActivity().getPackageName());
+        if (SuperUser.getInstance().isValid()) {
+            builder.setPositiveButton(R.string.setting_execute_shell, (dialog, which) -> SuperUser.getInstance().runCommand(cmd))
+                    .setNegativeButton(R.string.setting_copy_shell, (dialog, which) -> AppUtil.copyToClipboard(requireContext(), cmd))
+                    .setNeutralButton(R.string.cancel, null)
+                    .show();
+        } else {
+            builder.setPositiveButton(R.string.setting_copy_shell, (dialog, which) -> AppUtil.copyToClipboard(requireContext(), cmd))
+                    .setNegativeButton(R.string.cancel, null)
+                    .show();
+        }
+    }
 
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {

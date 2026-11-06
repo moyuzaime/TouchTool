@@ -186,6 +186,8 @@
     <string name="pin_number_time">时间</string>
     <string name="pin_number_periodic">间隔</string>
 
+    <string name="pin_date_today">今</string>
+
     <string name="pin_boolean_condition">条件</string>
     <string name="pin_boolean_result">结果</string>
 
@@ -268,6 +270,9 @@
 
     <string name="setting_auto_give_capture_permission">设置自动开启录屏</string>
     <string name="setting_auto_give_capture_permission_des">授予 自动开启录屏 权限能够在需要使用录屏时自动授权，这样可以更方便快捷的执行各种自动化无人值守任务</string>
+
+    <string name="setting_give_restricted_settings">设置允许受限设置</string>
+    <string name="setting_give_restricted_settings_des">部分手机默认不允许侧载应用开启无障碍服务，点开启会立刻被系统关闭。授予允许受限设置后或可正常开启</string>
 
     <string name="setting_copy_shell">复制指令</string>
     <string name="setting_execute_shell">执行指令</string>
