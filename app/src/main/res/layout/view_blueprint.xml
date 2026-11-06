@@ -55,6 +55,12 @@
             android:spacing="?attr/defaultOffset">
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/jumpBackButton"
+                style="?attr/iconButton"
+                android:visibility="gone"
+                app:icon="@drawable/icon_undo" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/searchButton"
                 style="?attr/iconButton"
                 android:backgroundTint="@color/fill_button_background_check"

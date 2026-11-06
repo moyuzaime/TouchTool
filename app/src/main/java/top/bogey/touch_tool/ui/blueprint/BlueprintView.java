@@ -521,6 +521,8 @@ public class BlueprintView extends Fragment {
         refreshUI();
 
         initEditTools();
+        binding.cardLayout.setJumpBackButton(binding.jumpBackButton);
+        binding.jumpBackButton.setOnClickListener(v -> binding.cardLayout.jumpBack());
         // 卡片组暂存按钮挂在顶栏下方，避免被悬浮的工具栏遮住
         DisplayUtil.setViewMargin(binding.savedGroupBox, 0,
                 DisplayUtil.getStatusBarHeight(requireContext()) + (int) DisplayUtil.dp2px(requireContext(), 64),

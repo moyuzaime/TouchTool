@@ -29,6 +29,7 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -38,6 +39,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -103,6 +105,14 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
     private View savedGroupPanel;
     private ViewGroup savedGroupListBox;
     private View savedGroupButton;
+
+    // 连线跳转：记住跳转前的视图位置，供「跳回」还原
+    private PinView focusLinkPin;
+    private PinView focusLinkOpposite;
+    private View jumpBackButton;
+    private boolean hasSavedOffset = false;
+    private float savedOffsetX;
+    private float savedOffsetY;
 
     private final Handler longTouchHandler;
     private final Handler doubleTouchHandler;
@@ -541,6 +551,93 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
             updateCardPos(card);
         }
         return true;
+    }
+
+    // ===== 连线跳转 / 跳回 =====
+
+    public void setJumpBackButton(View button) {
+        jumpBackButton = button;
+        updateJumpBackButton();
+    }
+
+    private void updateJumpBackButton() {
+        if (jumpBackButton != null) jumpBackButton.setVisibility(focusLinkPin != null ? View.VISIBLE : View.GONE);
+    }
+
+    // 点击针脚：有多条连线时先选一条，再跳到对面那张卡片
+    private void focusPinLink(PinView pinView) {
+        if (pinView == null) return;
+        Map<String, String> links = pinView.getPin().getLinks();
+        if (links.isEmpty()) return;
+        if (links.size() > 1) {
+            showBranchSelector(pinView);
+            return;
+        }
+        Map.Entry<String, String> entry = links.entrySet().iterator().next();
+        PinView opposite = findPinView(entry.getValue(), entry.getKey());
+        if (opposite != null) showFocusLink(pinView, opposite);
+    }
+
+    private PinView findPinView(String ownerId, String pinId) {
+        ActionCard card = cards.get(ownerId);
+        return card == null ? null : card.getPinView(pinId);
+    }
+
+    private void showBranchSelector(PinView pinView) {
+        List<Map.Entry<String, String>> entries = new ArrayList<>(pinView.getPin().getLinks().entrySet());
+        List<String> labels = new ArrayList<>();
+        for (int i = 0; i < entries.size(); i++) labels.add(buildLinkLabel(i, entries.get(i)));
+
+        new MaterialAlertDialogBuilder(getContext())
+                .setTitle(R.string.blueprint_focus_link_title)
+                .setAdapter(new ArrayAdapter<>(getContext(), R.layout.widget_textview_item, labels), (dialog, which) -> {
+                    Map.Entry<String, String> entry = entries.get(which);
+                    PinView opposite = findPinView(entry.getValue(), entry.getKey());
+                    if (opposite != null) showFocusLink(pinView, opposite);
+                })
+                .show();
+    }
+
+    private String buildLinkLabel(int index, Map.Entry<String, String> entry) {
+        Action action = task == null ? null : task.getAction(entry.getValue());
+        if (action == null) return (index + 1) + ". " + entry.getKey();
+        Pin pin = action.getPinById(entry.getKey());
+        return (index + 1) + ". " + action.getTitle() + " · " + (pin == null ? "" : pin.getTitle());
+    }
+
+    private void showFocusLink(PinView pin, PinView opposite) {
+        if (pin == null || opposite == null) return;
+        if (!hasSavedOffset) {
+            savedOffsetX = offsetX;
+            savedOffsetY = offsetY;
+            hasSavedOffset = true;
+        }
+        focusLinkPin = pin;
+        focusLinkOpposite = opposite;
+        updateJumpBackButton();
+        focusLinkedCard(opposite);
+    }
+
+    private void focusLinkedCard(PinView opposite) {
+        ActionCard card = cards.get(opposite.getPin().getOwnerId());
+        if (card == null) return;
+        offsetX += getWidth() / 2f - (card.getX() + card.getWidth() / 2f);
+        offsetY += getHeight() / 2f - (card.getY() + card.getHeight() / 2f);
+        updateCardsPos();
+
+        cleanSelectedCards();
+        addSelectedCard(card);
+        card.bringToFront();
+        invalidate();
+    }
+
+    public void jumpBack() {
+        if (!hasSavedOffset) return;
+        hasSavedOffset = false;
+        focusLinkPin = null;
+        focusLinkOpposite = null;
+        updateJumpBackButton();
+        animateOffsetTo(savedOffsetX, savedOffsetY);
     }
 
     public void setTask(Task task) {
@@ -1021,16 +1118,7 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
                         } else {
                             lastTouchedPin = touchedPin;
                             doubleTouchHandler.postDelayed(() -> {
-                                if (lastTouchedPin != null) {
-                                    Pin pin = lastTouchedPin.getPin();
-                                    Pin linkedPin = pin.getLinkedPin(task);
-                                    if (linkedPin != null) {
-                                        Action action = task.getAction(linkedPin.getOwnerId());
-                                        if (action != null) {
-                                            focusCard(action.getId());
-                                        }
-                                    }
-                                }
+                                if (lastTouchedPin != null) focusPinLink(lastTouchedPin);
                                 lastTouchedPin = null;
                             }, LONG_TOUCH_TIME);
                         }
