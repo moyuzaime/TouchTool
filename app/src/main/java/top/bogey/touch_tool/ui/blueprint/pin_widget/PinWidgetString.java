@@ -75,7 +75,10 @@ public class PinWidgetString extends PinWidget<PinString> {
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
             if (item.getItemId() == R.id.fullScreen) {
                 mode.finish();
-                new SelectEditTextDialog(getContext(), binding.editText, binding.editText::setText).show();
+                // 数学公式的输入针脚在展开编辑时额外给出可点击插入的常用函数
+                String[] functions = pinBase.getSubType() == PinSubType.AUTO_PIN
+                        ? getResources().getStringArray(R.array.math_expression_functions) : null;
+                new SelectEditTextDialog(getContext(), binding.editText, binding.editText::setText, functions).show();
                 return true;
             }
             return false;

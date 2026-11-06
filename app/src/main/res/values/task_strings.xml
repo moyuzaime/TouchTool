@@ -370,6 +370,8 @@
     <string name="math_expression_action_express">公式</string>
     <string name="math_expression_action_result">结果</string>
     <string name="math_expression_action_tips">表达式错误</string>
+    <string name="math_expression_functions_title">常用函数（点一下就能插入）</string>
+    <string name="math_expression_operators">变量要用英文字母或下划线开头，后面可以跟字母、数字、下划线，长短不限，大写和小写算不同变量。加、减、乘、除分别用 +、-、*、/，乘方用 ^，取余用 %。换行会直接接在一起、不留空格，留意别把两行的名字连成一个变量。公式也可以由文本拼接等针脚连入：这时请把数值直接拼进公式里（例如 3*sqrt(4)+2），不要留下字母变量名；连入公式时不会生成变量针脚，运行时没地方给它们赋值，公式会算不出来。</string>
 
     <string name="number_add_action">数值相加</string>
     <string name="number_add_action_desc">将多个数值相加</string>

@@ -392,4 +392,27 @@
         <item>音乐应用</item>
     </string-array>
 
+    <!-- 数学公式可插入的常用函数，格式为「函数名|说明」 -->
+    <string-array name="math_expression_functions" translatable="false">
+        <item>abs|取绝对值</item>
+        <item>acos|求反余弦</item>
+        <item>asin|求反正弦</item>
+        <item>atan|求反正切</item>
+        <item>cbrt|求立方根</item>
+        <item>ceil|向上取整</item>
+        <item>cos|求余弦</item>
+        <item>cosh|求双曲余弦</item>
+        <item>exp|求指数（e 的 x 次方）</item>
+        <item>floor|向下取整</item>
+        <item>log|求自然对数（底 e）</item>
+        <item>log2|求以 2 为底的对数</item>
+        <item>log10|求以 10 为底的对数</item>
+        <item>sin|求正弦</item>
+        <item>sinh|求双曲正弦</item>
+        <item>sqrt|求平方根</item>
+        <item>tan|求正切</item>
+        <item>tanh|求双曲正切</item>
+        <item>signum|求符号（负 -1、零 0、正 1）</item>
+    </string-array>
+
 </resources>
