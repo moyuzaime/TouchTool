@@ -31,6 +31,8 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -857,6 +859,18 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
         cards.put(action.getId(), card);
         addView(card);
         updateCardPos(card);
+
+        // 新卡片淡入并轻微放大，避免凭空出现
+        card.setAlpha(0f);
+        card.setScaleX(scale * 0.92f);
+        card.setScaleY(scale * 0.92f);
+        card.animate()
+                .alpha(1f)
+                .scaleX(scale)
+                .scaleY(scale)
+                .setDuration(180)
+                .setInterpolator(new DecelerateInterpolator())
+                .start();
         return card;
     }
 
@@ -865,10 +879,22 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
         action.getPins().forEach(pin -> pin.clearLinks(task));
         task.removeAction(action.getId());
         cards.remove(action.getId());
-        removeView(card);
         pruneSavedGroupsOnCardRemoved(card);
 
         if (selectedCards.remove(card)) refreshEditView();
+
+        // 淡出后再移除视图，避免卡片直接消失
+        card.animate()
+                .alpha(0f)
+                .scaleX(scale * 0.92f)
+                .scaleY(scale * 0.92f)
+                .setDuration(120)
+                .setInterpolator(new AccelerateInterpolator())
+                .withEndAction(() -> {
+                    removeView(card);
+                    card.setAlpha(1f);
+                })
+                .start();
     }
 
     public void initCardPos(ActionCard card) {

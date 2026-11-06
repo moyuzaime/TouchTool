@@ -48,6 +48,7 @@ import top.bogey.touch_tool.ui.blueprint.selecter.select_action.SelectActionDial
 import top.bogey.touch_tool.ui.tool.log.LogFloatView;
 import top.bogey.touch_tool.utils.AppLog;
 import top.bogey.touch_tool.utils.AppUtil;
+import top.bogey.touch_tool.utils.AnimUtil;
 import top.bogey.touch_tool.utils.DisplayUtil;
 import top.bogey.touch_tool.utils.ThreadUtil;
 import top.bogey.touch_tool.utils.listener.TextChangedListener;
@@ -140,8 +141,12 @@ public class BlueprintView extends Fragment {
     public static void tryShowFloatingToolBar(boolean show) {
         Fragment fragment = MainActivity.getCurrentFragment();
         if (fragment instanceof BlueprintView blueprintView) {
-            blueprintView.binding.floatingToolBar.setVisibility(show ? View.VISIBLE : View.GONE);
-            blueprintView.binding.baseToolBar.setVisibility(show ? View.GONE : View.VISIBLE);
+            // 两条工具栏交替淡入淡出，避免选中卡片时底部瞬间换一整套按钮
+            if (show) {
+                AnimUtil.swap(blueprintView.binding.baseToolBar, 16f, blueprintView.binding.floatingToolBar, -16f);
+            } else {
+                AnimUtil.swap(blueprintView.binding.floatingToolBar, 16f, blueprintView.binding.baseToolBar, -16f);
+            }
 
             if (show) {
                 List<Action> selectedActions = blueprintView.binding.cardLayout.getSelectedActions();
@@ -229,8 +234,14 @@ public class BlueprintView extends Fragment {
         });
 
         binding.searchButton.addOnCheckedChangeListener((buttonView, isChecked) -> {
-            binding.searchBox.setVisibility(isChecked ? View.VISIBLE : View.GONE);
-            binding.searchOptionBox.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            // 搜索栏从上方落下/收回，避免瞬间弹出
+            if (isChecked) {
+                AnimUtil.show(binding.searchBox, -8f);
+                AnimUtil.show(binding.searchOptionBox, -8f);
+            } else {
+                AnimUtil.hide(binding.searchBox, -8f);
+                AnimUtil.hide(binding.searchOptionBox, -8f);
+            }
             binding.searchEdit.setText("");
             // 搜索时隐藏顶部跳转按钮，避免和搜索栏重叠
             applyEditToolsVisible(isChecked);
