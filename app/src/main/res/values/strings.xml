@@ -225,6 +225,10 @@
     <string name="picker_test_region_reselect">重选区域</string>
     <string name="picker_test_copy_area">复制区域</string>
     <string name="blueprint_edit_tools">辅助工具</string>
+    <string name="blueprint_saved_group_list">卡片组暂存列表</string>
+    <string name="blueprint_saved_group_cleared">已清空暂存的卡片组</string>
+    <string name="blueprint_move_selected_here">把选中的卡片移到当前视野中央</string>
+    <string name="blueprint_move_selected_here_noop">卡片已在当前视野中央，或已全部锁定</string>
     <string name="picker_point_title">选择位置</string>
     <string name="picker_touch_title">采集手势</string>
     <string name="picker_node_title">选择控件</string>

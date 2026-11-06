@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -22,16 +23,21 @@ import android.graphics.Shader;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.AttributeSet;
+import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.google.android.material.button.MaterialButton;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -88,6 +94,15 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
     }
 
     private OnScaleChangedListener scaleChangedListener;
+
+    // 卡片组暂存：每组是一批动作 id，只存内存不落盘
+    private final List<Set<String>> savedCardGroups = new ArrayList<>();
+    private final List<ActionCard> savedGroupHighlightCards = new ArrayList<>();
+    private int highlightedGroup = -1;
+    private boolean savedGroupPanelOpen = false;
+    private View savedGroupPanel;
+    private ViewGroup savedGroupListBox;
+    private View savedGroupButton;
 
     private final Handler longTouchHandler;
     private final Handler doubleTouchHandler;
@@ -251,6 +266,10 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
     }
 
     private void animateOffsetTo(float toX, float toY) {
+        animateOffsetTo(toX, toY, null);
+    }
+
+    private void animateOffsetTo(float toX, float toY, Runnable endAction) {
         float fromX = offsetX;
         float fromY = offsetY;
         ValueAnimator animator = ValueAnimator.ofFloat(0f, 1f);
@@ -260,7 +279,268 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
             offsetY = fromY + (toY - fromY) * fraction;
             updateCardsPos();
         });
+        if (endAction != null) {
+            animator.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    endAction.run();
+                }
+            });
+        }
         animator.start();
+    }
+
+    // ===== 卡片组暂存 =====
+
+    public void initSavedGroupViews(View panel, ViewGroup listBox, View button) {
+        savedGroupPanel = panel;
+        savedGroupListBox = listBox;
+        savedGroupButton = button;
+        button.setOnClickListener(v -> onSavedGroupButtonClick());
+        // 长按清空全部暂存组
+        button.setOnLongClickListener(v -> {
+            if (isSavedGroupAddMode()) return true;
+            savedCardGroups.clear();
+            highlightedGroup = -1;
+            savedGroupPanelOpen = false;
+            clearSavedGroupHighlight();
+            refreshSavedGroupViews();
+            Toast.makeText(getContext(), R.string.blueprint_saved_group_cleared, Toast.LENGTH_SHORT).show();
+            return true;
+        });
+        refreshSavedGroupViews();
+    }
+
+    private Set<String> currentSelectionIds() {
+        Set<String> ids = new HashSet<>();
+        for (ActionCard card : selectedCards) {
+            if (card != null && card.getAction() != null) ids.add(card.getAction().getId());
+        }
+        return ids;
+    }
+
+    private boolean isSavedGroupAddMode() {
+        Set<String> ids = currentSelectionIds();
+        if (ids.isEmpty()) return false;
+        for (Set<String> group : savedCardGroups) {
+            if (group.containsAll(ids)) return false;
+        }
+        return true;
+    }
+
+    private void onSavedGroupButtonClick() {
+        if (isSavedGroupAddMode()) {
+            savedCardGroups.add(currentSelectionIds());
+            highlightedGroup = savedCardGroups.size() - 1;
+            savedGroupPanelOpen = true;
+        } else {
+            savedGroupPanelOpen = !savedGroupPanelOpen;
+        }
+        refreshSavedGroupViews();
+    }
+
+    private List<ActionCard> resolveSavedGroup(int index) {
+        List<ActionCard> result = new ArrayList<>();
+        if (index >= 0 && index < savedCardGroups.size()) {
+            for (String id : savedCardGroups.get(index)) {
+                ActionCard card = cards.get(id);
+                if (card != null) result.add(card);
+            }
+        }
+        return result;
+    }
+
+    private void clearSavedGroupHighlight() {
+        for (ActionCard card : savedGroupHighlightCards) {
+            if (card != null) {
+                card.setSavedGroupHighlight(false);
+                if (selectedCards.contains(card)) card.setSelected(true);
+            }
+        }
+        savedGroupHighlightCards.clear();
+    }
+
+    private void applySavedGroupHighlight(List<ActionCard> groupCards) {
+        clearSavedGroupHighlight();
+        if (groupCards.isEmpty()) return;
+        for (ActionCard card : groupCards) {
+            if (card != null && card.getAction() != null && cards.get(card.getAction().getId()) == card) {
+                card.setSavedGroupHighlight(true);
+                savedGroupHighlightCards.add(card);
+            }
+        }
+    }
+
+    public boolean focusSavedGroup(int index) {
+        List<ActionCard> groupCards = resolveSavedGroup(index);
+        if (groupCards.isEmpty()) return false;
+        highlightedGroup = index;
+        RectF area = calculateCardsArea(groupCards);
+        animateOffsetTo(getWidth() / 2f - area.centerX(), getHeight() / 2f - area.centerY(),
+                () -> applySavedGroupHighlight(groupCards));
+        invalidate();
+        refreshSavedGroupViews();
+        return true;
+    }
+
+    public void moveSavedGroupToViewCenter(int index) {
+        List<ActionCard> groupCards = resolveSavedGroup(index);
+        if (groupCards.isEmpty()) return;
+        highlightedGroup = index;
+        if (!moveCardsToViewCenter(groupCards)) {
+            Toast.makeText(getContext(), R.string.blueprint_move_selected_here_noop, Toast.LENGTH_SHORT).show();
+        }
+        applySavedGroupHighlight(groupCards);
+        refreshSavedGroupViews();
+    }
+
+    public void removeSavedGroup(int index) {
+        if (index < 0 || index >= savedCardGroups.size()) return;
+        savedCardGroups.remove(index);
+        if (savedCardGroups.isEmpty()) {
+            highlightedGroup = -1;
+            savedGroupPanelOpen = false;
+            clearSavedGroupHighlight();
+        } else if (highlightedGroup == index) {
+            highlightedGroup = -1;
+            clearSavedGroupHighlight();
+        } else if (highlightedGroup > index) {
+            highlightedGroup--;
+            applySavedGroupHighlight(resolveSavedGroup(highlightedGroup));
+        }
+        refreshSavedGroupViews();
+    }
+
+    private void refreshSavedGroupViews() {
+        if (savedGroupPanel == null || savedGroupListBox == null || savedGroupButton == null) return;
+
+        boolean addMode = isSavedGroupAddMode();
+        boolean empty = savedCardGroups.isEmpty();
+        View parent = (View) savedGroupButton.getParent();
+        if (parent != null) parent.setVisibility(!empty || addMode ? View.VISIBLE : View.GONE);
+
+        if (savedGroupButton instanceof MaterialButton button) {
+            button.setIconResource(addMode ? R.drawable.icon_radio_button_unchecked : R.drawable.icon_radio_button_checked);
+        }
+
+        boolean open = savedGroupPanelOpen && !empty;
+        savedGroupPanel.setVisibility(open ? View.VISIBLE : View.GONE);
+        if (!open) return;
+
+        int rowHeight = (int) DisplayUtil.dp2px(getContext(), 36);
+        int padding = (int) DisplayUtil.dp2px(getContext(), 8);
+        ViewGroup.LayoutParams params = savedGroupPanel.getLayoutParams();
+        if (params != null) {
+            params.height = Math.min(rowHeight * 4 + padding, savedCardGroups.size() * rowHeight + padding);
+            savedGroupPanel.requestLayout();
+        }
+
+        savedGroupListBox.removeAllViews();
+        int buttonSize = (int) DisplayUtil.dp2px(getContext(), 32);
+        for (int i = 0; i < savedCardGroups.size(); i++) {
+            final int index = i;
+            LinearLayout row = new LinearLayout(getContext());
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, rowHeight));
+
+            TextView indexView = new TextView(getContext());
+            indexView.setText(String.valueOf(i + 1));
+            indexView.setGravity(Gravity.CENTER);
+            indexView.setTextSize(12);
+            indexView.setTextColor(DisplayUtil.getAttrColor(getContext(), androidx.appcompat.R.attr.colorPrimary));
+            indexView.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f));
+            if (i == highlightedGroup) {
+                indexView.setBackgroundColor(DisplayUtil.getAttrColor(getContext(), com.google.android.material.R.attr.colorTertiaryContainer));
+            }
+            indexView.setOnClickListener(v -> focusSavedGroup(index));
+            row.addView(indexView);
+
+            row.addView(makeSavedGroupActionButton(buttonSize, R.drawable.icon_delete, R.string.remove_task,
+                    v -> removeSavedGroup(index)));
+            row.addView(makeSavedGroupActionButton(buttonSize, R.drawable.icon_my_location, R.string.blueprint_move_selected_here,
+                    v -> moveSavedGroupToViewCenter(index)));
+            savedGroupListBox.addView(row);
+        }
+    }
+
+    private View makeSavedGroupActionButton(int size, int iconRes, int descRes, OnClickListener listener) {
+        MaterialButton button = new MaterialButton(getContext(), null, com.google.android.material.R.attr.materialIconButtonStyle);
+        button.setLayoutParams(new LinearLayout.LayoutParams(size, size));
+        button.setIconResource(iconRes);
+        button.setIconTint(ColorStateList.valueOf(DisplayUtil.getAttrColor(getContext(), androidx.appcompat.R.attr.colorPrimary)));
+        button.setInsetTop(0);
+        button.setInsetBottom(0);
+        button.setPadding(0, 0, 0, 0);
+        button.setContentDescription(getContext().getString(descRes));
+        button.setOnClickListener(listener);
+        return button;
+    }
+
+    // 卡片被删除时，把它的 id 从所有暂存组里剔除，空了就整组移除
+    private boolean pruneSavedGroupsOnCardRemoved(ActionCard card) {
+        if (card == null || card.getAction() == null || savedCardGroups.isEmpty()) return false;
+        String id = card.getAction().getId();
+        if (id == null) return false;
+
+        boolean changed = false;
+        boolean clearHighlight = false;
+        int shift = 0;
+        for (int i = savedCardGroups.size() - 1; i >= 0; i--) {
+            Set<String> group = savedCardGroups.get(i);
+            if (!group.remove(id)) continue;
+            if (group.isEmpty()) {
+                savedCardGroups.remove(i);
+                if (i == highlightedGroup) {
+                    changed = true;
+                    clearHighlight = true;
+                } else {
+                    if (i < highlightedGroup) shift++;
+                    changed = true;
+                }
+            } else {
+                changed = true;
+            }
+        }
+        if (!changed) return false;
+
+        if (clearHighlight) {
+            highlightedGroup = -1;
+            clearSavedGroupHighlight();
+        } else {
+            highlightedGroup -= shift;
+        }
+        refreshSavedGroupViews();
+        return true;
+    }
+
+    private boolean moveCardsToViewCenter(Collection<ActionCard> collection) {
+        if (collection.isEmpty()) return false;
+        List<ActionCard> movable = new ArrayList<>();
+        for (ActionCard card : new HashSet<>(collection)) {
+            if (card == null || card.getAction() == null) continue;
+            if (card.getAction().isLocked()) continue;
+            if (cards.get(card.getAction().getId()) != card) continue;
+            movable.add(card);
+        }
+        if (movable.isEmpty()) return false;
+
+        float grid = getScaleGridSize();
+        if (grid <= 0 || getWidth() <= 0 || getHeight() <= 0) return false;
+
+        RectF area = calculateCardsArea(movable);
+        int dx = Math.round((getWidth() / 2f - offsetX - area.centerX()) / grid);
+        int dy = Math.round((getHeight() / 2f - offsetY - area.centerY()) / grid);
+        if (dx == 0 && dy == 0) return false;
+
+        for (ActionCard card : movable) {
+            Point pos = card.getAction().getPos();
+            if (pos == null) continue;
+            pos.x += dx;
+            pos.y += dy;
+            updateCardPos(card);
+        }
+        return true;
     }
 
     public void setTask(Task task) {
@@ -364,6 +644,7 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
         task.removeAction(action.getId());
         cards.remove(action.getId());
         removeView(card);
+        pruneSavedGroupsOnCardRemoved(card);
 
         if (selectedCards.remove(card)) refreshEditView();
     }
@@ -489,6 +770,7 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
 
     private void refreshEditView() {
         BlueprintView.tryShowFloatingToolBar(!selectedCards.isEmpty());
+        refreshSavedGroupViews();
     }
 
     public void refreshPinView() {

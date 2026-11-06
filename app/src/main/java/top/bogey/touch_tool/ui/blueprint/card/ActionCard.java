@@ -2,6 +2,7 @@ package top.bogey.touch_tool.ui.blueprint.card;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.graphics.Canvas;
 import android.graphics.PointF;
 import android.graphics.RectF;
@@ -29,6 +30,7 @@ import top.bogey.touch_tool.bean.action.ActionListener;
 import top.bogey.touch_tool.bean.pin.Pin;
 import top.bogey.touch_tool.bean.task.Task;
 import top.bogey.touch_tool.ui.blueprint.CardLayoutView;
+import top.bogey.touch_tool.utils.DisplayUtil;
 import top.bogey.touch_tool.ui.blueprint.pin.PinView;
 import top.bogey.touch_tool.utils.AppUtil;
 import top.bogey.touch_tool.utils.DisplayUtil;
@@ -40,6 +42,10 @@ public abstract class ActionCard extends MaterialCardView implements ActionListe
     protected final Map<String, PinView> pinViews = new HashMap<>();
     private boolean needDelete = false;
     private boolean needDraw = true;
+
+    private boolean savedGroupHighlight = false;
+    private ColorStateList savedGroupBackground;
+    private int savedGroupStrokeWidth;
 
     private MaterialTextView posView;
 
@@ -367,5 +373,22 @@ public abstract class ActionCard extends MaterialCardView implements ActionListe
 
     public Map<String, PinView> getPinViews() {
         return pinViews;
+    }
+
+    // 卡片组暂存时的临时高亮：记住原底色和描边，取消高亮时还原
+    public void setSavedGroupHighlight(boolean highlight) {
+        if (savedGroupHighlight == highlight) return;
+        if (highlight) {
+            savedGroupBackground = getCardBackgroundColor();
+            savedGroupStrokeWidth = getStrokeWidth();
+            setCardBackgroundColor(DisplayUtil.getAttrColor(getContext(), com.google.android.material.R.attr.colorSecondaryContainer));
+            setStrokeWidth(0);
+        } else {
+            if (savedGroupBackground != null) setCardBackgroundColor(savedGroupBackground);
+            setStrokeWidth(savedGroupStrokeWidth);
+            savedGroupBackground = null;
+        }
+        savedGroupHighlight = highlight;
+        invalidate();
     }
 }
