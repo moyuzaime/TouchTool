@@ -454,6 +454,15 @@
                 android:visibility="gone"
                 app:icon="@drawable/icon_content_paste_more"
                 app:iconSize="32dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/savedGroupBarButton"
+                style="?attr/defaultIconButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/blueprint_saved_group_list"
+                android:visibility="gone"
+                app:icon="@drawable/icon_note_stack" />
         </com.google.android.material.button.MaterialButtonGroup>
 
     </com.google.android.material.card.MaterialCardView>

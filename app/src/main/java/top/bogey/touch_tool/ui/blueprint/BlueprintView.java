@@ -524,6 +524,7 @@ public class BlueprintView extends Fragment {
         binding.cardLayout.setJumpBackButton(binding.jumpBackButton);
         binding.jumpBackButton.setOnClickListener(v -> binding.cardLayout.jumpBack());
         binding.cardLayout.initSavedGroupViews(binding.savedGroupPanel, binding.savedGroupListBox, binding.savedGroupButton);
+        binding.cardLayout.setSavedGroupBarButton(binding.savedGroupBarButton);
         setResultCount("");
 
         pushStack(task);
