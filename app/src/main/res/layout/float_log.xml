@@ -91,17 +91,6 @@
                     android:textColor="?attr/colorOutline"
                     android:visibility="gone" />
 
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:id="@+id/dragImage"
-                    android:layout_width="?attr/smallIconButtonSize"
-                    android:layout_height="?attr/smallIconButtonSize"
-                    android:layout_gravity="end|bottom"
-                    android:scaleType="centerInside"
-                    android:src="@drawable/icon_line_curve"
-                    android:tint="?attr/colorOutlineVariant"
-                    android:translationX="?attr/defaultOffset"
-                    android:translationY="?attr/defaultOffset" />
-
             </FrameLayout>
 
             <!-- 鎼滅储鏍忥細绠ご骞舵帓锛屾悳绱㈤€夐」鏀惰繘鍙充晶鑿滃崟 -->
@@ -110,6 +99,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="?attr/defaultOffset"
                 android:gravity="center_vertical"
+                android:paddingEnd="?attr/smallIconButtonSize"
                 android:orientation="horizontal">
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -184,6 +174,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
                 android:layout_marginTop="?attr/defaultOffset"
+                android:layout_marginEnd="?attr/smallIconButtonSize"
                 android:spacing="?attr/defaultOffset"
                 android:visibility="gone">
 
@@ -264,6 +255,16 @@
         </LinearLayout>
 
     </FrameLayout>
+
+    <!-- 缩放手柄固定在整个悬浮窗的右下角 -->
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/dragImage"
+        android:layout_width="?attr/smallIconButtonSize"
+        android:layout_height="?attr/smallIconButtonSize"
+        android:layout_gravity="end|bottom"
+        android:scaleType="centerInside"
+        android:src="@drawable/icon_line_curve"
+        android:tint="?attr/colorOutlineVariant" />
 
 </com.google.android.material.card.MaterialCardView>
 

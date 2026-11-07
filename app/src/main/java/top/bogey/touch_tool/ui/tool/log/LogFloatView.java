@@ -90,6 +90,7 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
                 if (newState == RecyclerView.SCROLL_STATE_IDLE && isNearBottom()) autoFollow = true;
             }
         });
+        initResizeHandle();
 
         binding.title.setOnClickListener(v -> {
             ListPopupWindow popup = new ListPopupWindow(context);
@@ -250,16 +251,6 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             canDrag = false;
             int[] location = new int[2];
-            // 手柄在列表区域内，必须先判断手柄，否则会被下面的列表判定拦掉导致缩放失效
-            binding.dragImage.getLocationOnScreen(location);
-            if (new RectF(location[0], location[1], location[0] + binding.dragImage.getWidth(), location[1] + binding.dragImage.getHeight()).contains(x, y)) {
-                FloatWindow.setDragAble(tag, false);
-                lastX = 0;
-                lastY = 0;
-                canDrag = true;
-                return super.onInterceptTouchEvent(event);
-            }
-
             binding.recyclerView.getLocationOnScreen(location);
             if (new RectF(location[0], location[1], location[0] + binding.recyclerView.getWidth(), location[1] + binding.recyclerView.getHeight()).contains(x, y)) {
                 FloatWindow.setDragAble(tag, false);
@@ -267,15 +258,6 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
             }
 
             FloatWindow.setDragAble(tag, true);
-        } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-            if (!canDrag) return false;
-            if ((lastX == 0 && lastY == 0) || (lastX == x && lastY == y)) {
-                lastX = x;
-                lastY = y;
-                return false;
-            }
-            dragging = true;
-            return true;
         }
         return super.onInterceptTouchEvent(event);
     }
@@ -283,35 +265,46 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        float x = event.getRawX();
-        float y = event.getRawY();
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_MOVE -> {
-                float dx = x - lastX;
-                float dy = y - lastY;
-                ViewGroup.LayoutParams params = binding.getRoot().getLayoutParams();
-                if (params.width <= 0) params.width = originWidth;
-                if (params.height <= 0) params.height = originHeight;
-                params.width += (int) dx;
-                params.height += (int) dy;
-                params.width = Math.clamp(params.width, minWidth, maxWidth);
-                params.height = Math.clamp(params.height, minHeight, maxHeight);
-                binding.getRoot().setLayoutParams(params);
-                FloatWindow.updateLayoutParam(tag);
-                lastX = x;
-                lastY = y;
-                return true;
-            }
+        return super.onTouchEvent(event);
+    }
 
-            case MotionEvent.ACTION_UP -> {
-                if (dragging) {
+    // 缩放交给手柄自己处理：手柄贴在窗口右下角，父容器的拦截容易和子控件抢事件
+    private void initResizeHandle() {
+        binding.dragImage.setOnTouchListener((view, event) -> {
+            float x = event.getRawX();
+            float y = event.getRawY();
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN -> {
+                    lastX = x;
+                    lastY = y;
+                    dragging = true;
+                    FloatWindow.setDragAble(tag, false);
+                    return true;
+                }
+                case MotionEvent.ACTION_MOVE -> {
+                    float dx = x - lastX;
+                    float dy = y - lastY;
+                    ViewGroup.LayoutParams params = binding.getRoot().getLayoutParams();
+                    if (params.width <= 0) params.width = originWidth;
+                    if (params.height <= 0) params.height = originHeight;
+                    params.width += (int) dx;
+                    params.height += (int) dy;
+                    params.width = Math.clamp(params.width, minWidth, maxWidth);
+                    params.height = Math.clamp(params.height, minHeight, maxHeight);
+                    binding.getRoot().setLayoutParams(params);
+                    FloatWindow.updateLayoutParam(tag);
+                    lastX = x;
+                    lastY = y;
+                    return true;
+                }
+                case MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                     dragging = false;
                     FloatWindow.setDragAble(tag, true);
+                    return true;
                 }
-                return true;
             }
-        }
-        return false;
+            return false;
+        });
     }
 
     @Override
