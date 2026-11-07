@@ -156,6 +156,24 @@ public class MainActivity extends FloatViewActivity {
         return -1;
     }
 
+    // 立即隐藏底部导航栏：进入选择模式时用，避免导航栏 GONE 引起容器重排，
+    // 让随之出现的工具栏先落在旧位置再跳下来
+    public void hideBottomNavigationImmediately() {
+        View view = binding.menuView;
+        view.animate().cancel();
+        view.setVisibility(View.GONE);
+        view.setAlpha(1f);
+        view.setTranslationY(0f);
+    }
+
+    public void showBottomNavigationImmediately() {
+        View view = binding.menuView;
+        view.animate().cancel();
+        view.setVisibility(View.VISIBLE);
+        view.setAlpha(1f);
+        view.setTranslationY(0f);
+    }
+
     // 底部导航栏随页面切换淡入，避免瞬间出现
     public void showBottomNavigation() {
         View view = binding.menuView;

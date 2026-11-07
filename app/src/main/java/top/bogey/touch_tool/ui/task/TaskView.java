@@ -285,7 +285,7 @@ public class TaskView extends Fragment implements TaskSaveListener {
     }
 
     public void showBottomBar() {
-        MainApplication.getInstance().getActivity().hideBottomNavigation();
+        MainApplication.getInstance().getActivity().hideBottomNavigationImmediately();
 
         // 添加按钮先下沉收走，选择工具栏再浮上来
         AnimUtil.swapSequential(binding.addButton, 16f, binding.bottomBar, 16f);
@@ -296,10 +296,11 @@ public class TaskView extends Fragment implements TaskSaveListener {
     }
 
     public void hideBottomBar() {
-        MainApplication.getInstance().getActivity().showBottomNavigation();
-
-        // 选择工具栏先下沉收走，添加按钮再浮上来
-        AnimUtil.swapSequential(binding.bottomBar, 16f, binding.addButton, 16f);
+        // 选择工具栏先下沉收走，再恢复底部导航栏与添加按钮
+        AnimUtil.hide(binding.bottomBar, 16f, AnimUtil.DEFAULT_DURATION, () -> {
+            MainApplication.getInstance().getActivity().showBottomNavigation();
+            AnimUtil.show(binding.addButton, 16f);
+        });
 
         selecting = false;
         selected.clear();

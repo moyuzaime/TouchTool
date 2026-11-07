@@ -28,8 +28,7 @@ public class AnimUtil {
         view.setTranslationY(DisplayUtil.dp2px(view.getContext(), fromDp));
         view.setVisibility(View.VISIBLE);
 
-        // 等这一帧的测量布局完成后再启动，否则 wrap_content /
-        // DockedToolbarLayout 这类会在首帧先按旧尺寸落位，看起来像"先出现在别处再下滑"
+        // 等这一帧的测量布局完成后再启动
         view.post(() -> {
             if (view.getVisibility() != View.VISIBLE) return;
             view.animate()
