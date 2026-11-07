@@ -162,8 +162,8 @@ public class LogFloatViewAdapter extends TreeAdapter {
         if (index < 0) return -1;
 
         if (!isNext) {
-            // 展开块的第一行内容
-            return index + 1 < treeNodes.size() ? index + 1 : -1;
+            // 直接跳到展开节点本身那一行
+            return index;
         }
 
         // 展开块的最后一行：顺着 depth 走完这棵子树
