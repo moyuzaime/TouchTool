@@ -1439,6 +1439,35 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
         public int width, height;
     }
 
+    // 所有连线的绘制包围盒（含曲线弯出去的部分），没有连线时返回 null
+    private RectF calculateLinkBounds() {
+        RectF total = null;
+        RectF temp = new RectF();
+        for (ActionCard card : cards.values()) {
+            Action action = card.getAction();
+            if (action == null) continue;
+
+            for (Pin pin : action.getPins()) {
+                PinView startView = card.getPinView(pin.getId());
+                if (startView == null) continue;
+
+                for (Map.Entry<String, String> link : pin.getLinks().entrySet()) {
+                    ActionCard targetCard = cards.get(link.getValue());
+                    if (targetCard == null) continue;
+
+                    PinView endView = targetCard.getPinView(link.getKey());
+                    if (endView == null) continue;
+
+                    Path path = calculateLinkPath(startView, endView);
+                    path.computeBounds(temp, true);
+                    if (total == null) total = new RectF(temp);
+                    else total.union(temp);
+                }
+            }
+        }
+        return total;
+    }
+
     /**
      * 准备导出：切到原始比例并算出整张图的区域。
      * 会改动卡片位置，必须在 UI 线程调用；之后用 {@link #drawCaptureBand} 在后台逐带绘制。
@@ -1457,14 +1486,18 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
         updateCardsPos();
         cards.values().forEach(card -> card.setNeedDraw(true));
 
-        // 计算所有卡片的绘制区域；留出比卡片本身更大的边距，
-        // 否则连线的贝塞尔曲线弯出卡片范围时会被裁掉
+        // 计算所有卡片的绘制区域，并并上连线的真实包围盒：
+        // 连线是贝塞尔曲线，会弯出卡片范围，只按卡片包围盒留边仍会被裁
         RectF area = calculateCardsArea(cards.values());
-        float padding = gridSize * (CardLayoutHelper.CORNER_GRID_COUNT + 6);
+        RectF linkBounds = calculateLinkBounds();
+        if (linkBounds != null) area.union(linkBounds);
+        float padding = gridSize * 2;
         area.inset(-padding, -padding);
 
-        offsetX = -area.left;
-        offsetY = -area.top;
+        // 这里不能把区域左上角再写进 offset：卡片坐标本身就在内容坐标系里，
+        // 对齐交给 drawCaptureBand 的 translate，否则内容会整体偏一段、边缘被裁
+        offsetX = 0;
+        offsetY = 0;
         updateCardsPos();
         cards.values().forEach(card -> card.setNeedDraw(true));
 
