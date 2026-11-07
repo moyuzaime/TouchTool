@@ -14,6 +14,8 @@ import android.widget.FrameLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.ListPopupWindow;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -301,9 +303,10 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
         if (task == null) return;
         LogSave logSave = LogSaver.getInstance().getLogSave(task.getId());
         if (logSave.getLogCount() != lastRootCount) {
+            boolean follow = isNearBottom();
             lastRootCount = logSave.getLogCount();
             adapter.syncRoots(logSave);
-            scrollToBottom();
+            if (follow) scrollToBottom();
         }
         postDelayed(pollRunnable, 500);
     }
@@ -317,6 +320,19 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
         scrollToBottom();
     }
 
+    // 只有用户本来就在底部时才自动跟随；正在往上翻看时不要把人顶走
+    private boolean isNearBottom() {
+        RecyclerView recyclerView = binding.recyclerView;
+        RecyclerView.LayoutManager manager = recyclerView.getLayoutManager();
+        if (manager == null || manager.getItemCount() == 0) return true;
+        if (manager instanceof LinearLayoutManager linearManager) {
+            int last = linearManager.findLastVisibleItemPosition();
+            if (last == RecyclerView.NO_POSITION) return true;
+            return last >= manager.getItemCount() - 2;
+        }
+        return true;
+    }
+
     private void scrollToBottom() {
         int count = adapter.getItemCount();
         if (count > 0) binding.recyclerView.scrollToPosition(count - 1);
@@ -326,11 +342,12 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
     public void onNewLog(LogSave logSave, LogInfo log) {
         if (task == null) return;
         if (!logSave.getKey().equals(task.getId())) return;
-        // 逐条插入，不重建列表
+        // 逐条插入，不重建列表；只在本来就在底部时跟随滚动
         post(() -> {
+            boolean follow = isNearBottom();
             adapter.syncLog(logSave, log);
             lastRootCount = logSave.getLogCount();
-            scrollToBottom();
+            if (follow) scrollToBottom();
         });
     }
 }
