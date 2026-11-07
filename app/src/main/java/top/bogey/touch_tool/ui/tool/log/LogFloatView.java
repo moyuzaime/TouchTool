@@ -198,8 +198,19 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
         String s = "";
         Editable text = binding.searchEdit.getText();
         if (text != null) s = text.toString();
+
+        // 没有搜索词时，上下箭头在展开块里跳：上箭头到展开内容第一行，下箭头到最后一行
+        if (s.isEmpty()) {
+            int edge = adapter.findExpandedEdge(isNext);
+            int count = adapter.getItemCount();
+            if (count <= 0) return;
+            if (edge < 0) edge = isNext ? count - 1 : 0;
+            binding.recyclerView.scrollToPosition(edge);
+            return;
+        }
+
         int index = adapter.searchLog(s, isNext);
-        if (index > 0) binding.recyclerView.scrollToPosition(index);
+        if (index >= 0) binding.recyclerView.scrollToPosition(index);
         else binding.recyclerView.scrollToPosition(adapter.getItemCount() - 1);
     }
 

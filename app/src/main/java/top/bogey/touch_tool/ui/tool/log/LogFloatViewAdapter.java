@@ -151,6 +151,34 @@ public class LogFloatViewAdapter extends TreeAdapter {
         }
     }
 
+    // 没有搜索词时上下箭头的目标：展开块的第一行内容 / 最后一行内容
+    public int findExpandedEdge(boolean isNext) {
+        if (isNext) {
+            // 从后往前找最后一个展开节点，取它整棵子树的末尾
+            for (int i = treeNodes.size() - 1; i >= 0; i--) {
+                TreeNode node = treeNodes.get(i);
+                if (!node.isExpanded()) continue;
+                int end = i;
+                for (int j = i + 1; j < treeNodes.size(); j++) {
+                    if (treeNodes.get(j).getDepth() <= node.getDepth()) break;
+                    end = j;
+                }
+                if (end > i) return end;
+            }
+            return -1;
+        }
+
+        // 从前往后找第一个展开节点，取它的第一个子项
+        for (int i = 0; i < treeNodes.size(); i++) {
+            TreeNode node = treeNodes.get(i);
+            if (!node.isExpanded()) continue;
+            if (i + 1 < treeNodes.size() && treeNodes.get(i + 1).getDepth() > node.getDepth()) {
+                return i + 1;
+            }
+        }
+        return -1;
+    }
+
     private boolean isRootIndex(String uid, LogSave logSave) {
         try {
             int index = Integer.parseInt(uid);
