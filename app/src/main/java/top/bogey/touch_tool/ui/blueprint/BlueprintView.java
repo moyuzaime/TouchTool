@@ -4,17 +4,21 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.util.Size;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.PopupWindow;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
@@ -165,23 +169,24 @@ public class BlueprintView extends Fragment {
         }
     }
 
-    // 任务菜单：带图标与开关的对话框列表，替代原来的纯文字弹出菜单
+    // 任务菜单：贴右上角弹出的面板，带图标与开关
     private void showTaskMenu() {
         DialogBlueprintMenuBinding menuBinding = DialogBlueprintMenuBinding.inflate(getLayoutInflater());
         Task currTask = taskStack.peek();
         boolean topLevel = currTask.getParent() == null;
 
         menuBinding.detailRow.setVisibility(topLevel ? View.VISIBLE : View.GONE);
-        boolean debug = currTask.hasFlag(Task.FLAG_DEBUG);
-        menuBinding.detailSwitch.setChecked(debug);
+        menuBinding.detailSwitch.setChecked(currTask.hasFlag(Task.FLAG_DEBUG));
         menuBinding.editToolsSwitch.setChecked(showEditTools);
 
-        AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext())
-                .setView(menuBinding.getRoot())
-                .create();
+        PopupWindow popup = new PopupWindow(menuBinding.getRoot(),
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+        popup.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        popup.setOutsideTouchable(true);
+        popup.setElevation(DisplayUtil.dp2px(requireContext(), 6));
 
         menuBinding.logRow.setOnClickListener(v -> {
-            dialog.dismiss();
+            popup.dismiss();
             Task rootTask = currTask;
             while (rootTask.getParent() != null) rootTask = rootTask.getParent();
             new LogFloatView(requireContext(), rootTask).show();
@@ -195,7 +200,7 @@ public class BlueprintView extends Fragment {
         });
 
         menuBinding.captureRow.setOnClickListener(v -> {
-            dialog.dismiss();
+            popup.dismiss();
             showTaskCapture();
         });
 
@@ -205,7 +210,8 @@ public class BlueprintView extends Fragment {
             applyEditToolsVisible(binding.searchButton.isChecked());
         });
 
-        dialog.show();
+        // 贴住更多按钮下方、右边缘对齐，位置和原生弹出菜单一致
+        popup.showAsDropDown(binding.moreButton, 0, (int) DisplayUtil.dp2px(requireContext(), 4), Gravity.END);
     }
 
     // 任务截图：预览后保存或分享

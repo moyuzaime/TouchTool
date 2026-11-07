@@ -1,12 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
+    style="?attr/materialCardViewFilledStyle"
+    android:layout_width="288dp"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:paddingHorizontal="?attr/defaultOffset"
-    android:paddingTop="?attr/defaultOffset"
-    android:paddingBottom="?attr/defaultPadding">
+    app:cardElevation="6dp"
+    app:cardBackgroundColor="?attr/colorSurfaceContainer"
+    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="?attr/defaultOffset"
+        android:paddingTop="?attr/defaultOffset"
+        android:paddingEnd="?attr/defaultPadding"
+        android:paddingBottom="?attr/defaultOffset">
 
     <!-- 打开任务日志 -->
     <LinearLayout
@@ -136,4 +145,6 @@
 
     </LinearLayout>
 
-</LinearLayout>
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>
