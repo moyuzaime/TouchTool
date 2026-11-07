@@ -128,7 +128,14 @@
 - 「记录日志细节」仍只在顶层任务显示；「任务截图」的预览/保存/分享流程保持不变（抽成 `showTaskCapture()`）。
 - 原来的 `res/menu/menu_blueprint.xml` 已无引用，一并删除。
 
-### 9. 界面动效统一
+### 9. 任务截图窗口
+
+- 位置：`ui/blueprint/BlueprintView.java`（`showTaskCapture()`）、`res/layout/dialog_task_capture.xml`
+- 原来直接把 `ShapeableImageView` 塞进对话框并按「屏幕高度 / 2」写死尺寸：小图被拉伸、四角是直角、上下留大片空白。
+- 改为卡片容器 + `adjustViewBounds` + `maxHeight 360dp`：图片按比例适配，圆角 16dp，带描边和浅色底，比例不符时两侧留边而不是拉伸。
+- 预览下方补一行「图片尺寸 宽 × 高」，保存/分享/取消三个按钮不变。
+
+### 10. 界面动效统一
 
 - 新增 `utils/AnimUtil.java`：统一的「淡入淡出 + 轻微位移」显隐动画（180ms）。
 - 蓝图底部两条工具栏（常驻 / 选中）改为**串行**切换：旧的完全收走后再浮出新的，避免交叉淡入时重叠成一块。

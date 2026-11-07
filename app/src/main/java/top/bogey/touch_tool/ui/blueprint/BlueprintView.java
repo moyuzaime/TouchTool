@@ -47,6 +47,7 @@ import top.bogey.touch_tool.bean.save.setting.SettingSaver;
 import top.bogey.touch_tool.bean.save.task.TaskSaver;
 import top.bogey.touch_tool.bean.task.Task;
 import top.bogey.touch_tool.databinding.DialogBlueprintMenuBinding;
+import top.bogey.touch_tool.databinding.DialogTaskCaptureBinding;
 import top.bogey.touch_tool.databinding.ViewBlueprintBinding;
 import top.bogey.touch_tool.ui.MainActivity;
 import top.bogey.touch_tool.ui.blueprint.card.ActionCard;
@@ -217,12 +218,14 @@ public class BlueprintView extends Fragment {
     // 任务截图：预览后保存或分享
     private void showTaskCapture() {
         Bitmap bitmap = binding.cardLayout.takeTaskCapture();
-        ShapeableImageView imageView = new ShapeableImageView(requireContext());
-        imageView.setImageBitmap(bitmap);
+
+        DialogTaskCaptureBinding captureBinding = DialogTaskCaptureBinding.inflate(getLayoutInflater());
+        captureBinding.captureImage.setImageBitmap(bitmap);
+        captureBinding.captureTips.setText(getString(R.string.task_capture_tips, bitmap.getWidth(), bitmap.getHeight()));
 
         new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.task_capture)
-                .setView(imageView)
+                .setView(captureBinding.getRoot())
                 .setPositiveButton(R.string.save, (dialog, which) -> {
                     dialog.dismiss();
                     AppUtil.writePictureImage(requireContext(), bitmap);
@@ -233,10 +236,6 @@ public class BlueprintView extends Fragment {
                 })
                 .setNeutralButton(R.string.cancel, (dialog, which) -> dialog.dismiss())
                 .show();
-
-        Size size = DisplayUtil.getScreenSize(requireContext());
-        DisplayUtil.setViewWidth(imageView, ViewGroup.LayoutParams.MATCH_PARENT);
-        DisplayUtil.setViewHeight(imageView, size.getHeight() / 2);
     }
 
     private final OnBackPressedCallback callback = new OnBackPressedCallback(false) {
