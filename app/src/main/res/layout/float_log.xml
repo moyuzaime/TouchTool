@@ -254,17 +254,17 @@
 
         </LinearLayout>
 
-    </FrameLayout>
+        <!-- 缩放手柄贴在内容区右下角：随折叠一起隐藏，位置仍是整个窗口的右下角 -->
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/dragImage"
+            android:layout_width="?attr/smallIconButtonSize"
+            android:layout_height="?attr/smallIconButtonSize"
+            android:layout_gravity="end|bottom"
+            android:scaleType="centerInside"
+            android:src="@drawable/icon_line_curve"
+            android:tint="?attr/colorOutlineVariant" />
 
-    <!-- 缩放手柄固定在整个悬浮窗的右下角 -->
-    <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/dragImage"
-        android:layout_width="?attr/smallIconButtonSize"
-        android:layout_height="?attr/smallIconButtonSize"
-        android:layout_gravity="end|bottom"
-        android:scaleType="centerInside"
-        android:src="@drawable/icon_line_curve"
-        android:tint="?attr/colorOutlineVariant" />
+    </FrameLayout>
 
 </com.google.android.material.card.MaterialCardView>
 
