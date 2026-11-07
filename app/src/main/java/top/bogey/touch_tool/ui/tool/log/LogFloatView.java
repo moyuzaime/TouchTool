@@ -44,6 +44,8 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
     private final LogFloatViewAdapter adapter;
     private final String tag = LogFloatView.class.getName();
     private int lastRootCount = 0;
+    // 是否跟随最新日志滚动；用户翻看或展开节点后暂停
+    private boolean autoFollow = true;
 
     private final int minWidth, minHeight;
     private final int maxWidth, maxHeight;
@@ -75,6 +77,16 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
 
         binding = FloatLogBinding.inflate(LayoutInflater.from(context), this, true);
         adapter = new LogFloatViewAdapter();
+        // 手动展开/折叠后暂停自动跟随，避免正在看的分支被新日志顶走
+        adapter.setOnNodeToggled(() -> autoFollow = false);
+        binding.recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) autoFollow = false;
+                // 手动拖回底部后恢复跟随
+                if (newState == RecyclerView.SCROLL_STATE_IDLE && isNearBottom()) autoFollow = true;
+            }
+        });
 
         binding.title.setOnClickListener(v -> {
             ListPopupWindow popup = new ListPopupWindow(context);
@@ -303,7 +315,7 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
         if (task == null) return;
         LogSave logSave = LogSaver.getInstance().getLogSave(task.getId());
         if (logSave.getLogCount() != lastRootCount) {
-            boolean follow = isNearBottom();
+            boolean follow = autoFollow && isNearBottom();
             lastRootCount = logSave.getLogCount();
             adapter.syncRoots(logSave);
             if (follow) scrollToBottom();
@@ -317,6 +329,8 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
         LogSave logSave = LogSaver.getInstance().getLogSave(task.getId());
         lastRootCount = logSave.getLogCount();
         adapter.setLogSave(logSave);
+        // 首次打开/切换任务时回到最新一条，并恢复跟随
+        autoFollow = true;
         scrollToBottom();
     }
 
@@ -344,7 +358,7 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
         if (!logSave.getKey().equals(task.getId())) return;
         // 逐条插入，不重建列表；只在本来就在底部时跟随滚动
         post(() -> {
-            boolean follow = isNearBottom();
+            boolean follow = autoFollow && isNearBottom();
             adapter.syncLog(logSave, log);
             lastRootCount = logSave.getLogCount();
             if (follow) scrollToBottom();

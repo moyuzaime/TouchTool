@@ -49,6 +49,11 @@ public class LogFloatViewAdapter extends TreeAdapter {
     int searchIndex = -1;
     // uid -> 节点，增量插入时按 uid 定位，避免整表重建
     private final Map<String, LazyTreeNode> nodeMap = new HashMap<>();
+    private Runnable onNodeToggled;
+
+    public void setOnNodeToggled(Runnable onNodeToggled) {
+        this.onNodeToggled = onNodeToggled;
+    }
 
     @NonNull
     @Override
@@ -387,6 +392,8 @@ public class LogFloatViewAdapter extends TreeAdapter {
         @Override
         public void onClicked(View view) {
             super.onClicked(view);
+            // 用户手动展开/折叠后通知外部，日志窗口据此暂停自动跟随
+            if (onNodeToggled != null) onNodeToggled.run();
             if (searchIndex != -1) {
                 int index = searchIndex;
                 searchIndex = -1;
