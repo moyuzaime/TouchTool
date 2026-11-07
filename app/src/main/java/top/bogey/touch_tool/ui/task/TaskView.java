@@ -39,6 +39,7 @@ import top.bogey.touch_tool.bean.task.Task;
 import top.bogey.touch_tool.databinding.ViewTagListItemBinding;
 import top.bogey.touch_tool.databinding.ViewTaskBinding;
 import top.bogey.touch_tool.ui.MainActivity;
+import top.bogey.touch_tool.utils.AnimUtil;
 import top.bogey.touch_tool.ui.blueprint.selecter.select_action.SelectActionItemRecyclerViewAdapter;
 import top.bogey.touch_tool.ui.custom.dialog.EditTaskDialog;
 import top.bogey.touch_tool.ui.tool.task_manager.ExportTaskDialog;
@@ -286,8 +287,8 @@ public class TaskView extends Fragment implements TaskSaveListener {
     public void showBottomBar() {
         MainApplication.getInstance().getActivity().hideBottomNavigation();
 
-        binding.addButton.hide();
-        binding.bottomBar.setVisibility(View.VISIBLE);
+        // 添加按钮先下沉收走，选择工具栏再浮上来
+        AnimUtil.swapSequential(binding.addButton, 16f, binding.bottomBar, 16f);
 
         selecting = true;
         selected.clear();
@@ -297,8 +298,8 @@ public class TaskView extends Fragment implements TaskSaveListener {
     public void hideBottomBar() {
         MainApplication.getInstance().getActivity().showBottomNavigation();
 
-        binding.addButton.show();
-        binding.bottomBar.setVisibility(View.GONE);
+        // 选择工具栏先下沉收走，添加按钮再浮上来
+        AnimUtil.swapSequential(binding.bottomBar, 16f, binding.addButton, 16f);
 
         selecting = false;
         selected.clear();

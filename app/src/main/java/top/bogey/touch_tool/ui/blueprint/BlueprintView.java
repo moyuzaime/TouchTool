@@ -141,11 +141,11 @@ public class BlueprintView extends Fragment {
     public static void tryShowFloatingToolBar(boolean show) {
         Fragment fragment = MainActivity.getCurrentFragment();
         if (fragment instanceof BlueprintView blueprintView) {
-            // 两条工具栏交替淡入淡出，避免选中卡片时底部瞬间换一整套按钮
+            // 两条工具栏串行切换：旧的先下沉收走，新的再浮上来
             if (show) {
-                AnimUtil.swap(blueprintView.binding.baseToolBar, 16f, blueprintView.binding.floatingToolBar, -16f);
+                AnimUtil.swapSequential(blueprintView.binding.baseToolBar, 16f, blueprintView.binding.floatingToolBar, 16f);
             } else {
-                AnimUtil.swap(blueprintView.binding.floatingToolBar, 16f, blueprintView.binding.baseToolBar, -16f);
+                AnimUtil.swapSequential(blueprintView.binding.floatingToolBar, 16f, blueprintView.binding.baseToolBar, 16f);
             }
 
             if (show) {

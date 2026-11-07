@@ -34,13 +34,23 @@ public class AnimUtil {
     }
 
     public static void hide(View view, float toDp) {
-        hide(view, toDp, DEFAULT_DURATION);
+        hide(view, toDp, DEFAULT_DURATION, null);
     }
 
     public static void hide(View view, float toDp, long duration) {
-        if (view == null) return;
+        hide(view, toDp, duration, null);
+    }
+
+    public static void hide(View view, float toDp, long duration, Runnable onEnd) {
+        if (view == null) {
+            if (onEnd != null) onEnd.run();
+            return;
+        }
         view.animate().cancel();
-        if (view.getVisibility() != View.VISIBLE) return;
+        if (view.getVisibility() != View.VISIBLE) {
+            if (onEnd != null) onEnd.run();
+            return;
+        }
         view.animate()
                 .alpha(0f)
                 .translationY(DisplayUtil.dp2px(view.getContext(), toDp))
@@ -50,6 +60,7 @@ public class AnimUtil {
                     view.setVisibility(View.GONE);
                     view.setAlpha(1f);
                     view.setTranslationY(0f);
+                    if (onEnd != null) onEnd.run();
                 })
                 .start();
     }
@@ -58,5 +69,13 @@ public class AnimUtil {
     public static void swap(View hideView, float hideToDp, View showView, float showFromDp) {
         hide(hideView, hideToDp);
         show(showView, showFromDp);
+    }
+
+    /**
+     * 串行交替：旧的完全收走之后，新的才浮出来。
+     * 两条同位置的工具栏用这个，避免交叉淡入淡出时短暂重叠成一块。
+     */
+    public static void swapSequential(View hideView, float hideToDp, View showView, float showFromDp) {
+        hide(hideView, hideToDp, DEFAULT_DURATION, () -> show(showView, showFromDp, DEFAULT_DURATION));
     }
 }
