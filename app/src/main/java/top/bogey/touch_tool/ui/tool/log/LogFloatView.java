@@ -33,6 +33,7 @@ import top.bogey.touch_tool.bean.save.setting.SettingSaver;
 import top.bogey.touch_tool.bean.save.task.TaskSaver;
 import top.bogey.touch_tool.bean.task.Task;
 import top.bogey.touch_tool.databinding.FloatLogBinding;
+import top.bogey.touch_tool.utils.AnimUtil;
 import top.bogey.touch_tool.utils.AppUtil;
 import top.bogey.touch_tool.utils.DisplayUtil;
 import top.bogey.touch_tool.utils.EAnchor;
@@ -180,6 +181,8 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
 
         binding.preButton.setOnClickListener(v -> searchLog(false));
         binding.nextButton.setOnClickListener(v -> searchLog(true));
+        // 搜索选项平时收起，点右侧按钮在窗口内展开，避免悬浮窗里的弹窗被裁到屏幕外
+        binding.menuButton.setOnClickListener(v -> toggleSearchOptions());
         binding.pinyinCheck.addOnCheckedChangeListener((buttonView, isChecked) -> SettingSaver.BLUEPRINT_SEARCH_WITH_PINYIN.set(isChecked));
         binding.pinyinCheck.setChecked(SettingSaver.BLUEPRINT_SEARCH_WITH_PINYIN.get());
         binding.posCheck.addOnCheckedChangeListener((buttonView, isChecked) -> SettingSaver.BLUEPRINT_SEARCH_WITH_POSITION.set(isChecked));
@@ -194,6 +197,16 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
             LogSaver.getInstance().clearLog(this.task.getId());
             refreshLogs();
         });
+    }
+
+    // 搜索选项在窗口内展开/收起
+    private void toggleSearchOptions() {
+        boolean show = binding.searchOptionsBox.getVisibility() != View.VISIBLE;
+        if (show) {
+            AnimUtil.show(binding.searchOptionsBox, -8f);
+        } else {
+            AnimUtil.hide(binding.searchOptionsBox, -8f);
+        }
     }
 
     private void searchLog(boolean isNext) {
@@ -237,13 +250,7 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             canDrag = false;
             int[] location = new int[2];
-            binding.recyclerView.getLocationOnScreen(location);
-            if (new RectF(location[0], location[1], location[0] + binding.recyclerView.getWidth(), location[1] + binding.recyclerView.getHeight()).contains(x, y)) {
-                FloatWindow.setDragAble(tag, false);
-                return super.onInterceptTouchEvent(event);
-            }
-
-            location = new int[2];
+            // 手柄在列表区域内，必须先判断手柄，否则会被下面的列表判定拦掉导致缩放失效
             binding.dragImage.getLocationOnScreen(location);
             if (new RectF(location[0], location[1], location[0] + binding.dragImage.getWidth(), location[1] + binding.dragImage.getHeight()).contains(x, y)) {
                 FloatWindow.setDragAble(tag, false);
@@ -252,6 +259,13 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
                 canDrag = true;
                 return super.onInterceptTouchEvent(event);
             }
+
+            binding.recyclerView.getLocationOnScreen(location);
+            if (new RectF(location[0], location[1], location[0] + binding.recyclerView.getWidth(), location[1] + binding.recyclerView.getHeight()).contains(x, y)) {
+                FloatWindow.setDragAble(tag, false);
+                return super.onInterceptTouchEvent(event);
+            }
+
             FloatWindow.setDragAble(tag, true);
         } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
             if (!canDrag) return false;

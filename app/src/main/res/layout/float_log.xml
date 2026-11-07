@@ -23,9 +23,10 @@
             android:layout_height="match_parent"
             android:minWidth="168dp"
             android:orientation="vertical"
-            android:paddingHorizontal="?attr/defaultPadding">
+            android:paddingHorizontal="?attr/defaultPadding"
+            android:paddingBottom="?attr/defaultOffset">
 
-            <!-- 标题栏：左两个按钮、中间标题、右两个按钮，不再用重叠定位 -->
+            <!-- 鏍囬鏍忥細宸︿袱涓寜閽€佷腑闂存爣棰樸€佸彸涓や釜鎸夐挳锛屼笉鍐嶇敤閲嶅彔瀹氫綅 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="?attr/iconButtonSize"
@@ -63,7 +64,7 @@
 
             </LinearLayout>
 
-            <!-- 列表区：去掉内层卡片背景，只保留一个表面 -->
+            <!-- 鍒楄〃鍖猴細鍘绘帀鍐呭眰鍗＄墖鑳屾櫙锛屽彧淇濈暀涓€涓〃闈?-->
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
@@ -103,7 +104,7 @@
 
             </FrameLayout>
 
-            <!-- 搜索栏与搜索选项：箭头改成并排，四个开关合成一行 -->
+            <!-- 鎼滅储鏍忥細绠ご骞舵帓锛屾悳绱㈤€夐」鏀惰繘鍙充晶鑿滃崟 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -160,82 +161,103 @@
                     app:icon="@drawable/icon_keyboard_arrow_down"
                     app:iconSize="?attr/smallIconButtonSize" />
 
-            </LinearLayout>
-
-            <com.google.android.material.button.MaterialButtonGroup
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:layout_marginBottom="?attr/defaultOffset"
-                android:spacing="?attr/defaultOffset">
-
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/pinyinCheck"
+                    android:id="@+id/menuButton"
                     style="?attr/materialIconButtonStyle"
-                    android:layout_width="?attr/halfIconButtonSize"
-                    android:layout_height="?attr/halfIconButtonSize"
-                    android:backgroundTint="@color/fill_button_background_check"
-                    android:checkable="true"
-                    android:checked="false"
-                    android:insetLeft="0dp"
-                    android:insetTop="0dp"
-                    android:insetRight="0dp"
-                    android:insetBottom="0dp"
-                    android:padding="2dp"
-                    app:icon="@drawable/icon_pinyin"
-                    app:iconSize="14dp"
-                    app:iconTint="@color/button_container_check" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/posCheck"
-                    style="?attr/materialIconButtonStyle"
-                    android:layout_width="?attr/halfIconButtonSize"
-                    android:layout_height="?attr/halfIconButtonSize"
-                    android:backgroundTint="@color/fill_button_background_check"
-                    android:checkable="true"
-                    android:checked="false"
+                    android:layout_width="?attr/smallIconButtonSize"
+                    android:layout_height="?attr/smallIconButtonSize"
+                    android:contentDescription="@string/log_search_options"
                     android:insetLeft="0dp"
                     android:insetTop="0dp"
                     android:insetRight="0dp"
                     android:insetBottom="0dp"
                     android:padding="0dp"
-                    app:icon="@drawable/icon_123"
-                    app:iconSize="14dp"
-                    app:iconTint="@color/button_container_check" />
+                    app:icon="@drawable/icon_more_horiz"
+                    app:iconSize="?attr/smallIconButtonSize" />
+
+            </LinearLayout>
+
+            <!-- 鎼滅储閫夐」锛氱偣鍙充晶鑿滃崟鎸夐挳鎵嶅睍寮€锛屽钩鏃朵笉鍗犱綅缃?-->
+            <com.google.android.material.button.MaterialButtonGroup
+                android:id="@+id/searchOptionsBox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginTop="?attr/defaultOffset"
+                android:spacing="?attr/defaultOffset"
+                android:visibility="gone">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/pinyinCheck"
+                    style="?attr/materialIconButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/fill_button_background_check"
+                    android:checkable="true"
+                    android:insetLeft="0dp"
+                    android:insetTop="0dp"
+                    android:insetRight="0dp"
+                    android:insetBottom="0dp"
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="6dp"
+                    android:text="@string/log_search_pinyin"
+                    android:textSize="12sp"
+                    android:minHeight="0dp"
+                    android:paddingVertical="6dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/posCheck"
+                    style="?attr/materialIconButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/fill_button_background_check"
+                    android:checkable="true"
+                    android:insetLeft="0dp"
+                    android:insetTop="0dp"
+                    android:insetRight="0dp"
+                    android:insetBottom="0dp"
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="6dp"
+                    android:text="@string/log_search_position"
+                    android:textSize="12sp"
+                    android:minHeight="0dp"
+                    android:paddingVertical="6dp" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/caseCheck"
                     style="?attr/materialIconButtonStyle"
-                    android:layout_width="?attr/halfIconButtonSize"
-                    android:layout_height="?attr/halfIconButtonSize"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:backgroundTint="@color/fill_button_background_check"
                     android:checkable="true"
-                    android:checked="false"
                     android:insetLeft="0dp"
                     android:insetTop="0dp"
                     android:insetRight="0dp"
                     android:insetBottom="0dp"
-                    android:padding="2dp"
-                    app:icon="@drawable/icon_match_case"
-                    app:iconSize="14dp"
-                    app:iconTint="@color/button_container_check" />
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="6dp"
+                    android:text="@string/log_search_case"
+                    android:textSize="12sp"
+                    android:minHeight="0dp"
+                    android:paddingVertical="6dp" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/regCheck"
                     style="?attr/materialIconButtonStyle"
-                    android:layout_width="?attr/halfIconButtonSize"
-                    android:layout_height="?attr/halfIconButtonSize"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:backgroundTint="@color/fill_button_background_check"
                     android:checkable="true"
-                    android:checked="false"
                     android:insetLeft="0dp"
                     android:insetTop="0dp"
                     android:insetRight="0dp"
                     android:insetBottom="0dp"
-                    android:padding="2dp"
-                    app:icon="@drawable/icon_regular_expression"
-                    app:iconSize="14dp"
-                    app:iconTint="@color/button_container_check" />
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="6dp"
+                    android:text="@string/log_search_regex"
+                    android:textSize="12sp"
+                    android:minHeight="0dp"
+                    android:paddingVertical="6dp" />
 
             </com.google.android.material.button.MaterialButtonGroup>
 
@@ -244,3 +266,4 @@
     </FrameLayout>
 
 </com.google.android.material.card.MaterialCardView>
+
