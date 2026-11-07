@@ -167,6 +167,8 @@ public class TaskRunnable implements Runnable {
                     logStack.peek().addChild(logInfo);
                     if (!cacheLog) {
                         LogSaver.getInstance().addLog(task.getId(), logInfo, false);
+                        // 父节点的 children 只在结束时落盘，这里补写一次，让嵌套日志实时可见
+                        LogSaver.getInstance().updateLog(task.getId(), logStack.peek());
                         logged = true;
                     }
                 }

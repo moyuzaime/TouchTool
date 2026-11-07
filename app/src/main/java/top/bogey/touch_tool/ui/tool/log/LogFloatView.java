@@ -287,18 +287,26 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
 
     @Override
     public void dismiss() {
+        removeCallbacks(refreshLogRunnable);
         LogSaver.getInstance().removeListener(this);
         FloatWindow.dismiss(tag);
+    }
+
+    // 日志刷新合并：短时间内的多条日志只重建一次列表
+    private final Runnable refreshLogRunnable = this::refreshLogs;
+
+    private void refreshLogs() {
+        if (task == null) return;
+        adapter.setLogSave(LogSaver.getInstance().getLogSave(task.getId()));
+        int count = adapter.getItemCount();
+        if (count > 0) binding.recyclerView.scrollToPosition(count - 1);
     }
 
     @Override
     public void onNewLog(LogSave logSave, LogInfo log) {
         if (task == null) return;
-        post(() -> {
-            if (logSave.getKey().equals(task.getId())) {
-                adapter.addLog(logSave, log);
-                binding.recyclerView.scrollToPosition(adapter.getItemCount() - 1);
-            }
-        });
+        if (!logSave.getKey().equals(task.getId())) return;
+        removeCallbacks(refreshLogRunnable);
+        postDelayed(refreshLogRunnable, 120);
     }
 }

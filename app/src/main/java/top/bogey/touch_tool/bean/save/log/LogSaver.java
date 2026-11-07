@@ -33,7 +33,18 @@ public class LogSaver {
     public void addLog(String key, LogInfo log, boolean autoUid) {
         LogSave logSave = getLogSave(key);
         logSave.addLog(log, autoUid);
-        if (autoUid) listeners.stream().filter(Objects::nonNull).forEach(v -> v.onNewLog(logSave, log));
+        notifyNewLog(logSave, log);
+    }
+
+    // 子日志写入后父节点内容变了，用同一个 uid 重写一次并通知，日志窗口才能实时看到嵌套项
+    public void updateLog(String key, LogInfo log) {
+        LogSave logSave = getLogSave(key);
+        logSave.addLog(log, false);
+        notifyNewLog(logSave, log);
+    }
+
+    private void notifyNewLog(LogSave logSave, LogInfo log) {
+        listeners.stream().filter(Objects::nonNull).forEach(v -> v.onNewLog(logSave, log));
     }
 
     public void clearLog(String key) {
