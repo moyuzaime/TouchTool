@@ -4,6 +4,7 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.Point;
@@ -18,6 +19,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.Toast;
 import android.widget.PopupWindow;
 
 import androidx.activity.OnBackPressedCallback;
@@ -26,6 +28,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
+
+import java.io.File;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.imageview.ShapeableImageView;
@@ -45,6 +49,7 @@ import top.bogey.touch_tool.bean.action.task.CustomEndAction;
 import top.bogey.touch_tool.bean.action.task.CustomStartAction;
 import top.bogey.touch_tool.bean.save.setting.SettingSaver;
 import top.bogey.touch_tool.bean.save.task.TaskSaver;
+import top.bogey.touch_tool.MainApplication;
 import top.bogey.touch_tool.bean.task.Task;
 import top.bogey.touch_tool.databinding.DialogBlueprintMenuBinding;
 import top.bogey.touch_tool.databinding.DialogTaskCaptureBinding;
@@ -54,6 +59,7 @@ import top.bogey.touch_tool.ui.blueprint.card.ActionCard;
 import top.bogey.touch_tool.ui.blueprint.selecter.select_action.SelectActionDialog;
 import top.bogey.touch_tool.ui.tool.log.LogFloatView;
 import top.bogey.touch_tool.utils.AppLog;
+import top.bogey.touch_tool.utils.PngStreamWriter;
 import top.bogey.touch_tool.utils.AppUtil;
 import top.bogey.touch_tool.utils.AnimUtil;
 import top.bogey.touch_tool.utils.DisplayUtil;
@@ -215,24 +221,69 @@ public class BlueprintView extends Fragment {
         popup.showAsDropDown(binding.moreButton, 0, (int) DisplayUtil.dp2px(requireContext(), 4), Gravity.END);
     }
 
-    // 任务截图：预览后保存或分享
+    // 任务截图：后台按原始尺寸流式生成，再给一个采样预览
     private void showTaskCapture() {
-        Bitmap bitmap = binding.cardLayout.takeTaskCapture();
+        File file = new File(requireContext().getCacheDir(), "task_capture.png");
+        AlertDialog progress = new MaterialAlertDialogBuilder(requireContext())
+                .setMessage(R.string.task_capture_generating)
+                .setCancelable(false)
+                .create();
+        progress.show();
+
+        // 先在 UI 线程把画布切到原始比例，再交给后台线程逐带渲染与编码
+        CardLayoutView.CaptureContext context = binding.cardLayout.prepareTaskCapture();
+
+        new Thread(() -> {
+            boolean success = true;
+            try {
+                PngStreamWriter.write(file, context.width, context.height,
+                        (canvas, bandTop, bandHeight) -> binding.cardLayout.drawCaptureBand(canvas, context, bandTop));
+            } catch (Exception e) {
+                AppLog.e(e);
+                success = false;
+            }
+            boolean finalSuccess = success;
+            binding.getRoot().post(() -> {
+                binding.cardLayout.restoreTaskCapture();
+                if (progress.isShowing()) progress.dismiss();
+                if (!finalSuccess) {
+                    Toast.makeText(requireContext(), R.string.task_capture_failed, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                showCapturePreview(file, context.width, context.height);
+            });
+        }).start();
+    }
+
+    // 大图不整张解码，按采样率取一张预览；保存与分享都用原始文件
+    private void showCapturePreview(File file, int width, int height) {
+        BitmapFactory.Options bounds = new BitmapFactory.Options();
+        bounds.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(file.getAbsolutePath(), bounds);
+
+        int sample = 1;
+        while (bounds.outWidth / sample > 1080 || bounds.outHeight / sample > 1080) {
+            sample *= 2;
+        }
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inSampleSize = sample;
+        Bitmap preview = BitmapFactory.decodeFile(file.getAbsolutePath(), options);
 
         DialogTaskCaptureBinding captureBinding = DialogTaskCaptureBinding.inflate(getLayoutInflater());
-        captureBinding.captureImage.setImageBitmap(bitmap);
-        captureBinding.captureTips.setText(getString(R.string.task_capture_tips, bitmap.getWidth(), bitmap.getHeight()));
+        captureBinding.captureImage.setImageBitmap(preview);
+        captureBinding.captureTips.setText(getString(R.string.task_capture_tips, width, height));
 
         new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.task_capture)
                 .setView(captureBinding.getRoot())
                 .setPositiveButton(R.string.save, (dialog, which) -> {
                     dialog.dismiss();
-                    AppUtil.writePictureImage(requireContext(), bitmap);
+                    AppUtil.writePictureFile(requireContext(), MainApplication.appName,
+                            "Picture_" + System.currentTimeMillis(), file);
                 })
                 .setNegativeButton(R.string.share_to_action, (dialog, which) -> {
                     dialog.dismiss();
-                    AppUtil.shareImage(requireContext(), bitmap);
+                    AppUtil.shareImageFile(requireContext(), file);
                 })
                 .setNeutralButton(R.string.cancel, (dialog, which) -> dialog.dismiss())
                 .show();

@@ -128,12 +128,15 @@
 - 「记录日志细节」仍只在顶层任务显示；「任务截图」的预览/保存/分享流程保持不变（抽成 `showTaskCapture()`）。
 - 原来的 `res/menu/menu_blueprint.xml` 已无引用，一并删除。
 
-### 9. 任务截图窗口
+### 9. 任务截图：按原始尺寸流式导出
 
-- 位置：`ui/blueprint/BlueprintView.java`（`showTaskCapture()`）、`res/layout/dialog_task_capture.xml`
-- 原来直接把 `ShapeableImageView` 塞进对话框并按「屏幕高度 / 2」写死尺寸：小图被拉伸、四角是直角、上下留大片空白。
-- 改为卡片容器 + `adjustViewBounds` + `maxHeight 360dp`：图片按比例适配，圆角 16dp，带描边和浅色底，比例不符时两侧留边而不是拉伸。
-- 预览下方补一行「图片尺寸 宽 × 高」，保存/分享/取消三个按钮不变。
+- 位置：`ui/blueprint/BlueprintView.java`（`showTaskCapture()` / `showCapturePreview()`）、`ui/blueprint/CardLayoutView.java`（`prepareTaskCapture()` / `drawCaptureBand()` / `restoreTaskCapture()`）、`utils/PngStreamWriter.java`、`utils/AppUtil.java`（`writePictureFile` / `shareImageFile`）
+- 原来是「一次性 new 出整张 Bitmap + 缩放上限 4096」：图一大就 OOM，且分辨率被压到 4096。
+- 改为按原始比例（`scale = 1`）分带渲染、流式写 PNG：每带只在内存里放「宽 × 单带高」的位图，带宽按 32MB 预算自动换算，因此尺寸不再受内存限制（实测 6552×6804 导出正常，旧实现会先压到 4096 以内）。
+- `PngStreamWriter` 自行拼 PNG 结构：IHDR 固定 RGBA8，逐行 None 过滤后喂给 `Deflater`，按 256KB 攒成连续的 IDAT 块，最后写 IEND；CRC 按块计算。
+- 线程分工：`prepareTaskCapture()` 与 `restoreTaskCapture()` 会改卡片布局，必须在 UI 线程执行；后台线程只做画布渲染与编码（直接调 `updateCardsPos()` 会抛 CalledFromWrongThreadException，这点已在实现中规避）。
+- 生成期间显示「正在按原始尺寸生成截图…」，完成后用 `inSampleSize` 采样解码出预览（不整张解码），保存与分享都用原始 PNG 文件：`AppUtil.writePictureFile` 按 `image/png` 写入相册，`AppUtil.shareImageFile` 走 FileProvider + `createChooser`。
+- 预览下方显示原始像素尺寸；比例不符时 `fitCenter` 留边，不拉伸。
 
 ### 10. 界面动效统一
 

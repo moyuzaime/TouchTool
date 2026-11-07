@@ -77,6 +77,7 @@ import top.bogey.touch_tool.ui.blueprint.selecter.select_action.SelectActionByPi
 import top.bogey.touch_tool.ui.blueprint.selecter.select_action.SelectActionDialog;
 import top.bogey.touch_tool.utils.AppUtil;
 import top.bogey.touch_tool.utils.DisplayUtil;
+import top.bogey.touch_tool.utils.PngStreamWriter;
 
 public class CardLayoutView extends FrameLayout implements TaskSaveListener, VariableSaveListener {
     public static final int GRID_DP_SIZE = 12;
@@ -1422,52 +1423,63 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
         }
     }
 
-    public Bitmap takeTaskCapture() {
+    // 导出区域与还原用的现场
+    private float captureScale, captureOffsetX, captureOffsetY;
+
+    public static class CaptureContext {
+        public float left, top;
+        public int width, height;
+    }
+
+    /**
+     * 准备导出：切到原始比例并算出整张图的区域。
+     * 会改动卡片位置，必须在 UI 线程调用；之后用 {@link #drawCaptureBand} 在后台逐带绘制。
+     */
+    public CaptureContext prepareTaskCapture() {
         cleanSelectedCards();
 
-        float tmpScale = scale;
-        float tmpOffsetX = offsetX;
-        float tmpOffsetY = offsetY;
+        captureScale = scale;
+        captureOffsetX = offsetX;
+        captureOffsetY = offsetY;
 
-        // 将所有卡片设置为未缩放大小
+        // 还原为未缩放大小，按真实尺寸导出
         scale = 1;
         offsetX = 0;
         offsetY = 0;
         updateCardsPos();
         cards.values().forEach(card -> card.setNeedDraw(true));
 
-        int cornerOffsetScale = CardLayoutHelper.CORNER_GRID_COUNT;
         // 计算所有卡片的绘制区域
         RectF area = calculateCardsArea(cards.values());
-        area.left -= gridSize * (cornerOffsetScale + 1);
-        area.top -= gridSize * (cornerOffsetScale + 1);
-        area.right += gridSize * (cornerOffsetScale + 1);
-        area.bottom += gridSize * (cornerOffsetScale + 1);
+        float padding = gridSize * (CardLayoutHelper.CORNER_GRID_COUNT + 1);
+        area.inset(-padding, -padding);
 
-        scale = Math.min(4096 / area.width(), 4096 / area.height());
-        updateCardsPos();
-        area = calculateCardsArea(cards.values());
-        area.left -= gridSize * (cornerOffsetScale + 1);
-        area.top -= gridSize * (cornerOffsetScale + 1);
-        area.right += gridSize * (cornerOffsetScale + 1);
-        area.bottom += gridSize * (cornerOffsetScale + 1);
-
-        // 设置偏移
         offsetX = -area.left;
         offsetY = -area.top;
         updateCardsPos();
         cards.values().forEach(card -> card.setNeedDraw(true));
 
-        Bitmap bitmap = Bitmap.createBitmap((int) area.width(), (int) area.height(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        canvas.drawColor(DisplayUtil.getAttrColor(getContext(), com.google.android.material.R.attr.colorSurface));
-        dispatchDraw(canvas);
+        CaptureContext context = new CaptureContext();
+        context.left = area.left;
+        context.top = area.top;
+        context.width = Math.max(1, (int) Math.ceil(area.width()));
+        context.height = Math.max(1, (int) Math.ceil(area.height()));
+        return context;
+    }
 
-        scale = tmpScale;
-        offsetX = tmpOffsetX;
-        offsetY = tmpOffsetY;
+    // 导出结束后恢复原来的缩放与偏移，必须在 UI 线程调用
+    public void restoreTaskCapture() {
+        scale = captureScale;
+        offsetX = captureOffsetX;
+        offsetY = captureOffsetY;
         updateCardsPos();
-        return bitmap;
+    }
+
+    // 绘制其中一条横带
+    public void drawCaptureBand(Canvas canvas, CaptureContext context, int bandTop) {
+        canvas.drawColor(DisplayUtil.getAttrColor(getContext(), com.google.android.material.R.attr.colorSurface));
+        canvas.translate(-context.left, -(context.top + bandTop));
+        dispatchDraw(canvas);
     }
 
     /**

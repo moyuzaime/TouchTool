@@ -51,6 +51,7 @@ import org.lsposed.hiddenapibypass.HiddenApiBypass;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -676,6 +677,75 @@ public class AppUtil {
             Intent chooser = Intent.createChooser(intent, null);
             chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(chooser);
+        }
+    }
+
+    // 直接把已经生成的图片文件存进相册，避免再解码成 Bitmap 占内存
+    public static Uri writePictureFile(Context context, String parent, String fileName, File source) {
+        if (source == null || !source.exists()) return null;
+
+        int index = fileName.lastIndexOf(".");
+        if (index > 0) fileName = fileName.substring(0, index);
+        fileName = fileName + ".png";
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(MediaStore.Images.Media.DISPLAY_NAME, fileName);
+            contentValues.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
+            contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, parent == null
+                    ? Environment.DIRECTORY_PICTURES
+                    : Environment.DIRECTORY_PICTURES + File.separator + parent);
+
+            try {
+                Uri uri = context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
+                if (uri == null) return null;
+                try (OutputStream outputStream = context.getContentResolver().openOutputStream(uri);
+                     InputStream inputStream = new FileInputStream(source)) {
+                    if (outputStream == null) return null;
+                    copyStream(inputStream, outputStream);
+                }
+                return uri;
+            } catch (IOException ignored) {
+                return null;
+            }
+        }
+
+        File fileParent = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        if (parent != null) fileParent = new File(fileParent, parent);
+        if (!fileParent.exists() && !fileParent.mkdirs()) return null;
+
+        File target = new File(fileParent, fileName);
+        try (InputStream inputStream = new FileInputStream(source);
+             OutputStream outputStream = new FileOutputStream(target)) {
+            copyStream(inputStream, outputStream);
+            MediaScannerConnection.scanFile(context, new String[]{target.getAbsolutePath()}, new String[]{"image/png"}, null);
+        } catch (IOException ignored) {
+            return null;
+        }
+        return FileProvider.getUriForFile(context, context.getPackageName() + ".file_provider", target);
+    }
+
+    // 分享已经生成好的图片文件，走系统分享面板
+    public static void shareImageFile(Context context, File source) {
+        if (source == null || !source.exists()) return;
+
+        Uri uri = FileProvider.getUriForFile(context, context.getPackageName() + ".file_provider", source);
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        intent.setType("image/png");
+        intent.putExtra(Intent.EXTRA_STREAM, uri);
+
+        Intent chooser = Intent.createChooser(intent, null);
+        chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(chooser);
+    }
+
+    private static void copyStream(InputStream inputStream, OutputStream outputStream) throws IOException {
+        byte[] buffer = new byte[64 * 1024];
+        int count;
+        while ((count = inputStream.read(buffer)) > 0) {
+            outputStream.write(buffer, 0, count);
         }
     }
 
