@@ -7,6 +7,7 @@
 - 技术栈：Android / Java、ViewBinding、Material3、RecyclerView + ItemTouchHelper、data-binding 布局。
 - 构建：`gradlew.bat :app:assembleDebug`。本机需先设置 `JAVA_HOME`（如 `D:\Android\Android Studio\jbr`）。
 - 提交信息风格：`feat(scope): 中文标题` + 中文正文要点；默认**不推送**。
+- 功能与改动清单见 `CHANGES.zh.md`。
 
 ## 约定
 
