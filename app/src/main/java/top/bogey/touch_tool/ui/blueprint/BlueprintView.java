@@ -19,6 +19,7 @@ import android.view.Window;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
 
@@ -41,6 +42,7 @@ import top.bogey.touch_tool.bean.action.task.CustomStartAction;
 import top.bogey.touch_tool.bean.save.setting.SettingSaver;
 import top.bogey.touch_tool.bean.save.task.TaskSaver;
 import top.bogey.touch_tool.bean.task.Task;
+import top.bogey.touch_tool.databinding.DialogBlueprintMenuBinding;
 import top.bogey.touch_tool.databinding.ViewBlueprintBinding;
 import top.bogey.touch_tool.ui.MainActivity;
 import top.bogey.touch_tool.ui.blueprint.card.ActionCard;
@@ -161,6 +163,74 @@ public class BlueprintView extends Fragment {
                 blueprintView.binding.lockButton.setChecked(locked);
             }
         }
+    }
+
+    // 任务菜单：带图标与开关的对话框列表，替代原来的纯文字弹出菜单
+    private void showTaskMenu() {
+        DialogBlueprintMenuBinding menuBinding = DialogBlueprintMenuBinding.inflate(getLayoutInflater());
+        Task currTask = taskStack.peek();
+        boolean topLevel = currTask.getParent() == null;
+
+        menuBinding.detailRow.setVisibility(topLevel ? View.VISIBLE : View.GONE);
+        boolean debug = currTask.hasFlag(Task.FLAG_DEBUG);
+        menuBinding.detailSwitch.setChecked(debug);
+        menuBinding.editToolsSwitch.setChecked(showEditTools);
+
+        AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext())
+                .setView(menuBinding.getRoot())
+                .create();
+
+        menuBinding.logRow.setOnClickListener(v -> {
+            dialog.dismiss();
+            Task rootTask = currTask;
+            while (rootTask.getParent() != null) rootTask = rootTask.getParent();
+            new LogFloatView(requireContext(), rootTask).show();
+        });
+
+        menuBinding.detailRow.setOnClickListener(v -> menuBinding.detailSwitch.toggle());
+        menuBinding.detailSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked == currTask.hasFlag(Task.FLAG_DEBUG)) return;
+            currTask.toggleFlag(Task.FLAG_DEBUG);
+            currTask.save();
+        });
+
+        menuBinding.captureRow.setOnClickListener(v -> {
+            dialog.dismiss();
+            showTaskCapture();
+        });
+
+        menuBinding.editToolsRow.setOnClickListener(v -> menuBinding.editToolsSwitch.toggle());
+        menuBinding.editToolsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            showEditTools = isChecked;
+            applyEditToolsVisible(binding.searchButton.isChecked());
+        });
+
+        dialog.show();
+    }
+
+    // 任务截图：预览后保存或分享
+    private void showTaskCapture() {
+        Bitmap bitmap = binding.cardLayout.takeTaskCapture();
+        ShapeableImageView imageView = new ShapeableImageView(requireContext());
+        imageView.setImageBitmap(bitmap);
+
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.task_capture)
+                .setView(imageView)
+                .setPositiveButton(R.string.save, (dialog, which) -> {
+                    dialog.dismiss();
+                    AppUtil.writePictureImage(requireContext(), bitmap);
+                })
+                .setNegativeButton(R.string.share_to_action, (dialog, which) -> {
+                    dialog.dismiss();
+                    AppUtil.shareImage(requireContext(), bitmap);
+                })
+                .setNeutralButton(R.string.cancel, (dialog, which) -> dialog.dismiss())
+                .show();
+
+        Size size = DisplayUtil.getScreenSize(requireContext());
+        DisplayUtil.setViewWidth(imageView, ViewGroup.LayoutParams.MATCH_PARENT);
+        DisplayUtil.setViewHeight(imageView, size.getHeight() / 2);
     }
 
     private final OnBackPressedCallback callback = new OnBackPressedCallback(false) {
@@ -325,61 +395,7 @@ public class BlueprintView extends Fragment {
         });
         binding.regCheck.setChecked(SettingSaver.BLUEPRINT_SEARCH_WITH_REGEX.get());
 
-        binding.moreButton.setOnClickListener(v -> {
-            PopupMenu popupMenu = new PopupMenu(requireContext(), binding.saveBox);
-            popupMenu.getMenuInflater().inflate(R.menu.menu_blueprint, popupMenu.getMenu());
-
-            MenuItem menuItem = popupMenu.getMenu().findItem(R.id.taskDetailLog);
-            menuItem.setChecked(task.hasFlag(Task.FLAG_DEBUG));
-            menuItem.setVisible(task.getParent() == null);
-            popupMenu.getMenu().findItem(R.id.editTools).setChecked(showEditTools);
-
-            popupMenu.setOnMenuItemClickListener(item -> {
-                int itemId = item.getItemId();
-                if (itemId == R.id.taskRunningLog) {
-                    Task currTask = taskStack.peek();
-                    while (currTask.getParent() != null) currTask = currTask.getParent();
-                    new LogFloatView(requireContext(), currTask).show();
-                    return true;
-                } else if (itemId == R.id.taskDetailLog) {
-                    Task currTask = taskStack.peek();
-                    currTask.toggleFlag(Task.FLAG_DEBUG);
-                    currTask.save();
-                    item.setChecked(currTask.hasFlag(Task.FLAG_DEBUG));
-                    return true;
-                } else if (itemId == R.id.editTools) {
-                    showEditTools = !showEditTools;
-                    item.setChecked(showEditTools);
-                    applyEditToolsVisible(binding.searchButton.isChecked());
-                    return true;
-                } else if (itemId == R.id.taskCapture) {
-                    Bitmap bitmap = binding.cardLayout.takeTaskCapture();
-                    ShapeableImageView imageView = new ShapeableImageView(requireContext());
-                    imageView.setImageBitmap(bitmap);
-
-                    new MaterialAlertDialogBuilder(requireContext())
-                            .setTitle(R.string.task_capture)
-                            .setView(imageView)
-                            .setPositiveButton(R.string.save, (dialog, which) -> {
-                                dialog.dismiss();
-                                AppUtil.writePictureImage(requireContext(), bitmap);
-                            })
-                            .setNegativeButton(R.string.share_to_action, (dialog, which) -> {
-                                dialog.dismiss();
-                                AppUtil.shareImage(requireContext(), bitmap);
-                            })
-                            .setNeutralButton(R.string.cancel, (dialog, which) -> dialog.dismiss())
-                            .show();
-
-                    Size size = DisplayUtil.getScreenSize(requireContext());
-                    DisplayUtil.setViewWidth(imageView, ViewGroup.LayoutParams.MATCH_PARENT);
-                    DisplayUtil.setViewHeight(imageView, size.getHeight() / 2);
-                    return true;
-                }
-                return false;
-            });
-            popupMenu.show();
-        });
+        binding.moreButton.setOnClickListener(v -> showTaskMenu());
 
         binding.addButton.setOnClickListener(v -> new SelectActionDialog(requireContext(), taskStack.peek(), action -> {
             ActionCard card = binding.cardLayout.addCard(action);

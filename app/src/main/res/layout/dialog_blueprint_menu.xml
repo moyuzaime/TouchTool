@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="?attr/defaultOffset"
+    android:paddingTop="?attr/defaultOffset"
+    android:paddingBottom="?attr/defaultPadding">
+
+    <!-- 打开任务日志 -->
+    <LinearLayout
+        android:id="@+id/logRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:minHeight="56dp"
+        android:orientation="horizontal"
+        android:paddingHorizontal="?attr/defaultOffset"
+        android:paddingVertical="?attr/defaultOffset">
+
+        <ImageView
+            android:layout_width="?attr/smallIconButtonSize"
+            android:layout_height="?attr/smallIconButtonSize"
+            android:importantForAccessibility="no"
+            android:src="@drawable/icon_note_stack"
+            app:tint="?attr/colorPrimary" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="?attr/defaultPadding"
+            android:layout_weight="1"
+            android:text="@string/task_running_log"
+            android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+
+    </LinearLayout>
+
+    <!-- 记录日志细节开关 -->
+    <LinearLayout
+        android:id="@+id/detailRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:minHeight="56dp"
+        android:orientation="horizontal"
+        android:paddingHorizontal="?attr/defaultOffset"
+        android:paddingVertical="?attr/defaultOffset">
+
+        <ImageView
+            android:layout_width="?attr/smallIconButtonSize"
+            android:layout_height="?attr/smallIconButtonSize"
+            android:importantForAccessibility="no"
+            android:src="@drawable/icon_assignment"
+            app:tint="?attr/colorPrimary" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="?attr/defaultPadding"
+            android:layout_weight="1"
+            android:text="@string/task_running_detail_log"
+            android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/detailSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+
+    <!-- 任务截图 -->
+    <LinearLayout
+        android:id="@+id/captureRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:minHeight="56dp"
+        android:orientation="horizontal"
+        android:paddingHorizontal="?attr/defaultOffset"
+        android:paddingVertical="?attr/defaultOffset">
+
+        <ImageView
+            android:layout_width="?attr/smallIconButtonSize"
+            android:layout_height="?attr/smallIconButtonSize"
+            android:importantForAccessibility="no"
+            android:src="@drawable/icon_document_scanner"
+            app:tint="?attr/colorPrimary" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="?attr/defaultPadding"
+            android:layout_weight="1"
+            android:text="@string/task_capture"
+            android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+
+    </LinearLayout>
+
+    <!-- 辅助工具开关 -->
+    <LinearLayout
+        android:id="@+id/editToolsRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:minHeight="56dp"
+        android:orientation="horizontal"
+        android:paddingHorizontal="?attr/defaultOffset"
+        android:paddingVertical="?attr/defaultOffset">
+
+        <ImageView
+            android:layout_width="?attr/smallIconButtonSize"
+            android:layout_height="?attr/smallIconButtonSize"
+            android:importantForAccessibility="no"
+            android:src="@drawable/icon_function"
+            app:tint="?attr/colorPrimary" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="?attr/defaultPadding"
+            android:layout_weight="1"
+            android:text="@string/blueprint_edit_tools"
+            android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/editToolsSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+
+</LinearLayout>

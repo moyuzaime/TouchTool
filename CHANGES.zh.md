@@ -119,7 +119,15 @@
 - 无日志时列表中央显示「暂无日志」，不再是空白。
 - 无障碍服务未就绪时不再尝试加窗（会抛 `BadTokenException` 并留下关不掉的幽灵窗口），改为提示「无障碍服务未启用」。
 
-### 8. 界面动效统一
+### 8. 任务菜单改为对话框列表
+
+- 位置：`ui/blueprint/BlueprintView.java`（`showTaskMenu()`）、`res/layout/dialog_blueprint_menu.xml`
+- 原先是 `androidx.appcompat.widget.PopupMenu`：四项纯文字、字号偏大、右侧是方框勾选，观感与全局对话框不一致。
+- 改为 `MaterialAlertDialog` + 自定义列表：每行「图标 + 标题」，两个开关项（记录日志细节 / 辅助工具）用 `MaterialSwitch` 直接反映状态，行高统一 56dp。
+- 「记录日志细节」仍只在顶层任务显示；「任务截图」的预览/保存/分享流程保持不变（抽成 `showTaskCapture()`）。
+- 原来的 `res/menu/menu_blueprint.xml` 已无引用，一并删除。
+
+### 9. 界面动效统一
 
 - 新增 `utils/AnimUtil.java`：统一的「淡入淡出 + 轻微位移」显隐动画（180ms）。
 - 蓝图底部两条工具栏（常驻 / 选中）改为**串行**切换：旧的完全收走后再浮出新的，避免交叉淡入时重叠成一块。
