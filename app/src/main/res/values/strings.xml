@@ -91,6 +91,7 @@
 
     <!-- 蓝图界面相关 -->
     <string name="task_running_log">任务日志</string>
+    <string name="log_empty_tips">暂无日志</string>
     <string name="task_running_log_switch">切换日志开关</string>
     <string name="task_running_log_clear">清除日志</string>
     <string name="task_running_detail_log">记录日志细节</string>

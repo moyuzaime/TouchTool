@@ -6,9 +6,11 @@ import android.graphics.RectF;
 import android.text.Editable;
 import android.util.Size;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Toast;
 import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
@@ -190,7 +192,7 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
         binding.clearButton.setOnClickListener(v -> {
             if (this.task == null) return;
             LogSaver.getInstance().clearLog(this.task.getId());
-            adapter.setLogSave(LogSaver.getInstance().getLogSave(this.task.getId()));
+            refreshLogs();
         });
     }
 
@@ -300,6 +302,12 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
 
     @Override
     public void show() {
+        // 无障碍服务没起来时加窗会抛 BadToken，还可能留下关不掉的幽灵窗口，直接提示
+        if (MainApplication.getInstance().getService() == null) {
+            Toast.makeText(getContext(), R.string.app_setting_enable_error, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         Size size = DisplayUtil.getScreenSize(getContext());
         FloatWindow.with(MainApplication.getInstance().getService())
                 .setLayout(this)
@@ -330,6 +338,7 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
             lastRootCount = logSave.getLogCount();
             adapter.syncRoots(logSave);
             if (follow) scrollToBottom();
+            updateEmptyTips();
         }
         postDelayed(pollRunnable, 500);
     }
@@ -371,6 +380,13 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
     private void scrollToBottom() {
         int count = adapter.getItemCount();
         if (count > 0) binding.recyclerView.scrollToPosition(count - 1);
+        updateEmptyTips();
+    }
+
+    // 没有日志时给一句提示，避免窗口中间一片空白
+    private void updateEmptyTips() {
+        boolean empty = adapter.getItemCount() == 0;
+        binding.emptyTips.setVisibility(empty ? View.VISIBLE : View.GONE);
     }
 
     @Override
@@ -383,6 +399,7 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
             adapter.syncLog(logSave, log);
             lastRootCount = logSave.getLogCount();
             if (follow) scrollToBottom();
+            updateEmptyTips();
         });
     }
 }
