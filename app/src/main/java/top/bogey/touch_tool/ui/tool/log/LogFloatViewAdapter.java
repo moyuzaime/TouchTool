@@ -13,7 +13,9 @@ import androidx.annotation.NonNull;
 import com.google.android.material.card.MaterialCardView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import top.bogey.touch_tool.R;
@@ -45,6 +47,8 @@ import top.bogey.touch_tool.utils.tree.TreeNode;
 public class LogFloatViewAdapter extends TreeAdapter {
     private Task task;
     int searchIndex = -1;
+    // uid -> 节点，增量插入时按 uid 定位，避免整表重建
+    private final Map<String, LazyTreeNode> nodeMap = new HashMap<>();
 
     @NonNull
     @Override
@@ -68,13 +72,87 @@ public class LogFloatViewAdapter extends TreeAdapter {
 
     public void setLogSave(LogSave logSave) {
         task = TaskSaver.getInstance().getTask(logSave.getKey());
+        nodeMap.clear();
 
         List<TreeNode> nodeList = new ArrayList<>();
         for (int i = 1; i < logSave.getLogCount() + 1; i++) {
-            TreeNode node = new LazyTreeNode(logSave, i);
+            LazyTreeNode node = new LazyTreeNode(logSave, i);
+            nodeMap.put(String.valueOf(i), node);
             nodeList.add(node);
         }
         setTreeNodes(nodeList);
+    }
+
+    // 增量同步：只补新出现的节点，不重建整棵树，已展开的节点不会被打回原状
+    public void syncLog(LogSave logSave, LogInfo info) {
+        if (info == null || info.getUid() == null) return;
+
+        String uid = info.getUid();
+        LazyTreeNode node = nodeMap.get(uid);
+        if (node == null) {
+            // 没见过的根节点，追加到末尾
+            if (!isRootIndex(uid, logSave)) return;
+            LazyTreeNode root = new LazyTreeNode(logSave, Integer.parseInt(uid));
+            nodeMap.put(uid, root);
+            addTreeNode(root);
+            return;
+        }
+        syncChildren(logSave, node, info);
+    }
+
+    // 补齐某个节点下新增的子节点
+    private void syncChildren(LogSave logSave, LazyTreeNode node, LogInfo info) {
+        List<?> flags = info.getChildrenFlags();
+        List<TreeNode> children = node.getChildren();
+        if (flags.size() <= children.size()) return;
+
+        List<TreeNode> added = new ArrayList<>();
+        for (int i = children.size(); i < flags.size(); i++) {
+            Object flag = flags.get(i);
+            LazyTreeNode child = new LazyTreeNode(logSave, flag);
+            child.setDepth(node.getDepth() + 1);
+            node.addChild(child);
+            added.add(child);
+            nodeMap.put(String.valueOf(flag), child);
+        }
+
+        int index = treeNodes.indexOf(node);
+        if (index < 0) return;
+        // 折叠状态下子项不显示，只刷新这一行
+        if (!node.isExpanded()) {
+            notifyItemChanged(index);
+            return;
+        }
+
+        // 插到该节点已展开子树的末尾，保持层级顺序
+        int insertIndex = index + 1;
+        for (int i = index + 1; i < treeNodes.size(); i++) {
+            if (treeNodes.get(i).getDepth() <= node.getDepth()) break;
+            insertIndex = i + 1;
+        }
+        treeNodes.addAll(insertIndex, added);
+        notifyItemRangeInserted(insertIndex, added.size());
+    }
+
+    // 兜底同步根节点：只追加没见过的，不重建
+    public void syncRoots(LogSave logSave) {
+        int count = logSave.getLogCount();
+        for (int i = 1; i <= count; i++) {
+            String uid = String.valueOf(i);
+            if (nodeMap.containsKey(uid)) continue;
+            LazyTreeNode root = new LazyTreeNode(logSave, i);
+            nodeMap.put(uid, root);
+            addTreeNode(root);
+        }
+    }
+
+    private boolean isRootIndex(String uid, LogSave logSave) {
+        try {
+            int index = Integer.parseInt(uid);
+            return index >= 1 && index <= logSave.getLogCount();
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     public List<LogInfo> getLogs() {

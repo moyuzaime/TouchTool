@@ -41,7 +41,7 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
     private final FloatLogBinding binding;
     private final LogFloatViewAdapter adapter;
     private final String tag = LogFloatView.class.getName();
-    private long lastRefreshTime = -1;
+    private int lastRootCount = 0;
 
     private final int minWidth, minHeight;
     private final int maxWidth, maxHeight;
@@ -289,30 +289,35 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
 
     @Override
     public void dismiss() {
-        removeCallbacks(refreshLogRunnable);
         removeCallbacks(pollRunnable);
         LogSaver.getInstance().removeListener(this);
         FloatWindow.dismiss(tag);
     }
 
-    // 日志刷新合并：短时间内的多条日志只重建一次列表
-    private final Runnable refreshLogRunnable = this::refreshLogs;
-
-    // 兜底轮询：万一某条写入路径没发通知，最多 500ms 后也能刷出来
+    // 兜底轮询：只看根节点数量，漏了通知也能补上，且不做整表重建
     private final Runnable pollRunnable = this::pollLogs;
 
     private void pollLogs() {
         if (task == null) return;
         LogSave logSave = LogSaver.getInstance().getLogSave(task.getId());
-        if (logSave.getLastTime() != lastRefreshTime) refreshLogs();
+        if (logSave.getLogCount() != lastRootCount) {
+            lastRootCount = logSave.getLogCount();
+            adapter.syncRoots(logSave);
+            scrollToBottom();
+        }
         postDelayed(pollRunnable, 500);
     }
 
+    // 首次加载/切换任务时重建列表
     private void refreshLogs() {
         if (task == null) return;
         LogSave logSave = LogSaver.getInstance().getLogSave(task.getId());
-        lastRefreshTime = logSave.getLastTime();
+        lastRootCount = logSave.getLogCount();
         adapter.setLogSave(logSave);
+        scrollToBottom();
+    }
+
+    private void scrollToBottom() {
         int count = adapter.getItemCount();
         if (count > 0) binding.recyclerView.scrollToPosition(count - 1);
     }
@@ -321,7 +326,11 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
     public void onNewLog(LogSave logSave, LogInfo log) {
         if (task == null) return;
         if (!logSave.getKey().equals(task.getId())) return;
-        removeCallbacks(refreshLogRunnable);
-        postDelayed(refreshLogRunnable, 120);
+        // 逐条插入，不重建列表
+        post(() -> {
+            adapter.syncLog(logSave, log);
+            lastRootCount = logSave.getLogCount();
+            scrollToBottom();
+        });
     }
 }
