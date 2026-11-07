@@ -132,7 +132,8 @@
 
 - 位置：`ui/blueprint/BlueprintView.java`（`showTaskCapture()` / `showCapturePreview()`）、`ui/blueprint/CardLayoutView.java`（`prepareTaskCapture()` / `drawCaptureBand()` / `restoreTaskCapture()`）、`utils/PngStreamWriter.java`、`utils/AppUtil.java`（`writePictureFile` / `shareImageFile`）
 - 原来是「一次性 new 出整张 Bitmap + 缩放上限 4096」：图一大就 OOM，且分辨率被压到 4096。
-- 改为按原始比例（`scale = 1`）分带渲染、流式写 PNG：每带只在内存里放「宽 × 单带高」的位图，带宽按 32MB 预算自动换算，因此尺寸不再受内存限制（实测 6552×6804 导出正常，旧实现会先压到 4096 以内）。
+- 改为按原始比例（`scale = 1`）分带渲染、流式写 PNG：每带只在内存里放「宽 × 单带高」的位图，带宽按 32MB 预算自动换算，因此尺寸不再受内存限制（实测 29736×8358、约 2.5 亿像素导出正常，旧实现会先压到 4096 以内）。
+- 导出区域的留边从「卡片包围盒 + 1 格」放宽到「+ 6 格」：连线的贝塞尔曲线会弯出卡片范围，留边太小会被裁掉。
 - `PngStreamWriter` 自行拼 PNG 结构：IHDR 固定 RGBA8，逐行 None 过滤后喂给 `Deflater`，按 256KB 攒成连续的 IDAT 块，最后写 IEND；CRC 按块计算。
 - 线程分工：`prepareTaskCapture()` 与 `restoreTaskCapture()` 会改卡片布局，必须在 UI 线程执行；后台线程只做画布渲染与编码（直接调 `updateCardsPos()` 会抛 CalledFromWrongThreadException，这点已在实现中规避）。
 - 生成期间显示「正在按原始尺寸生成截图…」，完成后用 `inSampleSize` 采样解码出预览（不整张解码），保存与分享都用原始 PNG 文件：`AppUtil.writePictureFile` 按 `image/png` 写入相册，`AppUtil.shareImageFile` 走 FileProvider + `createChooser`。
@@ -141,7 +142,7 @@
 ### 10. 界面动效统一
 
 - 新增 `utils/AnimUtil.java`：统一的「淡入淡出 + 轻微位移」显隐动画（180ms）。
-- 蓝图底部两条工具栏（常驻 / 选中）改为**串行**切换：旧的完全收走后再浮出新的，避免交叉淡入时重叠成一块。
+- 蓝图底部两条工具栏（常驻 / 选中）改为**串行**切换：旧的完全收走后再浮出新的，避免交叉淡入时重叠成一块；串行切换带序号，连续切换时只有最后一次生效，避免先前排队的回调把底栏切回去。CardLayoutView 框选过程中批量改选中、结束后只刷新一次工具栏。
 - 任务列表长按进入选择模式时：添加按钮下沉收走，选择工具栏再浮起；退出时反向。
 - 搜索栏与搜索选项从上方落下展开、收回。
 - 画布新卡片淡入并轻微放大，删除时先淡出再移除。

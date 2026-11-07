@@ -107,6 +107,8 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
 
     // 卡片组暂存：每组是一批动作 id，只存内存不落盘
     private final List<SavedCardGroup> savedCardGroups = new ArrayList<>();
+    // 框选等批量改选中时先跳过工具栏刷新
+    private boolean batchSelecting = false;
     private final List<ActionCard> savedGroupHighlightCards = new ArrayList<>();
     private int highlightedGroup = -1;
     private boolean savedGroupPanelOpen = false;
@@ -1018,6 +1020,8 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
     }
 
     private void refreshEditView() {
+        // 框选等批量改选中时先不刷新，等整批改完再统一刷新
+        if (batchSelecting) return;
         BlueprintView.tryShowFloatingToolBar(!selectedCards.isEmpty());
         refreshSavedGroupViews();
     }
@@ -1204,6 +1208,8 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
                     }
 
                     case TOUCH_SELECT_AREA -> {
+                        // 框选过程中成批改选中，结束后只刷新一次工具栏，避免动画被反复打断
+                        batchSelecting = true;
                         cleanSelectedCards();
                         selectArea = new RectF(realStartX, realStartY, x - offsetX, y - offsetY);
                         selectArea.sort();
@@ -1211,6 +1217,8 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
                             RectF cardArea = getCardArea(card);
                             if (cardArea.intersect(selectArea)) addSelectedCard(card);
                         });
+                        batchSelecting = false;
+                        refreshEditView();
                     }
 
                     case TOUCH_DRAG_CARD -> {
@@ -1449,9 +1457,10 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
         updateCardsPos();
         cards.values().forEach(card -> card.setNeedDraw(true));
 
-        // 计算所有卡片的绘制区域
+        // 计算所有卡片的绘制区域；留出比卡片本身更大的边距，
+        // 否则连线的贝塞尔曲线弯出卡片范围时会被裁掉
         RectF area = calculateCardsArea(cards.values());
-        float padding = gridSize * (CardLayoutHelper.CORNER_GRID_COUNT + 1);
+        float padding = gridSize * (CardLayoutHelper.CORNER_GRID_COUNT + 6);
         area.inset(-padding, -padding);
 
         offsetX = -area.left;

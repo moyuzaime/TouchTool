@@ -78,11 +78,19 @@ public class AnimUtil {
         show(showView, showFromDp);
     }
 
+    // 串行切换的序号：新的切换会让上一次排队中的“显示下一条”作废
+    private static int swapSequence = 0;
+
     /**
      * 串行交替：旧的完全收走之后，新的才浮出来。
      * 两条同位置的工具栏用这个，避免交叉淡入淡出时短暂重叠成一块。
+     * 短时间内连续调用时，只有最后一次生效，避免早先排队的回调把界面又切回去。
      */
     public static void swapSequential(View hideView, float hideToDp, View showView, float showFromDp) {
-        hide(hideView, hideToDp, DEFAULT_DURATION, () -> show(showView, showFromDp, DEFAULT_DURATION));
+        int token = ++swapSequence;
+        hide(hideView, hideToDp, DEFAULT_DURATION, () -> {
+            if (token != swapSequence) return;
+            show(showView, showFromDp, DEFAULT_DURATION);
+        });
     }
 }
