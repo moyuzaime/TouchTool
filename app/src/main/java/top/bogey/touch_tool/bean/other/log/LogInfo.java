@@ -25,6 +25,8 @@ public class LogInfo implements ILazyTreeNodeData {
     private final Log log;
     private final List<String> children = new ArrayList<>();
     private final transient List<LogInfo> childrenLog = new ArrayList<>();
+    // 是否已经作为根节点写过盘：运行中的动作节点先落盘再增量更新，避免重复写入
+    private transient boolean saved = false;
 
     public LogInfo(Log log) {
         uid = UUID.randomUUID().toString();
@@ -51,6 +53,14 @@ public class LogInfo implements ILazyTreeNodeData {
 
     public void setUid(String uid) {
         this.uid = uid;
+    }
+
+    public boolean isSaved() {
+        return saved;
+    }
+
+    public void setSaved(boolean saved) {
+        this.saved = saved;
     }
 
     public long getTime() {

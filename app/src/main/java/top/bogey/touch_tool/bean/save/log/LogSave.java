@@ -67,6 +67,11 @@ public class LogSave implements ITreeNodeDataLoader {
         return key;
     }
 
+    // 最后一次写入时间，供日志窗口判断是否需要刷新
+    public long getLastTime() {
+        return time;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;

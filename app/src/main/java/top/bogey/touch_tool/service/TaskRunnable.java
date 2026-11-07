@@ -159,7 +159,13 @@ public class TaskRunnable implements Runnable {
             case 0 -> {
                 if (logStack.isEmpty()) {
                     if (!cacheLog) {
-                        LogSaver.getInstance().addLog(task.getId(), logInfo, true);
+                        // 顶层动作节点开始时已经落过盘，这里只更新，避免同一动作出现两条
+                        if (logInfo.isSaved()) {
+                            LogSaver.getInstance().updateLog(task.getId(), logInfo);
+                        } else {
+                            LogSaver.getInstance().addLog(task.getId(), logInfo, true);
+                            logInfo.setSaved(true);
+                        }
                         logged = true;
                     }
                     cacheLogList.add(logInfo);
@@ -167,13 +173,24 @@ public class TaskRunnable implements Runnable {
                     logStack.peek().addChild(logInfo);
                     if (!cacheLog) {
                         LogSaver.getInstance().addLog(task.getId(), logInfo, false);
-                        // 父节点的 children 只在结束时落盘，这里补写一次，让嵌套日志实时可见
-                        LogSaver.getInstance().updateLog(task.getId(), logStack.peek());
+                        // 子节点写入后整条祖链的 children 都变了，逐个重写，日志窗口才能实时看到
+                        for (LogInfo ancestor : logStack) {
+                            LogSaver.getInstance().updateLog(task.getId(), ancestor);
+                        }
                         logged = true;
                     }
                 }
             }
-            case 1 -> logStack.push(logInfo);
+            case 1 -> {
+                logStack.push(logInfo);
+                // 顶层动作一开始就落盘成根节点：细节日志模式下所有日志都挂在它下面，
+                // 否则要等整个任务结束才出现，看起来就是一次性刷出来
+                if (!cacheLog && logStack.size() == 1) {
+                    LogSaver.getInstance().addLog(task.getId(), logInfo, true);
+                    logInfo.setSaved(true);
+                    logged = true;
+                }
+            }
         }
     }
 

@@ -41,6 +41,7 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
     private final FloatLogBinding binding;
     private final LogFloatViewAdapter adapter;
     private final String tag = LogFloatView.class.getName();
+    private long lastRefreshTime = -1;
 
     private final int minWidth, minHeight;
     private final int maxWidth, maxHeight;
@@ -283,11 +284,13 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
                 .setExistEditText(true)
                 .show();
         LogSaver.getInstance().addListener(this);
+        postDelayed(pollRunnable, 500);
     }
 
     @Override
     public void dismiss() {
         removeCallbacks(refreshLogRunnable);
+        removeCallbacks(pollRunnable);
         LogSaver.getInstance().removeListener(this);
         FloatWindow.dismiss(tag);
     }
@@ -295,9 +298,21 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
     // 日志刷新合并：短时间内的多条日志只重建一次列表
     private final Runnable refreshLogRunnable = this::refreshLogs;
 
+    // 兜底轮询：万一某条写入路径没发通知，最多 500ms 后也能刷出来
+    private final Runnable pollRunnable = this::pollLogs;
+
+    private void pollLogs() {
+        if (task == null) return;
+        LogSave logSave = LogSaver.getInstance().getLogSave(task.getId());
+        if (logSave.getLastTime() != lastRefreshTime) refreshLogs();
+        postDelayed(pollRunnable, 500);
+    }
+
     private void refreshLogs() {
         if (task == null) return;
-        adapter.setLogSave(LogSaver.getInstance().getLogSave(task.getId()));
+        LogSave logSave = LogSaver.getInstance().getLogSave(task.getId());
+        lastRefreshTime = logSave.getLastTime();
+        adapter.setLogSave(logSave);
         int count = adapter.getItemCount();
         if (count > 0) binding.recyclerView.scrollToPosition(count - 1);
     }
