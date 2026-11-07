@@ -22,15 +22,23 @@ public class AnimUtil {
                 && view.getTranslationY() == 0f) {
             return;
         }
-        view.setVisibility(View.VISIBLE);
+
+        // 先把起始状态设好再显示，避免第一帧出现在错误的布局位置
         view.setAlpha(0f);
         view.setTranslationY(DisplayUtil.dp2px(view.getContext(), fromDp));
-        view.animate()
-                .alpha(1f)
-                .translationY(0f)
-                .setDuration(duration)
-                .setInterpolator(new DecelerateInterpolator())
-                .start();
+        view.setVisibility(View.VISIBLE);
+
+        // 等这一帧的测量布局完成后再启动，否则 wrap_content /
+        // DockedToolbarLayout 这类会在首帧先按旧尺寸落位，看起来像"先出现在别处再下滑"
+        view.post(() -> {
+            if (view.getVisibility() != View.VISIBLE) return;
+            view.animate()
+                    .alpha(1f)
+                    .translationY(0f)
+                    .setDuration(duration)
+                    .setInterpolator(new DecelerateInterpolator())
+                    .start();
+        });
     }
 
     public static void hide(View view, float toDp) {
