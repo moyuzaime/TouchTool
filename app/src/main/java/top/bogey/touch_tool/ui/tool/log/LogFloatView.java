@@ -199,11 +199,11 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
         Editable text = binding.searchEdit.getText();
         if (text != null) s = text.toString();
 
-        // 没有搜索词时，上下箭头在展开块里跳：上箭头到展开内容第一行，下箭头到最后一行
+        // 没有搜索词时，上下箭头在当前展开块里跳：上箭头到首行，下箭头到末行
         if (s.isEmpty()) {
-            int edge = adapter.findExpandedEdge(isNext);
             int count = adapter.getItemCount();
             if (count <= 0) return;
+            int edge = adapter.findExpandedEdge(isNext, getAnchorPosition());
             if (edge < 0) edge = isNext ? count - 1 : 0;
             binding.recyclerView.scrollToPosition(edge);
             return;
@@ -343,6 +343,16 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
         // 首次打开/切换任务时回到最新一条，并恢复跟随
         autoFollow = true;
         scrollToBottom();
+    }
+
+    // 当前视口的第一行，用作"所在层"的锚点
+    private int getAnchorPosition() {
+        RecyclerView.LayoutManager manager = binding.recyclerView.getLayoutManager();
+        if (manager instanceof LinearLayoutManager linearManager) {
+            int first = linearManager.findFirstVisibleItemPosition();
+            if (first != RecyclerView.NO_POSITION) return first;
+        }
+        return 0;
     }
 
     // 只有用户本来就在底部时才自动跟随；正在往上翻看时不要把人顶走

@@ -151,32 +151,43 @@ public class LogFloatViewAdapter extends TreeAdapter {
         }
     }
 
-    // 没有搜索词时上下箭头的目标：展开块的第一行内容 / 最后一行内容
-    public int findExpandedEdge(boolean isNext) {
-        if (isNext) {
-            // 从后往前找最后一个展开节点，取它整棵子树的末尾
-            for (int i = treeNodes.size() - 1; i >= 0; i--) {
-                TreeNode node = treeNodes.get(i);
-                if (!node.isExpanded()) continue;
-                int end = i;
-                for (int j = i + 1; j < treeNodes.size(); j++) {
-                    if (treeNodes.get(j).getDepth() <= node.getDepth()) break;
-                    end = j;
-                }
-                if (end > i) return end;
-            }
-            return -1;
+    // 没有搜索词时上下箭头的目标：以当前视口所在行为锚点，取它所在展开块的首行 / 末行
+    public int findExpandedEdge(boolean isNext, int anchorPosition) {
+        if (treeNodes.isEmpty()) return -1;
+        int anchor = Math.max(0, Math.min(anchorPosition, treeNodes.size() - 1));
+
+        TreeNode node = findExpandedBlock(anchor);
+        if (node == null) return -1;
+        int index = treeNodes.indexOf(node);
+        if (index < 0) return -1;
+
+        if (!isNext) {
+            // 展开块的第一行内容
+            return index + 1 < treeNodes.size() ? index + 1 : -1;
         }
 
-        // 从前往后找第一个展开节点，取它的第一个子项
-        for (int i = 0; i < treeNodes.size(); i++) {
-            TreeNode node = treeNodes.get(i);
-            if (!node.isExpanded()) continue;
-            if (i + 1 < treeNodes.size() && treeNodes.get(i + 1).getDepth() > node.getDepth()) {
-                return i + 1;
-            }
+        // 展开块的最后一行：顺着 depth 走完这棵子树
+        int end = index;
+        for (int i = index + 1; i < treeNodes.size(); i++) {
+            if (treeNodes.get(i).getDepth() <= node.getDepth()) break;
+            end = i;
         }
-        return -1;
+        return end > index ? end : -1;
+    }
+
+    // 从锚点行往上找它所属的展开块头：自身展开就取自身，否则找最近的已展开祖先
+    private TreeNode findExpandedBlock(int position) {
+        TreeNode current = treeNodes.get(position);
+        if (current.isExpanded()) return current;
+
+        int depth = current.getDepth();
+        for (int i = position - 1; i >= 0 && depth > 0; i--) {
+            TreeNode candidate = treeNodes.get(i);
+            if (candidate.getDepth() >= depth) continue;
+            if (candidate.isExpanded()) return candidate;
+            depth = candidate.getDepth();
+        }
+        return null;
     }
 
     private boolean isRootIndex(String uid, LogSave logSave) {
