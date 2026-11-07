@@ -133,7 +133,9 @@
 - 位置：`ui/blueprint/BlueprintView.java`（`showTaskCapture()` / `showCapturePreview()`）、`ui/blueprint/CardLayoutView.java`（`prepareTaskCapture()` / `drawCaptureBand()` / `restoreTaskCapture()`）、`utils/PngStreamWriter.java`、`utils/AppUtil.java`（`writePictureFile` / `shareImageFile`）
 - 原来是「一次性 new 出整张 Bitmap + 缩放上限 4096」：图一大就 OOM，且分辨率被压到 4096。
 - 改为按原始比例（`scale = 1`）分带渲染、流式写 PNG：每带只在内存里放「宽 × 单带高」的位图，带宽按 32MB 预算自动换算，因此尺寸不再受内存限制（实测 29289×7854、约 2.3 亿像素导出正常，旧实现会先压到 4096 以内）。
-- 导出区域的留边从「卡片包围盒 + 1 格」放宽到「+ 6 格」：连线的贝塞尔曲线会弯出卡片范围，留边太小会被裁掉。
+- 导出区域 = 卡片包围盒 ∪ 所有连线的路径包围盒（`Path.computeBounds`），再留 2 格边距：连线是贝塞尔曲线、会弯出卡片范围，只按卡片包围盒留边会被裁。
+- 绘制时不再把区域左上角写进 `offsetX/offsetY`：卡片坐标本身就在内容坐标系里，对齐统一交给 `drawCaptureBand` 的 `translate`；两处都加偏移会让内容整体错位、右/下边缘被切。
+- 导出期间卡片不必在视口内，全部临时置 `needDraw = true` 后逐带绘制。
 - `PngStreamWriter` 自行拼 PNG 结构：IHDR 固定 RGBA8，逐行 None 过滤后喂给 `Deflater`，按 256KB 攒成连续的 IDAT 块，最后写 IEND；CRC 按块计算。
 - 线程分工：`prepareTaskCapture()` 与 `restoreTaskCapture()` 会改卡片布局，必须在 UI 线程执行；后台线程只做画布渲染与编码（直接调 `updateCardsPos()` 会抛 CalledFromWrongThreadException，这点已在实现中规避）。
 - 生成期间显示「正在按原始尺寸生成截图…」，完成后用 `inSampleSize` 采样解码出预览（不整张解码），保存与分享都用原始 PNG 文件：`AppUtil.writePictureFile` 按 `image/png` 写入相册，`AppUtil.shareImageFile` 走 FileProvider + `createChooser`。
