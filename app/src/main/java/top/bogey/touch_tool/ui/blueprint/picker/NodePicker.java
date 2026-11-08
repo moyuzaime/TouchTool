@@ -102,8 +102,9 @@ public class NodePicker extends FullScreenPicker<NodeInfo> implements NodePicker
         bitmapPaint.setDither(true);
 
         binding.saveButton.setOnClickListener(v -> {
-            if (callback != null) callback.onResult(nodeInfo);
+            // 先关选择器再回调：否则预览窗会先回来，和选择器同屏
             dismiss();
+            if (callback != null) callback.onResult(nodeInfo);
         });
 
         BottomSheetBehavior<?> sheetBehavior = BottomSheetBehavior.from(binding.bottomSheet);
@@ -111,8 +112,8 @@ public class NodePicker extends FullScreenPicker<NodeInfo> implements NodePicker
         binding.detailButton.setOnClickListener(v -> sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED));
 
         binding.backButton.setOnClickListener(v -> {
-            if (callback != null) callback.onResult(null);
             dismiss();
+            if (callback != null) callback.onResult(null);
         });
 
         binding.upButton.setOnClickListener(v -> {
