@@ -85,6 +85,8 @@ public class KeepAliveFloatView extends FrameLayout implements FloatInterface, I
 
     @Override
     public void dismiss() {
+        // 先停掉延时任务，避免窗口关闭后回调仍在跑
+        handler.removeCallbacksAndMessages(null);
         FloatWindow.dismiss(KeepAliveFloatView.class.getName());
     }
 

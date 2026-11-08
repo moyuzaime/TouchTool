@@ -270,6 +270,12 @@ public class FloatWindow {
                 return;
             }
 
+            // 未显式指定位置时，用上次拖动保存的位置
+            if (config.location == null) {
+                android.graphics.Point saved = loadLocation(config.tag);
+                if (saved != null) config.location = saved;
+            }
+
             FloatWindowHelper helper = new FloatWindowHelper(context, config);
             helper.createFloatWindow();
             tags.add(config.tag);
@@ -283,4 +289,36 @@ public class FloatWindow {
             }
         }
     }
+    // 悬浮窗位置按 tag 持久化，进程重启后能回到用户拖动的位置
+    static android.graphics.Point loadLocation(String tag) {
+        String saved = top.bogey.touch_tool.bean.save.setting.SettingSaver.FLOAT_WINDOW_LOCATION.get();
+        if (saved == null || saved.isEmpty()) return null;
+        for (String item : saved.split(";")) {
+            String[] parts = item.split("\\|");
+            if (parts.length != 3) continue;
+            if (!tag.equals(parts[0])) continue;
+            try {
+                return new android.graphics.Point(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    static void saveLocation(String tag, android.graphics.Point point) {
+        if (tag == null || point == null) return;
+        String saved = top.bogey.touch_tool.bean.save.setting.SettingSaver.FLOAT_WINDOW_LOCATION.get();
+        StringBuilder builder = new StringBuilder();
+        if (saved != null && !saved.isEmpty()) {
+            for (String item : saved.split(";")) {
+                if (item.isEmpty()) continue;
+                if (item.startsWith(tag + "|")) continue;
+                builder.append(item).append(';');
+            }
+        }
+        builder.append(tag).append('|').append(point.x).append('|').append(point.y);
+        top.bogey.touch_tool.bean.save.setting.SettingSaver.FLOAT_WINDOW_LOCATION.set(builder.toString());
+    }
+
 }

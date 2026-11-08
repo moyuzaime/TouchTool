@@ -511,6 +511,9 @@ public class SettingView extends Fragment {
         List<AppLog.Entry> logs = AppLog.getLogs();
 
         DialogLogBinding dialogBinding = DialogLogBinding.inflate(getLayoutInflater());
+        // 界面事件日志量大，默认关闭，这里可按需开启
+        dialogBinding.eventLogSwitch.setChecked(SettingSaver.APP_LOG_EVENT.get());
+        dialogBinding.eventLogSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> SettingSaver.APP_LOG_EVENT.set(isChecked));
         LogAdapter adapter = new LogAdapter();
         adapter.setLogs(logs);
         dialogBinding.recyclerView.setAdapter(adapter);

@@ -492,4 +492,5 @@
     <string name="preference_setting_manual_play_single_size_desc">设置独立按键模式按钮大小</string>
 
     <string name="more">更多</string>
+    <string name="app_setting_log_event">记录界面事件（开销较大）</string>
 </resources>

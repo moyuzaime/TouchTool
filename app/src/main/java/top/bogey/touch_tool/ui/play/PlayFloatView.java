@@ -324,6 +324,8 @@ public class PlayFloatView extends FrameLayout implements FloatInterface, ITaskL
 
     @Override
     public void dismiss() {
+        // 先停掉延时任务，避免窗口关闭后回调仍在跑
+        handler.removeCallbacksAndMessages(null);
         FloatWindow.dismiss(PlayFloatView.class.getName());
     }
 

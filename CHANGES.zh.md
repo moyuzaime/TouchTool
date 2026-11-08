@@ -191,6 +191,12 @@
 - 修复：`show()` 检查记录对应的窗口是否真的添加成功（`addFailed`），失效则清理后重建；工具页入口改为要求 `isConnected()`；加窗口失败时弹提示并把异常写入「日志 → 异常」。
 - 建议：安装、强停或清理后台后，进系统设置把无障碍服务关一次再开，避免系统保持「已崩溃」状态。
 
+### 18. 悬浮窗三项优化
+
+- 事件日志开关：`MainAccessibilityService` 不再逐条拼 `event.toString()`，改由 `SettingSaver.APP_LOG_EVENT` 控制，日志弹窗顶部可开关。
+- 窗口位置持久化：`FloatWindow` 按 tag 把拖动后的位置存进 `SettingSaver.FLOAT_WINDOW_LOCATION`，打开时恢复，进程重启不丢。
+- 延时任务清理：`ToastFloatView`、`KeepAliveFloatView`、`PlayFloatView` 的 `dismiss()` 先 `removeCallbacksAndMessages(null)`。
+
 ---
 
 ## 三、数据与兼容

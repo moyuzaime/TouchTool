@@ -8,8 +8,28 @@
     android:paddingHorizontal="?attr/defaultPadding">
 
     <!-- 分类筛选：全部加日志里出现过的分类，单选 -->
-    <HorizontalScrollView
+    <!-- 逐条记录界面事件开销大，默认关闭 -->
+    <LinearLayout
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingVertical="?attr/defaultOffset">
+
+        <com.google.android.material.textview.MaterialTextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/app_setting_log_event"
+            android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/eventLogSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <HorizontalScrollView        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:scrollbars="none">
 

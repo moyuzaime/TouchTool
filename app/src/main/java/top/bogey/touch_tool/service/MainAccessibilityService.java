@@ -113,7 +113,8 @@ public class MainAccessibilityService extends AccessibilityService {
     }
 
     private void handleAccessibilityEvent(AccessibilityEvent event) {
-        AppLog.d("事件", "onAccessibilityEvent: " + event);
+        // 每个事件都拼 event.toString() 开销很大，默认不记录，调试时可在日志弹窗开启
+        if (SettingSaver.APP_LOG_EVENT.get()) AppLog.d("事件", "onAccessibilityEvent: " + event);
         // 窗口变化事件不带包名与类名，这里按需取值
         String packageName = event.getPackageName() == null ? null : event.getPackageName().toString();
         String className = event.getClassName() == null ? null : event.getClassName().toString();

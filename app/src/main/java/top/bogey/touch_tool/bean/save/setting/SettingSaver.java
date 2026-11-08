@@ -82,6 +82,10 @@ public class SettingSaver {
     public final static SettingSave<Boolean> BLUEPRINT_EDITABLE = new SettingSave<>("BLUEPRINT_EDITABLE", true);
     /// 蓝图最后打开的分组
     public final static SettingSave<String> BLUEPRINT_LAST_GROUP = new SettingSave<>("BLUEPRINT_LAST_GROUP", "");
+    // 是否记录无障碍界面事件（逐条格式化开销大，默认关闭）
+    public final static SettingSave<Boolean> APP_LOG_EVENT = new SettingSave<>("APP_LOG_EVENT", false);
+    // 悬浮窗位置：tag|x|y;tag2|x|y
+    public final static SettingSave<String> FLOAT_WINDOW_LOCATION = new SettingSave<>("FLOAT_WINDOW_LOCATION", "");
     /// 蓝图最后打开的子分组
     public final static SettingSave<String> BLUEPRINT_LAST_SUB_GROUP = new SettingSave<>("BLUEPRINT_LAST_SUB_GROUP", "");
     /// 蓝图卡片搜索展开状态
