@@ -67,11 +67,8 @@ public class ImagePickerPreview extends BasePicker<Bitmap> {
         });
 
         binding.pickerButton.setOnClickListener(v -> new ImagePicker(context, result -> {
-                // 选完立刻关掉选择器，避免预览窗与选择器同时在场
-                top.bogey.touch_tool.utils.float_window_manager.FloatWindow.dismiss(ImagePicker.class);
         // 选择时先隐藏自身，避免遮挡目标
         dismiss();
-            showAfterPicker(ImagePicker.class);
             if (result == null) return;
             template = result;
             binding.current.setImageBitmap(template);

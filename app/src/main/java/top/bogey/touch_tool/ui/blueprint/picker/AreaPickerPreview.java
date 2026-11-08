@@ -125,8 +125,6 @@ public class AreaPickerPreview extends BasePicker<Rect> {
         });
 
         binding.pickerButton.setOnClickListener(v -> new AreaPicker(context, result -> {
-                // 选完立刻关掉选择器，避免预览窗与选择器同时在场
-                top.bogey.touch_tool.utils.float_window_manager.FloatWindow.dismiss(AreaPicker.class);
         // 选择时先隐藏自身，避免遮挡目标
         dismiss();
             show();
