@@ -472,4 +472,7 @@
     <string name="instant_activity_filter_name">执行或触发任务</string>
     <string name="app_setting_log_export">导出日志</string>
     <string name="picker_image_offset">相似度：%d</string>
+    <string name="app_setting_file_access">文件访问权限</string>
+    <string name="app_setting_file_access_on">已授权</string>
+    <string name="app_setting_file_access_off">未授权</string>
 </resources>

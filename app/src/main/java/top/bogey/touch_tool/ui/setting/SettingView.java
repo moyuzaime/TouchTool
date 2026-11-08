@@ -103,6 +103,16 @@ public class SettingView extends Fragment {
             dismissPopup(menu.getRoot());
             showRestrictedSettingsCmd();
         });
+        // 文件操作需要「所有文件访问权限」，这里显示状态并跳系统设置
+        menu.fileAccessText.setText(getString(R.string.app_setting_file_access) + "（" +
+                getString(AppUtil.hasAllFilesAccess() ? R.string.app_setting_file_access_on : R.string.app_setting_file_access_off) + "）");
+        menu.rowFileAccess.setOnClickListener(v -> {
+            if (AppUtil.hasAllFilesAccess()) {
+                Toast.makeText(requireContext(), R.string.app_setting_file_access_on, Toast.LENGTH_SHORT).show();
+            } else {
+                AppUtil.requestAllFilesAccess(requireContext());
+            }
+        });
         menu.rowLog.setOnClickListener(v -> {
             dismissPopup(menu.getRoot());
             showLogDialog();

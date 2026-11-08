@@ -265,6 +265,28 @@ public class AppUtil {
         }
     }
 
+    // 是否拥有「所有文件访问权限」
+    public static boolean hasAllFilesAccess() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) return Environment.isExternalStorageManager();
+        return true;
+    }
+
+    // 跳系统设置申请「所有文件访问权限」
+    public static void requestAllFilesAccess(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            try {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                intent.setData(Uri.parse("package:" + context.getPackageName()));
+                context.startActivity(intent);
+                return;
+            } catch (Exception ignored) {
+            }
+            try {
+                context.startActivity(new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION));
+            } catch (Exception ignored) {
+            }
+        }
+    }
     public static void copyToClipboard(Context context, String text) {
         AppUtil.copyToClipboard(context, text, true);
     }

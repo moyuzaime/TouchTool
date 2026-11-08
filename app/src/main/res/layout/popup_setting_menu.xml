@@ -77,6 +77,21 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/rowFileAccess"
+            style="@style/Theme.TouchTool.PopupMenuRow">
+
+            <ImageView
+                style="@style/Theme.TouchTool.PopupMenuIcon"
+                android:importantForAccessibility="no"
+                android:src="@drawable/icon_folder" />
+
+            <TextView
+                android:id="@+id/fileAccessText"
+                style="@style/Theme.TouchTool.PopupMenuText"
+                android:text="@string/app_setting_file_access" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/rowLog"
             style="@style/Theme.TouchTool.PopupMenuRow">
 
