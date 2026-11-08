@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -70,10 +71,26 @@ public class ToolView extends Fragment {
                 NavController controller = Navigation.findNavController(MainApplication.getInstance().getActivity(), R.id.conView);
                 controller.navigate(ToolViewDirections.actionToolToModelManagerView());
             }
-            case TOOL_PACKAGE_ACTIVITY -> new AppInfoFloatView(context).show();
-            case TOOL_NODE_PICKER -> new NodePickerPreview(context, null, null).show();
-            case TOOL_COLOR_PICKER -> new ColorPickerPreview(context, null, new PinColor.ColorInfo(0, 0, 0)).show();
+            case TOOL_PACKAGE_ACTIVITY -> {
+                if (!checkService()) return;
+                new AppInfoFloatView(context).show();
+            }
+            case TOOL_NODE_PICKER -> {
+                if (!checkService()) return;
+                new NodePickerPreview(context, null, null).show();
+            }
+            case TOOL_COLOR_PICKER -> {
+                if (!checkService()) return;
+                new ColorPickerPreview(context, null, new PinColor.ColorInfo(0, 0, 0)).show();
+            }
             case TOOL_RUNNING_LOG -> new LogFloatView(context).show();
         }
+    }
+
+    // 无障碍服务没起来时悬浮窗加不进去，点了会没反应，这里先判断并提示
+    private static boolean checkService() {
+        if (MainApplication.getInstance().getService() != null) return true;
+        Toast.makeText(MainApplication.getInstance(), R.string.app_setting_enable_error, Toast.LENGTH_SHORT).show();
+        return false;
     }
 }
