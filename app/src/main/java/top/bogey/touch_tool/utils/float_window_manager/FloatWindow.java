@@ -50,6 +50,8 @@ public class FloatWindow {
 
     public static void hide(String tag) {
         tag = checkTag(tag);
+        // 诊断：确认要隐藏的 tag 是否在注册表里
+        top.bogey.touch_tool.utils.AppLog.d("悬浮窗", "hide 请求 tag=" + tag + " 注册表=" + tags);
         if (tags.contains(tag)) {
             FloatWindowHelper helper = getHelper(tag);
             if (helper != null) {
