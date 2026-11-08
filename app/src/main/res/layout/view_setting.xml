@@ -224,8 +224,8 @@
                     app:icon="@drawable/icon_bluetooth"
                     app:title="@string/permission_setting_bluetooth" />
 
-                <top.bogey.touch_tool.ui.setting.widget.SettingWidgetNormal
-                    android:id="@+id/fileAccessWidget"
+                <top.bogey.touch_tool.ui.setting.widget.SettingWidgetSwitch
+                    android:id="@+id/fileAccessSwitch"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="?attr/defaultOffset"

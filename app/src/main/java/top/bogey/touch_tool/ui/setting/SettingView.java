@@ -227,6 +227,8 @@ public class SettingView extends Fragment {
 
     @Override
     public void onResume() {
+        // 从系统设置返回后同步文件访问权限开关
+        binding.fileAccessSwitch.setChecked(top.bogey.touch_tool.utils.AppUtil.hasAllFilesAccess());
         super.onResume();
         // 从系统设置返回后刷新服务状态、角标权限与忽略电量
         if (binding == null || !isAdded()) return;
@@ -464,9 +466,12 @@ public class SettingView extends Fragment {
         binding.bluetoothSwitch.setChecked(SettingSaver.PERMISSION_BLUETOOTH.get());
 
         // 定位
-        // 文件访问权限：申请「所有文件访问」，文件操作卡片需要
-        binding.fileAccessWidget.setOnClickListener(v -> {
-            if (AppUtil.hasAllFilesAccess()) {
+        // 文件访问权限开关：已授权时开关为开，打开开关会跳系统授权页
+        binding.fileAccessSwitch.setChecked(AppUtil.hasAllFilesAccess());
+        binding.fileAccessSwitch.setOnSwitchClickListener(v -> {
+            boolean granted = AppUtil.hasAllFilesAccess();
+            binding.fileAccessSwitch.setChecked(granted);
+            if (granted) {
                 Toast.makeText(requireContext(), R.string.app_setting_file_access_on, Toast.LENGTH_SHORT).show();
             } else {
                 AppUtil.requestAllFilesAccess(requireContext());
