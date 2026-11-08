@@ -609,6 +609,22 @@
     <string name="get_node_info_action_node_desc">描述</string>
     <string name="get_node_info_action_visible">是否可见</string>
     <string name="get_node_info_action_usable">是否可用</string>
+    <string name="get_node_info_action_package">包名</string>
+    <string name="get_node_info_action_long_clickable">可长按</string>
+    <string name="get_node_info_action_scrollable">可滚动</string>
+    <string name="get_node_info_action_focusable">可获得焦点</string>
+    <string name="get_node_info_action_editable">可编辑</string>
+    <string name="get_node_info_action_selected">已选中</string>
+    <string name="get_node_info_action_checked">已勾选</string>
+    <string name="get_node_info_action_focused">已聚焦</string>
+    <string name="get_node_info_action_enabled">是否启用</string>
+    <string name="get_node_info_action_hint">提示文本</string>
+    <string name="get_node_info_action_depth">层级深度</string>
+    <string name="get_node_info_action_action_count">支持操作数</string>
+    <string name="get_node_info_action_window_id">窗口ID</string>
+    <string name="get_node_info_action_input_type">输入类型</string>
+    <string name="get_node_info_action_index">同级序号</string>
+    <string name="get_node_info_action_child_count">子节点数</string>
 
     <string name="get_node_children_action">获取子控件</string>
     <string name="get_node_children_action_desc">获取控件所有子控件</string>
