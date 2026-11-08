@@ -126,8 +126,8 @@ public class AreaPickerPreview extends BasePicker<Rect> {
 
         binding.pickerButton.setOnClickListener(v -> new AreaPicker(context, result -> {
         // 选择时先隐藏自身，避免遮挡目标
-        top.bogey.touch_tool.utils.float_window_manager.FloatWindow.hide(tag);
-            top.bogey.touch_tool.utils.float_window_manager.FloatWindow.show(tag);
+        dismiss();
+            show();
             if (result == null) return;
             binding.leftEdit.setText(String.valueOf(result.left));
             binding.topEdit.setText(String.valueOf(result.top));

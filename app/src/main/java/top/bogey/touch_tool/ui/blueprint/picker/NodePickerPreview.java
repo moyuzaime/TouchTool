@@ -56,21 +56,21 @@ public class NodePickerPreview extends BasePicker<String> {
 
         binding.pickerButton.setOnClickListener(v -> {
             // 选择时先把自身藏起来，避免挡住要选的控件
-            FloatWindow.hide(tag);
+            dismiss();
             new NodePicker(context, result -> {
                 nodePath.setValue(result);
                 binding.pathText.setText(nodePath.getSimpleValue(10, true));
-                FloatWindow.show(tag);
+                show();
             }, nodePath.getValue()).show();
         });
 
         binding.copyButton.setOnClickListener(v -> AppUtil.copyToClipboard(getContext(), nodePath.getValue()));
 
         binding.matchButton.setOnClickListener(v -> {
-            FloatWindow.hide(tag);
+            dismiss();
             postDelayed(() -> {
                 matchImage();
-                FloatWindow.show(tag);
+                show();
             }, 100);
         });
 

@@ -68,8 +68,8 @@ public class ImagePickerPreview extends BasePicker<Bitmap> {
 
         binding.pickerButton.setOnClickListener(v -> new ImagePicker(context, result -> {
         // 选择时先隐藏自身，避免遮挡目标
-        top.bogey.touch_tool.utils.float_window_manager.FloatWindow.hide(tag);
-            FloatWindow.show(tag);
+        dismiss();
+            show();
             if (result == null) return;
             template = result;
             binding.current.setImageBitmap(template);
@@ -112,10 +112,10 @@ public class ImagePickerPreview extends BasePicker<Bitmap> {
         binding.touchButton.setOnClickListener(v -> {
             MainAccessibilityService service = MainApplication.getInstance().getService();
             if (service != null && service.isEnabled()) {
-                FloatWindow.hide(tag);
+                dismiss();
                 postDelayed(() -> {
                     Bitmap bitmap = service.tryGetScreenShot();
-                    FloatWindow.show(tag);
+                    show();
                     if (bitmap != null) {
                         Rect rect = DisplayUtil.matchTemplate(bitmap, template, scopeRegion ? testArea : null, 0, scale, binding.cannySwitch.isChecked());
                         if (rect == null || rect.isEmpty()) return;
@@ -130,17 +130,17 @@ public class ImagePickerPreview extends BasePicker<Bitmap> {
     }
 
     private void runTest() {
-        FloatWindow.hide(tag);
+        dismiss();
         postDelayed(() -> {
             matchImage();
-            FloatWindow.show(tag);
+            show();
         }, 100);
     }
 
     private void openRegionPicker() {
         Rect init = testArea == null ? DisplayUtil.getScreenArea(getContext()) : new Rect(testArea);
         new AreaPicker(getContext(), rect -> {
-            FloatWindow.show(tag);
+            show();
             if (rect == null) return;
             Rect screenArea = DisplayUtil.getScreenArea(getContext());
             // 选满整屏等同于全屏识别

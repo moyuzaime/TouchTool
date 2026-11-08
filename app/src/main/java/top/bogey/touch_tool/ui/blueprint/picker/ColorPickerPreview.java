@@ -108,7 +108,7 @@ public class ColorPickerPreview extends BasePicker<PinColor.ColorInfo> {
 
         binding.pickerButton.setOnClickListener(v -> {
             // 取色时先把自身藏起来，避免挡住要取的位置
-            FloatWindow.hide(tag);
+            dismiss();
             new ColorPicker(context, result -> {
                 colorInfo.setColor(result.getColor());
                 colorInfo.setMinArea(result.getMinArea());
@@ -120,26 +120,26 @@ public class ColorPickerPreview extends BasePicker<PinColor.ColorInfo> {
                 binding.blueEdit.setText(String.valueOf(Color.blue(resultColor)));
 
                 refreshColorInfo(colorInfo);
-                FloatWindow.show(tag);
+                show();
             }, colorInfo).show();
         });
 
         binding.timeSlider.setLabelFormatter(value -> getContext().getString(R.string.picker_color_offset, (int) value));
         binding.matchButton.setOnClickListener(v -> {
-            FloatWindow.hide(tag);
+            dismiss();
             postDelayed(() -> {
                 matchImage(colorInfo);
-                FloatWindow.show(tag);
+                show();
             }, 100);
         });
 
         binding.touchButton.setOnClickListener(v -> {
             MainAccessibilityService service = MainApplication.getInstance().getService();
             if (service != null && service.isEnabled()) {
-                FloatWindow.hide(tag);
+                dismiss();
                 postDelayed(() -> {
                     Bitmap bitmap = service.tryGetScreenShot();
-                    FloatWindow.show(tag);
+                    show();
                     if (bitmap != null) {
                         int offset = (int) binding.timeSlider.getValue();
                         List<Rect> rectList = DisplayUtil.matchColor(bitmap, colorInfo.getColor(), null, offset);
