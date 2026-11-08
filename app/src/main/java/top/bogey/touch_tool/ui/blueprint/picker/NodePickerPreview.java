@@ -73,19 +73,10 @@ public class NodePickerPreview extends BasePicker<String> {
             dismiss();
         });
 
-        binding.pickerButton.setOnClickListener(v -> {
-            new NodePicker(context, result -> {
-                nodePath.setValue(result);
-                binding.pathText.setText(nodePath.getSimpleValue(10, true));
-            }, nodePath.getValue()).show();
-            // 选择器打开时会截屏，截屏期间预览卡必须不可见：
-            // 窗口入场动画结束会重置可见性，这里多点几次确保截屏时是隐藏状态
-            for (int delay : new int[]{50, 150, 300, 450}) {
-                postDelayed(() -> FloatWindow.hide(tag), delay);
-            }
-
-        });
-
+        binding.pickerButton.setOnClickListener(v -> new NodePicker(context, result -> {
+            nodePath.setValue(result);
+            binding.pathText.setText(nodePath.getSimpleValue(10, true));
+        }, nodePath.getValue()).show());
         binding.copyButton.setOnClickListener(v -> AppUtil.copyToClipboard(getContext(), nodePath.getValue()));
         binding.matchButton.setOnClickListener(v -> {
             FloatWindow.hide(tag);
