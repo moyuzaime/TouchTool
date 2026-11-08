@@ -233,6 +233,11 @@ public enum ActionType {
     DELETE_FILE,
     LIST_DIR,
     COPY_FILE,
+    READ_FILE_LINE,
+    READ_ALL_FILE_LINES,
+    DELETE_FILE_LINE,
+    CREATE_FILE,
+    MKDIRS,
 
     // 变量
     VAR_SET,

@@ -191,6 +191,11 @@ import top.bogey.touch_tool.ui.blueprint.card.InputConfigActionCard;
 import top.bogey.touch_tool.ui.blueprint.card.NormalActionCard;
 import top.bogey.touch_tool.ui.blueprint.card.ShowTextActionCard;
 
+import top.bogey.touch_tool.bean.action.file.ReadFileLineAction;
+import top.bogey.touch_tool.bean.action.file.ReadAllFileLinesAction;
+import top.bogey.touch_tool.bean.action.file.DeleteFileLineAction;
+import top.bogey.touch_tool.bean.action.file.CreateFileAction;
+import top.bogey.touch_tool.bean.action.file.MkdirsAction;
 import top.bogey.touch_tool.bean.action.file.ReadFileAction;
 import top.bogey.touch_tool.bean.action.file.WriteFileAction;
 import top.bogey.touch_tool.bean.action.file.AppendFileAction;
@@ -426,6 +431,11 @@ public class ActionInfo {
     private final static ActionInfo MAP_VALUES_INFO = new ActionInfo(ActionType.MAP_VALUES, MapGetValuesAction.class, R.drawable.icon_data_array, R.string.map_values_action, R.string.map_values_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo MAP_FOREACH_INFO = new ActionInfo(ActionType.MAP_FOREACH, MapForeachAction.class, R.drawable.icon_repeat, R.string.map_foreach_action, R.string.map_foreach_action_desc, 0, NormalActionCard.class);
 
+    private final static ActionInfo READ_FILE_LINE_INFO = new ActionInfo(ActionType.READ_FILE_LINE, ReadFileLineAction.class, R.drawable.icon_note_stack, R.string.file_action_read_line, R.string.file_action_read_line_desc, 0, NormalActionCard.class);
+    private final static ActionInfo READ_ALL_FILE_LINES_INFO = new ActionInfo(ActionType.READ_ALL_FILE_LINES, ReadAllFileLinesAction.class, R.drawable.icon_note_stack, R.string.file_action_read_all_lines, R.string.file_action_read_all_lines_desc, 0, NormalActionCard.class);
+    private final static ActionInfo DELETE_FILE_LINE_INFO = new ActionInfo(ActionType.DELETE_FILE_LINE, DeleteFileLineAction.class, R.drawable.icon_delete, R.string.file_action_delete_line, R.string.file_action_delete_line_desc, 0, NormalActionCard.class);
+    private final static ActionInfo CREATE_FILE_INFO = new ActionInfo(ActionType.CREATE_FILE, CreateFileAction.class, R.drawable.icon_save, R.string.file_action_create_file, R.string.file_action_create_file_desc, 0, NormalActionCard.class);
+    private final static ActionInfo MKDIRS_INFO = new ActionInfo(ActionType.MKDIRS, MkdirsAction.class, R.drawable.icon_folder, R.string.file_action_mkdirs, R.string.file_action_mkdirs_desc, 0, NormalActionCard.class);
     private final static ActionInfo READ_FILE_INFO = new ActionInfo(ActionType.READ_FILE, ReadFileAction.class, R.drawable.icon_note_stack, R.string.file_action_read, R.string.file_action_read_desc, 0, NormalActionCard.class);
     private final static ActionInfo WRITE_FILE_INFO = new ActionInfo(ActionType.WRITE_FILE, WriteFileAction.class, R.drawable.icon_save, R.string.file_action_write, R.string.file_action_write_desc, 0, NormalActionCard.class);
     private final static ActionInfo APPEND_FILE_INFO = new ActionInfo(ActionType.APPEND_FILE, AppendFileAction.class, R.drawable.icon_save, R.string.file_action_append, R.string.file_action_append_desc, 0, NormalActionCard.class);
@@ -650,6 +660,11 @@ public class ActionInfo {
             case MAP_VALUES -> MAP_VALUES_INFO;
             case MAP_FOREACH -> MAP_FOREACH_INFO;
 
+            case READ_FILE_LINE -> READ_FILE_LINE_INFO;
+            case READ_ALL_FILE_LINES -> READ_ALL_FILE_LINES_INFO;
+            case DELETE_FILE_LINE -> DELETE_FILE_LINE_INFO;
+            case CREATE_FILE -> CREATE_FILE_INFO;
+            case MKDIRS -> MKDIRS_INFO;
             case READ_FILE -> READ_FILE_INFO;
             case WRITE_FILE -> WRITE_FILE_INFO;
             case APPEND_FILE -> APPEND_FILE_INFO;

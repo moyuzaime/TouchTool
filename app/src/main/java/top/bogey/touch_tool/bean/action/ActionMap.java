@@ -252,7 +252,12 @@ public class ActionMap {
                     ActionType.FILE_EXISTS,
                     ActionType.DELETE_FILE,
                     ActionType.LIST_DIR,
-                    ActionType.COPY_FILE
+                    ActionType.COPY_FILE,
+                    ActionType.READ_FILE_LINE,
+                    ActionType.READ_ALL_FILE_LINES,
+                    ActionType.DELETE_FILE_LINE,
+                    ActionType.CREATE_FILE,
+                    ActionType.MKDIRS
             ));
         }
         return list;

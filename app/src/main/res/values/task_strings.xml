@@ -850,4 +850,17 @@
     <string name="file_action_files">文件列表</string>
     <string name="file_action_source">源文件</string>
     <string name="file_action_target">目标文件</string>
+    <string name="file_action_read_line">读取一行</string>
+    <string name="file_action_read_line_desc">读取文件指定行号的文本，行号从 1 开始</string>
+    <string name="file_action_read_all_lines">读取所有行</string>
+    <string name="file_action_read_all_lines_desc">把文件所有行读取为文本列表</string>
+    <string name="file_action_delete_line">删除行</string>
+    <string name="file_action_delete_line_desc">行号大于 0 时按行号删除，否则删除包含指定内容的行</string>
+    <string name="file_action_create_file">创建文件</string>
+    <string name="file_action_create_file_desc">创建空文件，已存在则不处理</string>
+    <string name="file_action_mkdirs">创建文件夹</string>
+    <string name="file_action_mkdirs_desc">创建文件夹，包含多级父目录</string>
+    <string name="file_action_line_no">行号</string>
+    <string name="file_action_contains">包含内容</string>
+    <string name="file_action_texts">文本列表</string>
 </resources>
