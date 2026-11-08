@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.view.LayoutInflater;
+import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import androidx.annotation.NonNull;
@@ -47,6 +48,24 @@ public class NodePickerPreview extends BasePicker<String> {
 
         binding.pathText.setText(path);
 
+        // 收起成小圆点：选择控件时不挡视线，点圆点可展开
+        final int[] expandSize = new int[]{ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT};
+        binding.collapseButton.setOnClickListener(v -> {
+            ViewGroup.LayoutParams params = binding.getRoot().getLayoutParams();
+            expandSize[0] = params.width;
+            expandSize[1] = params.height;
+            binding.contentBox.setVisibility(GONE);
+            binding.expandButton.setVisibility(VISIBLE);
+            binding.getRoot().setLayoutParams(new ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            FloatWindow.updateLayoutParam(tag);
+        });
+        binding.expandButton.setOnClickListener(v -> {
+            binding.contentBox.setVisibility(VISIBLE);
+            binding.expandButton.setVisibility(GONE);
+            binding.getRoot().setLayoutParams(new ViewGroup.LayoutParams(expandSize[0], expandSize[1]));
+            FloatWindow.updateLayoutParam(tag);
+        });
         binding.backButton.setOnClickListener(v -> dismiss());
 
         binding.saveButton.setOnClickListener(v -> {

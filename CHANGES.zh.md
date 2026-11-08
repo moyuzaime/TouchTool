@@ -261,6 +261,12 @@
 - 行为：点中目标后立即关闭选择器；预览窗改为轮询等待选择器窗口消失再显示，避免「闪一下就回来」。
 - 选择期间预览窗先 `dismiss()`，取消选择时预览窗不再自动回来。
 
+### 29. 控件预览卡支持收起成小圆点
+
+- 位置：`res/layout/float_picker_node_preview.xml`、`ui/blueprint/picker/NodePickerPreview.java`
+- 行为：标题栏新增收起按钮，点击后内容隐藏、窗口缩成一个圆形按钮；点圆点恢复原尺寸。选择控件时先收起，避免挡住目标。
+- 布局改为 FrameLayout 包裹内容与小圆点，收起状态用 `FloatWindow.updateLayoutParam` 重设窗口尺寸。
+
 ---
 
 ## 三、数据与兼容
