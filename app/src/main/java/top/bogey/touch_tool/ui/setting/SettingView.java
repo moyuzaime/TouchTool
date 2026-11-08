@@ -456,16 +456,11 @@ public class SettingView extends Fragment {
         binding.bluetoothSwitch.setChecked(SettingSaver.PERMISSION_BLUETOOTH.get());
 
         // 定位
-        // 文件访问权限开关：已授权时开关为开，打开开关会跳系统授权页
+        // 文件访问权限开关：仅反映系统授权状态，应用无法自行撤销或授予，点击统一跳系统页
         binding.fileAccessSwitch.setChecked(AppUtil.hasAllFilesAccess());
         binding.fileAccessSwitch.setOnSwitchClickListener(v -> {
-            boolean granted = AppUtil.hasAllFilesAccess();
-            binding.fileAccessSwitch.setChecked(granted);
-            if (granted) {
-                Toast.makeText(requireContext(), R.string.app_setting_file_access_on, Toast.LENGTH_SHORT).show();
-            } else {
-                AppUtil.requestAllFilesAccess(requireContext());
-            }
+            binding.fileAccessSwitch.setChecked(AppUtil.hasAllFilesAccess());
+            AppUtil.requestAllFilesAccess(requireContext());
         });
         binding.locationSwitch.setOnSwitchClickListener(v -> {
             if (binding.locationSwitch.isChecked()) {
