@@ -255,6 +255,12 @@
 - 位置：`ui/blueprint/picker/NodePickerPreview.java`、`ColorPickerPreview.java`、`ImagePickerPreview.java`、`AreaPickerPreview.java`
 - 行为：点击「选择控件/颜色/图片/区域」时先隐藏自身窗口，选完（含取消）再显示，避免预览卡挡住要选的目标。
 
+### 28. 选择器选完即关，预览窗等关闭后再显示
+
+- 位置：`ui/blueprint/picker/*Preview.java`
+- 行为：点中目标后立即关闭选择器；预览窗改为轮询等待选择器窗口消失再显示，避免「闪一下就回来」。
+- 选择期间预览窗先 `dismiss()`，取消选择时预览窗不再自动回来。
+
 ---
 
 ## 三、数据与兼容

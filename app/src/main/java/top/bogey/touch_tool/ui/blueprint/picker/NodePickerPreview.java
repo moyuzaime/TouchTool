@@ -58,6 +58,8 @@ public class NodePickerPreview extends BasePicker<String> {
             // 选择时先把自身藏起来，避免挡住要选的控件
             dismiss();
             new NodePicker(context, result -> {
+                // 选完立刻关掉选择器，避免预览窗与选择器同时在场
+                top.bogey.touch_tool.utils.float_window_manager.FloatWindow.dismiss(NodePicker.class);
                 nodePath.setValue(result);
                 binding.pathText.setText(nodePath.getSimpleValue(10, true));
                 // 回调可能在选择器还开着时就触发，等它关了再把自己显示回来

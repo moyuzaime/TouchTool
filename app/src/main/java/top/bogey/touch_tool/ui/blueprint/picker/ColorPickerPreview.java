@@ -110,6 +110,8 @@ public class ColorPickerPreview extends BasePicker<PinColor.ColorInfo> {
             // 取色时先把自身藏起来，避免挡住要取的位置
             dismiss();
             new ColorPicker(context, result -> {
+                // 选完立刻关掉选择器，避免预览窗与选择器同时在场
+                top.bogey.touch_tool.utils.float_window_manager.FloatWindow.dismiss(ColorPicker.class);
                 colorInfo.setColor(result.getColor());
                 colorInfo.setMinArea(result.getMinArea());
                 colorInfo.setMaxArea(result.getMaxArea());
