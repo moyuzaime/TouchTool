@@ -189,8 +189,6 @@
     <string name="stick_close_action_desc">关闭对应贴图</string>
     <string name="stick_close_action_id">标志</string>
 
-    <string name="stick_close_all_action">关闭所有贴图</string>
-    <string name="stick_close_all_action_desc">关闭屏幕所有贴图</string>
 
     <string name="input_param_action">手动输入参数</string>
     <string name="input_param_action_desc">手动输入任务运行需要的参数</string>
@@ -392,12 +390,7 @@
     <string name="number_abs_action_desc">取一个数值的绝对值</string>
     <string name="number_abs_action_value">绝对值</string>
 
-    <string name="number_equal_action">数值比较 =</string>
-    <string name="number_equal_action_desc">判断两个数值是否相等</string>
-    <string name="number_equal_action_offset">精度</string>
 
-    <string name="number_less_action">数值比较 &lt;</string>
-    <string name="number_less_action_desc">判断第一个数值是否小于第二个数值</string>
 
     <string name="number_greater_action">数值比较</string>
     <string name="number_greater_action_desc">按所选方式比较两个数值</string>
@@ -560,19 +553,11 @@
     <string name="boolean_and_action">条件组合</string>
     <string name="boolean_and_action_desc">组合多个布尔条件，可选与/或，并可开启短路</string>
 
-    <string name="boolean_or_action">任意条件达成</string>
-    <string name="boolean_or_action_desc">任意条件达成结果就能达成</string>
 
     <string name="boolean_not_action">反转条件</string>
     <string name="boolean_not_action_desc">取与条件相反的结果</string>
 
-    <string name="boolean_and_short_action">短路所有条件达成</string>
-    <string name="boolean_and_short_action_desc">短路所有条件达成结果才是达成（遇到false则停止）</string>
-    <string name="boolean_and_short_action_index">短路索引</string>
 
-    <string name="boolean_or_short_action">短路任意条件达成</string>
-    <string name="boolean_or_short_action_desc">短路任意条件达成结果就能达成（遇到true则停止）</string>
-    <string name="boolean_or_short_action_index">短路索引</string>
 
 
     <!-- 动作-Node -->
@@ -599,8 +584,6 @@
     <string name="is_node_exist_action_node_desc">描述</string>
     <string name="is_node_exist_action_regex_path">正则路径</string>
 
-    <string name="find_nodes_in_area_action">获取区域内控件</string>
-    <string name="find_nodes_in_area_action_desc">获取与区域相交的所有控件</string>
 
     <string name="get_node_info_action">获取控件信息</string>
     <string name="get_node_info_action_desc">获取控件详细信息</string>

@@ -234,6 +234,7 @@
 - 被合并的旧卡片类、枚举与映射已一并删除（无老任务包袱）。
 - 同时删除「获取区域内控件」「关闭所有贴图」两个动作类及其枚举与映射。
 - 删除清单：NumberLessAction、NumberEqualAction、BooleanOrAction、BooleanOrShortCircuitAction、BooleanAndShortCircuitAction、GetNodesInAreaAction、StickCloseAllAction，以及 ActionType 中对应枚举。
+- 同时清理这些卡片对应的 17 条无用文案。
 
 ---
 
