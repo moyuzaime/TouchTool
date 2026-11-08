@@ -107,6 +107,16 @@ public class NodeInfoFloatView extends FrameLayout implements FloatInterface {
         });
     }
 
+    // 节点层级深度：从当前节点往上数父节点
+    private int getNodeDepth(NodeInfo nodeInfo) {
+        int depth = 0;
+        NodeInfo parent = nodeInfo.getParent();
+        while (parent != null) {
+            depth++;
+            parent = parent.getParent();
+        }
+        return depth;
+    }
     private void innerShowToast(NodeInfo nodeInfo) {
         this.nodeInfo = nodeInfo;
         if (nodeInfo == null) return;
@@ -135,6 +145,24 @@ public class NodeInfoFloatView extends FrameLayout implements FloatInterface {
                 case 9 -> nodeInfo.area.width() + " × " + nodeInfo.area.height();
                 case 10 -> parent == null ? "" : parent.toString();
                 case 11 -> String.valueOf(nodeInfo.getChildCount() != 0);
+                case 12 -> nodeInfo.node == null ? "" : String.valueOf(nodeInfo.node.getPackageName());
+                case 13 -> String.valueOf(nodeInfo.node != null && nodeInfo.node.isLongClickable());
+                case 14 -> String.valueOf(nodeInfo.node != null && nodeInfo.node.isScrollable());
+                case 15 -> String.valueOf(nodeInfo.node != null && nodeInfo.node.isFocusable());
+                case 16 -> String.valueOf(nodeInfo.node != null && nodeInfo.node.isEditable());
+                case 17 -> String.valueOf(nodeInfo.node != null && nodeInfo.node.isSelected());
+                case 18 -> String.valueOf(nodeInfo.node != null && nodeInfo.node.isChecked());
+                case 19 -> String.valueOf(nodeInfo.node != null && nodeInfo.node.isFocused());
+                case 20 -> String.valueOf(nodeInfo.node != null && nodeInfo.node.isEnabled());
+                case 21 -> nodeInfo.node == null || nodeInfo.node.getHintText() == null ? "" : nodeInfo.node.getHintText().toString();
+                case 22 -> String.valueOf(getNodeDepth(nodeInfo));
+                case 23 -> {
+                    if (nodeInfo.node == null) yield "";
+                    java.util.List<android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction> actions = nodeInfo.node.getActionList();
+                    yield String.valueOf(actions == null ? 0 : actions.size());
+                }
+                case 24 -> nodeInfo.node == null ? "" : String.valueOf(nodeInfo.node.getWindowId());
+                case 25 -> nodeInfo.node == null ? "" : String.valueOf(nodeInfo.node.getInputType());
                 default -> "";
             };
             String copyValue = switch (i) {

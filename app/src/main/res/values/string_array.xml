@@ -217,6 +217,20 @@
         <item>大小</item>
         <item>父节点</item>
         <item>有子节点</item>
+        <item>包名</item>
+        <item>可长按</item>
+        <item>可滚动</item>
+        <item>可获得焦点</item>
+        <item>可编辑</item>
+        <item>已选中</item>
+        <item>已勾选</item>
+        <item>已聚焦</item>
+        <item>是否启用</item>
+        <item>提示文本</item>
+        <item>层级深度</item>
+        <item>支持操作</item>
+        <item>窗口ID</item>
+        <item>输入类型</item>
     </string-array>
 
     <string-array name="toast_length_type">
