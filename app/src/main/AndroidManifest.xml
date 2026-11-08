@@ -241,6 +241,16 @@
             android:exported="true"
             android:multiprocess="false"
             android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
+            <receiver
+            android:name=".service.BootReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

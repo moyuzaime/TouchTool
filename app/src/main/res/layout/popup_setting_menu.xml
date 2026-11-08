@@ -103,6 +103,38 @@
                 style="@style/Theme.TouchTool.PopupMenuText"
                 android:text="@string/app_setting_reload" />
         </LinearLayout>
+        <LinearLayout
+            android:id="@+id/rowAutoRestart"
+            style="@style/Theme.TouchTool.PopupMenuRow">
+
+            <TextView
+                style="@style/Theme.TouchTool.PopupMenuText"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:text="@string/app_setting_auto_reload" />
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/autoRestartSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/rowAutoStart"
+            style="@style/Theme.TouchTool.PopupMenuRow">
+
+            <TextView
+                style="@style/Theme.TouchTool.PopupMenuText"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:text="@string/app_setting_auto_start" />
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/autoStartSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
 
     </LinearLayout>
 

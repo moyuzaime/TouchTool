@@ -46,6 +46,16 @@ public class MainActivity extends FloatViewActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        // 服务掉线且开了自动重启时，回到前台自动重绑一次
+        if (!top.bogey.touch_tool.bean.save.setting.SettingSaver.APP_AUTO_RESTART_SERVICE.get()) return;
+        top.bogey.touch_tool.service.MainAccessibilityService service = top.bogey.touch_tool.MainApplication.getInstance().getService();
+        if (service == null || !service.isConnected()) {
+            top.bogey.touch_tool.utils.AppUtil.restartAccessibilityService(this);
+        }
+    }
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         MainApplication.getInstance().setActivity(this);

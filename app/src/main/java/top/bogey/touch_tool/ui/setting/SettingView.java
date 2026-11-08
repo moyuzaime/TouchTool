@@ -109,7 +109,40 @@ public class SettingView extends Fragment {
         });
         menu.rowRestartService.setOnClickListener(v -> {
             dismissPopup(menu.getRoot());
-            restartAccessibilityService();
+            new MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.app_setting_reload)
+                    .setMessage(R.string.app_setting_reload_desc)
+                    .setPositiveButton(R.string.setting_execute_shell, (d, w) -> restartAccessibilityService())
+                    .setNegativeButton(R.string.cancel, null)
+                    .show();
+        });
+
+        // 自动重启：服务掉线时回前台自动重绑
+        menu.autoRestartSwitch.setChecked(SettingSaver.APP_AUTO_RESTART_SERVICE.get());
+        menu.rowAutoRestart.setOnClickListener(v -> menu.autoRestartSwitch.toggle());
+        menu.autoRestartSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            SettingSaver.APP_AUTO_RESTART_SERVICE.set(isChecked);
+            if (isChecked) {
+                new MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(R.string.app_setting_auto_reload)
+                        .setMessage(R.string.app_setting_auto_reload_desc)
+                        .setPositiveButton(R.string.close, null)
+                        .show();
+            }
+        });
+
+        // 开机自启
+        menu.autoStartSwitch.setChecked(SettingSaver.APP_AUTO_START.get());
+        menu.rowAutoStart.setOnClickListener(v -> menu.autoStartSwitch.toggle());
+        menu.autoStartSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            SettingSaver.APP_AUTO_START.set(isChecked);
+            if (isChecked) {
+                new MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(R.string.app_setting_auto_start)
+                        .setMessage(R.string.app_setting_auto_start_desc)
+                        .setPositiveButton(R.string.close, null)
+                        .show();
+            }
         });
 
         PopupWindow popup = new PopupWindow(menu.getRoot(),
@@ -561,9 +594,9 @@ public class SettingView extends Fragment {
         }
 
         AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext())
-                .setTitle(R.string.app_setting_log_title)
+                .setTitle(getString(R.string.app_setting_log_title) + " " + getString(R.string.setting_value_current, logs.size()))
                 .setView(dialogBinding.getRoot())
-                .setNeutralButton(R.string.clear, (dialog1, which) -> AppLog.clear())
+                .setNeutralButton(R.string.app_setting_clean_cache_button_text, (dialog1, which) -> AppLog.clear())
                 .setPositiveButton(R.string.close, null)
                 .create();
         // 宽高按屏幕比例定尺：宽度定死内容才会按固定宽度测量，否则卡片按文字宽度收缩、撑不满整宽；
