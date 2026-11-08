@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="272dp"
+    android:layout_height="wrap_content"
+    app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="6dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingVertical="?attr/defaultPadding">
+
+        <LinearLayout
+            android:id="@+id/rowHelpDoc"
+            style="@style/Theme.TouchTool.PopupMenuRow">
+
+            <ImageView
+                style="@style/Theme.TouchTool.PopupMenuIcon"
+                android:importantForAccessibility="no"
+                android:src="@drawable/icon_help" />
+
+            <TextView
+                style="@style/Theme.TouchTool.PopupMenuText"
+                android:text="@string/setting_help_doc" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/rowHelpVideo"
+            style="@style/Theme.TouchTool.PopupMenuRow">
+
+            <ImageView
+                style="@style/Theme.TouchTool.PopupMenuIcon"
+                android:importantForAccessibility="no"
+                android:src="@drawable/icon_videocam" />
+
+            <TextView
+                style="@style/Theme.TouchTool.PopupMenuText"
+                android:text="@string/setting_help_video" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginHorizontal="?attr/defaultPadding"
+            android:background="?attr/colorOutlineVariant" />
+
+        <LinearLayout
+            android:id="@+id/rowAutoCapture"
+            style="@style/Theme.TouchTool.PopupMenuRow">
+
+            <ImageView
+                style="@style/Theme.TouchTool.PopupMenuIcon"
+                android:importantForAccessibility="no"
+                android:src="@drawable/icon_screen_record" />
+
+            <TextView
+                style="@style/Theme.TouchTool.PopupMenuText"
+                android:text="@string/setting_auto_give_capture_permission" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/rowRestrictedSettings"
+            style="@style/Theme.TouchTool.PopupMenuRow">
+
+            <ImageView
+                style="@style/Theme.TouchTool.PopupMenuIcon"
+                android:importantForAccessibility="no"
+                android:src="@drawable/icon_lock_open" />
+
+            <TextView
+                style="@style/Theme.TouchTool.PopupMenuText"
+                android:text="@string/setting_give_restricted_settings" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

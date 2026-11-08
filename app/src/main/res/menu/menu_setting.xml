@@ -3,27 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:icon="@drawable/menu_help"
-        android:title=""
-        app:showAsAction="always">
-        <menu>
-            <item
-                android:id="@+id/helpDoc"
-                android:title="@string/setting_help_doc" />
-
-            <item
-                android:id="@+id/helpVideo"
-                android:title="@string/setting_help_video" />
-        </menu>
-
-    </item>
-
-    <item
-        android:id="@+id/autoGiveCapturePermission"
-        android:title="@string/setting_auto_give_capture_permission" />
-
-    <item
-        android:id="@+id/giveRestrictedSettings"
-        android:title="@string/setting_give_restricted_settings" />
+        android:id="@+id/menuMore"
+        android:icon="@drawable/icon_more_vert"
+        android:title="@string/more"
+        app:showAsAction="always" />
 
 </menu>

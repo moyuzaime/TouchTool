@@ -6,6 +6,8 @@ import android.app.Activity;
 import android.app.AlarmManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -17,10 +19,12 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.PopupWindow;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -42,6 +46,7 @@ import top.bogey.touch_tool.MainApplication;
 import top.bogey.touch_tool.R;
 import top.bogey.touch_tool.bean.save.setting.SettingSaver;
 import top.bogey.touch_tool.databinding.DialogLogBinding;
+import top.bogey.touch_tool.databinding.PopupSettingMenuBinding;
 import top.bogey.touch_tool.databinding.ViewSettingBinding;
 import top.bogey.touch_tool.service.MainAccessibilityService;
 import top.bogey.touch_tool.service.TaskInfoSummary;
@@ -69,33 +74,72 @@ public class SettingView extends Fragment {
 
         @Override
         public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
-            if (menuItem.getItemId() == R.id.autoGiveCapturePermission) {
-                MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext())
-                        .setTitle(R.string.setting_auto_give_capture_permission)
-                        .setMessage(R.string.setting_auto_give_capture_permission_des);
-                String cmd = String.format("appops set %s PROJECT_MEDIA allow", requireActivity().getPackageName());
-                if (SuperUser.getInstance().isValid()) {
-                    builder.setPositiveButton(R.string.setting_execute_shell, (dialog, which) -> SuperUser.getInstance().runCommand(cmd))
-                            .setNegativeButton(R.string.setting_copy_shell, (dialog, which) -> AppUtil.copyToClipboard(requireContext(), cmd))
-                            .setNeutralButton(R.string.cancel, null)
-                            .show();
-                } else {
-                    builder.setPositiveButton(R.string.setting_copy_shell, (dialog, which) -> AppUtil.copyToClipboard(requireContext(), cmd))
-                            .setNegativeButton(R.string.cancel, null)
-                            .show();
-                }
+            if (menuItem.getItemId() == R.id.menuMore) {
+                showPopupMenu();
                 return true;
-            } else if (menuItem.getItemId() == R.id.giveRestrictedSettings) {
-                showRestrictedSettingsCmd();
-                return true;
-            } else if (menuItem.getItemId() == R.id.helpDoc) {
-                AppUtil.gotoUrl(requireContext(), getString(R.string.setting_help_doc_url));
-            } else if (menuItem.getItemId() == R.id.helpVideo) {
-                AppUtil.gotoUrl(requireContext(), getString(R.string.setting_help_video_url));
             }
             return false;
         }
     };
+
+    // 右上角菜单：用卡片弹窗替代系统 PopupMenu，图标与文字对齐、行高统一
+    private void showPopupMenu() {
+        if (binding == null) return;
+        PopupSettingMenuBinding menu = PopupSettingMenuBinding.inflate(getLayoutInflater());
+
+        menu.rowHelpDoc.setOnClickListener(v -> {
+            dismissPopup(menu.getRoot());
+            AppUtil.gotoUrl(requireContext(), getString(R.string.setting_help_doc_url));
+        });
+        menu.rowHelpVideo.setOnClickListener(v -> {
+            dismissPopup(menu.getRoot());
+            AppUtil.gotoUrl(requireContext(), getString(R.string.setting_help_video_url));
+        });
+        menu.rowAutoCapture.setOnClickListener(v -> {
+            dismissPopup(menu.getRoot());
+            showAutoCapturePermissionCmd();
+        });
+        menu.rowRestrictedSettings.setOnClickListener(v -> {
+            dismissPopup(menu.getRoot());
+            showRestrictedSettingsCmd();
+        });
+
+        PopupWindow popup = new PopupWindow(menu.getRoot(),
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+        popup.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        popup.setElevation(DisplayUtil.dp2px(requireContext(), 6));
+        menu.getRoot().setTag(popup);
+
+        int[] location = new int[2];
+        binding.toolBar.getLocationOnScreen(location);
+        int y = location[1] + binding.toolBar.getHeight();
+        popup.showAtLocation(binding.toolBar, Gravity.TOP | Gravity.END,
+                (int) DisplayUtil.dp2px(requireContext(), 8), y);
+    }
+
+    private void dismissPopup(View view) {
+        if (view == null) return;
+        Object tag = view.getTag();
+        if (tag instanceof PopupWindow popup) popup.dismiss();
+    }
+
+    // 自动开启录屏：授予 PROJECT_MEDIA
+    private void showAutoCapturePermissionCmd() {
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.setting_auto_give_capture_permission)
+                .setMessage(R.string.setting_auto_give_capture_permission_des);
+        String cmd = String.format("appops set %s PROJECT_MEDIA allow", requireActivity().getPackageName());
+        if (SuperUser.getInstance().isValid()) {
+            builder.setPositiveButton(R.string.setting_execute_shell, (dialog, which) -> SuperUser.getInstance().runCommand(cmd))
+                    .setNegativeButton(R.string.setting_copy_shell, (dialog, which) -> AppUtil.copyToClipboard(requireContext(), cmd))
+                    .setNeutralButton(R.string.cancel, null)
+                    .show();
+        } else {
+            builder.setPositiveButton(R.string.setting_copy_shell, (dialog, which) -> AppUtil.copyToClipboard(requireContext(), cmd))
+                    .setNegativeButton(R.string.cancel, null)
+                    .show();
+        }
+    }
 
     // 部分机型禁止侧载应用开启无障碍，需要放开「受限设置」，用 appops 指令授予
     private void showRestrictedSettingsCmd() {

@@ -491,4 +491,5 @@
     <string name="preference_setting_manual_play_single_size">独立按键大小</string>
     <string name="preference_setting_manual_play_single_size_desc">设置独立按键模式按钮大小</string>
 
+    <string name="more">更多</string>
 </resources>
