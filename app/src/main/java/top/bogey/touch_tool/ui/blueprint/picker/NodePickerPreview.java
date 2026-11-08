@@ -54,26 +54,18 @@ public class NodePickerPreview extends BasePicker<String> {
             dismiss();
         });
 
-        binding.pickerButton.setOnClickListener(v -> {
-            // 选择期间关闭预览窗，等选择器关闭后再显示
-            NodePicker picker = new NodePicker(context, result -> {
-                nodePath.setValue(result);
-                binding.pathText.setText(nodePath.getSimpleValue(10, true));
-            }, nodePath.getValue());
-            picker.setOnDismissAction(this::show);
-            picker.show();
-            // 延迟一点再隐藏：窗口的入场动画结束时会把可见性改回 VISIBLE，
-            // 立刻 hide 会被动画覆盖，表现为卡片没消失
-            postDelayed(() -> FloatWindow.hide(tag), 500);
-        });
+        binding.pickerButton.setOnClickListener(v -> new NodePicker(context, result -> {
+            nodePath.setValue(result);
+            binding.pathText.setText(nodePath.getSimpleValue(10, true));
+        }, nodePath.getValue()).show());
 
         binding.copyButton.setOnClickListener(v -> AppUtil.copyToClipboard(getContext(), nodePath.getValue()));
 
         binding.matchButton.setOnClickListener(v -> {
-            dismiss();
+            FloatWindow.hide(tag);
             postDelayed(() -> {
                 matchImage();
-                show();
+                FloatWindow.show(tag);
             }, 100);
         });
 
@@ -85,23 +77,6 @@ public class NodePickerPreview extends BasePicker<String> {
         });
     }
 
-    // 等选择器窗口真正关掉后再显示预览，避免选择器还开着时把预览卡盖回去
-    private void showAfterPicker(Class<?> pickerClass) {
-        android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
-        Runnable runnable = new Runnable() {
-            private int tries = 0;
-
-            @Override
-            public void run() {
-                if (FloatWindow.getHelper(pickerClass.getName()) != null && tries++ < 20) {
-                    handler.postDelayed(this, 150);
-                } else {
-                    show();
-                }
-            }
-        };
-        handler.postDelayed(runnable, 150);
-    }
     private void matchImage() {
         MainAccessibilityService service = MainApplication.getInstance().getService();
         if (service == null || !service.isEnabled()) return;

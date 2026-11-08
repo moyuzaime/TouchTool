@@ -106,38 +106,35 @@ public class ColorPickerPreview extends BasePicker<PinColor.ColorInfo> {
             dismiss();
         });
 
-        binding.pickerButton.setOnClickListener(v -> {
-            // 取色时先把自身藏起来，避免挡住要取的位置
-            new ColorPicker(context, result -> {
-                colorInfo.setColor(result.getColor());
-                colorInfo.setMinArea(result.getMinArea());
-                colorInfo.setMaxArea(result.getMaxArea());
-                int resultColor = result.getColor();
+        binding.pickerButton.setOnClickListener(v -> new ColorPicker(context, result -> {
+            colorInfo.setColor(result.getColor());
+            colorInfo.setMinArea(result.getMinArea());
+            colorInfo.setMaxArea(result.getMaxArea());
+            int resultColor = result.getColor();
 
-                binding.redEdit.setText(String.valueOf(Color.red(resultColor)));
-                binding.greenEdit.setText(String.valueOf(Color.green(resultColor)));
-                binding.blueEdit.setText(String.valueOf(Color.blue(resultColor)));
+            binding.redEdit.setText(String.valueOf(Color.red(resultColor)));
+            binding.greenEdit.setText(String.valueOf(Color.green(resultColor)));
+            binding.blueEdit.setText(String.valueOf(Color.blue(resultColor)));
 
-                refreshColorInfo(colorInfo);
-            }, colorInfo).show();
-        });
+            refreshColorInfo(colorInfo);
+        }, colorInfo).show());
 
         binding.timeSlider.setLabelFormatter(value -> getContext().getString(R.string.picker_color_offset, (int) value));
         binding.matchButton.setOnClickListener(v -> {
-            dismiss();
+            FloatWindow.hide(tag);
             postDelayed(() -> {
                 matchImage(colorInfo);
-                show();
+                FloatWindow.show(tag);
             }, 100);
         });
 
         binding.touchButton.setOnClickListener(v -> {
             MainAccessibilityService service = MainApplication.getInstance().getService();
             if (service != null && service.isEnabled()) {
-                dismiss();
+                FloatWindow.hide(tag);
                 postDelayed(() -> {
                     Bitmap bitmap = service.tryGetScreenShot();
-                    show();
+                    FloatWindow.show(tag);
                     if (bitmap != null) {
                         int offset = (int) binding.timeSlider.getValue();
                         List<Rect> rectList = DisplayUtil.matchColor(bitmap, colorInfo.getColor(), null, offset);
@@ -205,22 +202,5 @@ public class ColorPickerPreview extends BasePicker<PinColor.ColorInfo> {
                 binding.matchedImage.setImageBitmap(clipBitmap);
             }
         }
-    }
-    // 等选择器窗口真正关掉后再显示预览，避免选择器还开着时把预览卡盖回去
-    private void showAfterPicker(Class<?> pickerClass) {
-        android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
-        Runnable runnable = new Runnable() {
-            private int tries = 0;
-
-            @Override
-            public void run() {
-                if (top.bogey.touch_tool.utils.float_window_manager.FloatWindow.getHelper(pickerClass.getName()) != null && tries++ < 20) {
-                    handler.postDelayed(this, 150);
-                } else {
-                    show();
-                }
-            }
-        };
-        handler.postDelayed(runnable, 150);
     }
 }
