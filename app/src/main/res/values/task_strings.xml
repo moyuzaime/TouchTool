@@ -831,4 +831,23 @@
     <string name="boolean_combine_mode">组合方式</string>
     <string name="boolean_combine_short">短路</string>
     <string name="number_compare_mode">比较方式</string>
+    <string name="file_action_read">读取文件</string>
+    <string name="file_action_read_desc">把文件内容读取为文本</string>
+    <string name="file_action_write">写入文件</string>
+    <string name="file_action_write_desc">把文本写入文件，覆盖原内容</string>
+    <string name="file_action_append">追加一行</string>
+    <string name="file_action_append_desc">在文件末尾追加一行文本</string>
+    <string name="file_action_exists">文件是否存在</string>
+    <string name="file_action_exists_desc">判断文件或文件夹是否存在</string>
+    <string name="file_action_delete">删除文件</string>
+    <string name="file_action_delete_desc">删除文件或文件夹（文件夹会递归删除）</string>
+    <string name="file_action_list_dir">列出目录</string>
+    <string name="file_action_list_dir_desc">列出目录下的文件名</string>
+    <string name="file_action_copy">复制文件</string>
+    <string name="file_action_copy_desc">把文件复制到目标路径，已存在则覆盖</string>
+    <string name="file_action_path">文件路径</string>
+    <string name="file_action_content">内容</string>
+    <string name="file_action_files">文件列表</string>
+    <string name="file_action_source">源文件</string>
+    <string name="file_action_target">目标文件</string>
 </resources>

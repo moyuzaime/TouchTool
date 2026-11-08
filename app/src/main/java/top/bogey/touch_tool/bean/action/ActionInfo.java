@@ -191,6 +191,13 @@ import top.bogey.touch_tool.ui.blueprint.card.InputConfigActionCard;
 import top.bogey.touch_tool.ui.blueprint.card.NormalActionCard;
 import top.bogey.touch_tool.ui.blueprint.card.ShowTextActionCard;
 
+import top.bogey.touch_tool.bean.action.file.ReadFileAction;
+import top.bogey.touch_tool.bean.action.file.WriteFileAction;
+import top.bogey.touch_tool.bean.action.file.AppendFileAction;
+import top.bogey.touch_tool.bean.action.file.FileExistsAction;
+import top.bogey.touch_tool.bean.action.file.DeleteFileAction;
+import top.bogey.touch_tool.bean.action.file.ListDirAction;
+import top.bogey.touch_tool.bean.action.file.CopyFileAction;
 public class ActionInfo {
     // 开始动作
     private final static ActionInfo MANUAL_START_INFO = new ActionInfo(ActionType.MANUAL_START, ManualStartAction.class, R.drawable.icon_waving_hand, R.string.manual_start_action, R.string.manual_start_action_desc, 0, NormalActionCard.class);
@@ -419,6 +426,13 @@ public class ActionInfo {
     private final static ActionInfo MAP_VALUES_INFO = new ActionInfo(ActionType.MAP_VALUES, MapGetValuesAction.class, R.drawable.icon_data_array, R.string.map_values_action, R.string.map_values_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo MAP_FOREACH_INFO = new ActionInfo(ActionType.MAP_FOREACH, MapForeachAction.class, R.drawable.icon_repeat, R.string.map_foreach_action, R.string.map_foreach_action_desc, 0, NormalActionCard.class);
 
+    private final static ActionInfo READ_FILE_INFO = new ActionInfo(ActionType.READ_FILE, ReadFileAction.class, R.drawable.icon_note_stack, R.string.file_action_read, R.string.file_action_read_desc, 0, NormalActionCard.class);
+    private final static ActionInfo WRITE_FILE_INFO = new ActionInfo(ActionType.WRITE_FILE, WriteFileAction.class, R.drawable.icon_save, R.string.file_action_write, R.string.file_action_write_desc, 0, NormalActionCard.class);
+    private final static ActionInfo APPEND_FILE_INFO = new ActionInfo(ActionType.APPEND_FILE, AppendFileAction.class, R.drawable.icon_save, R.string.file_action_append, R.string.file_action_append_desc, 0, NormalActionCard.class);
+    private final static ActionInfo FILE_EXISTS_INFO = new ActionInfo(ActionType.FILE_EXISTS, FileExistsAction.class, R.drawable.icon_folder, R.string.file_action_exists, R.string.file_action_exists_desc, 0, NormalActionCard.class);
+    private final static ActionInfo DELETE_FILE_INFO = new ActionInfo(ActionType.DELETE_FILE, DeleteFileAction.class, R.drawable.icon_delete, R.string.file_action_delete, R.string.file_action_delete_desc, 0, NormalActionCard.class);
+    private final static ActionInfo LIST_DIR_INFO = new ActionInfo(ActionType.LIST_DIR, ListDirAction.class, R.drawable.icon_folder, R.string.file_action_list_dir, R.string.file_action_list_dir_desc, 0, NormalActionCard.class);
+    private final static ActionInfo COPY_FILE_INFO = new ActionInfo(ActionType.COPY_FILE, CopyFileAction.class, R.drawable.icon_content_copy, R.string.file_action_copy, R.string.file_action_copy_desc, 0, NormalActionCard.class);
     public static ActionInfo getActionInfo(ActionType type) {
         return switch (type) {
             case MANUAL_START -> MANUAL_START_INFO;
@@ -636,6 +650,13 @@ public class ActionInfo {
             case MAP_VALUES -> MAP_VALUES_INFO;
             case MAP_FOREACH -> MAP_FOREACH_INFO;
 
+            case READ_FILE -> READ_FILE_INFO;
+            case WRITE_FILE -> WRITE_FILE_INFO;
+            case APPEND_FILE -> APPEND_FILE_INFO;
+            case FILE_EXISTS -> FILE_EXISTS_INFO;
+            case DELETE_FILE -> DELETE_FILE_INFO;
+            case LIST_DIR -> LIST_DIR_INFO;
+            case COPY_FILE -> COPY_FILE_INFO;
             default -> null;
         };
     }

@@ -48,6 +48,14 @@ public class ActionMap {
                     ActionType.STICK,
                     ActionType.CLOSE_STICK,
 
+                    ActionType.READ_FILE,
+                    ActionType.WRITE_FILE,
+                    ActionType.APPEND_FILE,
+                    ActionType.FILE_EXISTS,
+                    ActionType.DELETE_FILE,
+                    ActionType.LIST_DIR,
+                    ActionType.COPY_FILE,
+
                     ActionType.INPUT_CONFIG,
                     ActionType.STOP_TASK,
                     ActionType.SWITCH_TASK,

@@ -225,6 +225,15 @@ public enum ActionType {
     MAP_VALUES,
     MAP_FOREACH,
 
+    // 文件
+    READ_FILE,
+    WRITE_FILE,
+    APPEND_FILE,
+    FILE_EXISTS,
+    DELETE_FILE,
+    LIST_DIR,
+    COPY_FILE,
+
     // 变量
     VAR_SET,
     VAR_GET,
