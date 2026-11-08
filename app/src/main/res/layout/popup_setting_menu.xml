@@ -91,19 +91,6 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/rowRestartService"
-            style="@style/Theme.TouchTool.PopupMenuRow">
-
-            <ImageView
-                style="@style/Theme.TouchTool.PopupMenuIcon"
-                android:importantForAccessibility="no"
-                android:src="@drawable/icon_refresh" />
-
-            <TextView
-                style="@style/Theme.TouchTool.PopupMenuText"
-                android:text="@string/app_setting_reload" />
-        </LinearLayout>
-        <LinearLayout
             android:id="@+id/rowAutoRestart"
             style="@style/Theme.TouchTool.PopupMenuRow"
             android:layout_width="match_parent">

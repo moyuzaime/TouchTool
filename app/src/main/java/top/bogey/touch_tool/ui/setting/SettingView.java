@@ -107,16 +107,6 @@ public class SettingView extends Fragment {
             dismissPopup(menu.getRoot());
             showLogDialog();
         });
-        menu.rowRestartService.setOnClickListener(v -> {
-            dismissPopup(menu.getRoot());
-            new MaterialAlertDialogBuilder(requireContext())
-                    .setTitle(R.string.app_setting_reload)
-                    .setMessage(R.string.app_setting_reload_desc)
-                    .setPositiveButton(R.string.setting_execute_shell, (d, w) -> restartAccessibilityService())
-                    .setNegativeButton(R.string.cancel, null)
-                    .show();
-        });
-
         // 自动重启：服务掉线时回前台自动重绑
         menu.autoRestartSwitch.setChecked(SettingSaver.APP_AUTO_RESTART_SERVICE.get());
         menu.rowAutoRestart.setOnClickListener(v -> menu.autoRestartSwitch.toggle());
