@@ -31,9 +31,11 @@ public class FloatWindow {
         tag = checkTag(tag);
         if (tags.contains(tag)) {
             FloatWindowHelper helper = getHelper(tag);
-            if (helper != null) helper.dismissFloatWindow();
+            // 先摘掉记录再销毁窗口：销毁回调里的 showLast 会把最后一个隐藏窗口重新显示，
+            // 记录还在的话会把正在销毁的自己又显示回来（表现为窗口闪一下就回来）
             tags.remove(tag);
             views.remove(tag);
+            if (helper != null) helper.dismissFloatWindow();
         }
     }
 
