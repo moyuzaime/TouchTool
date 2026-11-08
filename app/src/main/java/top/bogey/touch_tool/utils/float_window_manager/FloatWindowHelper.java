@@ -264,6 +264,10 @@ public class FloatWindowHelper {
     }
 
     private void removeViewFromWindow(View view) {
+        // 先把内容视图摘出来，窗口容器丢掉后布局视图还能被复用
+        if (view instanceof android.view.ViewGroup group && config.layoutView != null && config.layoutView.getParent() == group) {
+            group.removeView(config.layoutView);
+        }
         try {
             manager.removeView(view);
         } catch (Exception ignored) {

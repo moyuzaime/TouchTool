@@ -259,7 +259,14 @@ public class FloatWindow {
                 // 有记录不代表窗口还在：addView 失败、服务重启都会留下失效记录，
                 // 以前直接 return，表现就是点按钮完全没反应
                 FloatWindowHelper exist = views.get(config.tag);
-                if (exist != null && exist.isShowing()) return;
+                if (exist != null && exist.isShowing()) {
+                    // 窗口已经在屏幕上，给个提示，避免用户以为点击没生效
+                    try {
+                        android.widget.Toast.makeText(context, top.bogey.touch_tool.R.string.float_window_already_shown, android.widget.Toast.LENGTH_SHORT).show();
+                    } catch (Throwable ignored) {
+                    }
+                    return;
+                }
                 if (exist != null) exist.dismissQuietly();
                 tags.remove(config.tag);
                 views.remove(config.tag);

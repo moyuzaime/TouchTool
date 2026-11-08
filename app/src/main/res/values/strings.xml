@@ -493,4 +493,5 @@
 
     <string name="more">更多</string>
     <string name="app_setting_log_event">记录界面事件（开销较大）</string>
+    <string name="float_window_already_shown">窗口已打开</string>
 </resources>

@@ -197,6 +197,12 @@
 - 窗口位置持久化：`FloatWindow` 按 tag 把拖动后的位置存进 `SettingSaver.FLOAT_WINDOW_LOCATION`，打开时恢复，进程重启不丢。
 - 延时任务清理：`ToastFloatView`、`KeepAliveFloatView`、`PlayFloatView` 的 `dismiss()` 先 `removeCallbacksAndMessages(null)`。
 
+### 19. 悬浮窗复用与重复点击反馈
+
+- `FloatWindowHelper` 关闭窗口时先把内容视图从容器摘掉，视图可以再次挂载复用。
+- 应用信息、任务日志改为 `showTool(context)` 复用同一实例（弱引用缓存，Activity 重建后自动重建）。
+- 窗口已在屏幕上时再次打开会提示「窗口已打开」，不再静默无反应。
+
 ---
 
 ## 三、数据与兼容

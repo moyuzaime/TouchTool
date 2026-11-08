@@ -43,6 +43,18 @@ import top.bogey.touch_tool.utils.listener.TextChangedListener;
 
 @SuppressLint("ViewConstructor")
 public class LogFloatView extends FrameLayout implements FloatInterface, LogSaveListener {
+    // 复用同一个实例：关掉后再次打开不必重新 inflate 与绑定
+    private static java.lang.ref.WeakReference<LogFloatView> cached = new java.lang.ref.WeakReference<>(null);
+
+    public static void showTool(android.content.Context context) {
+        LogFloatView view = cached.get();
+        if (view == null || view.getContext() != context) {
+            view = new LogFloatView(context);
+            cached = new java.lang.ref.WeakReference<>(view);
+        }
+        view.show();
+    }
+
     private final FloatLogBinding binding;
     private final LogFloatViewAdapter adapter;
     private final String tag = LogFloatView.class.getName();

@@ -73,7 +73,7 @@ public class ToolView extends Fragment {
             }
             case TOOL_PACKAGE_ACTIVITY -> {
                 if (!checkService()) return;
-                new AppInfoFloatView(context).show();
+                AppInfoFloatView.showTool(context);
             }
             case TOOL_NODE_PICKER -> {
                 if (!checkService()) return;
@@ -83,7 +83,7 @@ public class ToolView extends Fragment {
                 if (!checkService()) return;
                 new ColorPickerPreview(context, null, new PinColor.ColorInfo(0, 0, 0)).show();
             }
-            case TOOL_RUNNING_LOG -> new LogFloatView(context).show();
+            case TOOL_RUNNING_LOG -> LogFloatView.showTool(context);
         }
     }
 

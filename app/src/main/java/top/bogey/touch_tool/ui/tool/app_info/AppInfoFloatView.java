@@ -23,6 +23,18 @@ import top.bogey.touch_tool.utils.float_window_manager.FloatWindow;
 
 @SuppressLint("ViewConstructor")
 public class AppInfoFloatView extends FrameLayout implements FloatInterface, ResultCallback<TaskInfoSummary.PackageActivity> {
+    // 复用同一实例，避免重复 inflate
+    private static java.lang.ref.WeakReference<AppInfoFloatView> cached = new java.lang.ref.WeakReference<>(null);
+
+    public static void showTool(android.content.Context context) {
+        AppInfoFloatView view = cached.get();
+        if (view == null || view.getContext() != context) {
+            view = new AppInfoFloatView(context);
+            cached = new java.lang.ref.WeakReference<>(view);
+        }
+        view.show();
+    }
+
     private final FloatAppInfoBinding binding;
     private final AppInfoFloatViewAdapter adapter;
     private final String tag = AppInfoFloatView.class.getName();
