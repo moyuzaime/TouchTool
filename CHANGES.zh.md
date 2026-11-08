@@ -250,55 +250,37 @@
 - 重启服务入口改为先弹说明确认；两个开关首次开启时显示对应说明文案。
 - 日志弹窗标题显示当前条数，清空按钮文案改「清理」。
 
-### 27. 选择时隐藏预览悬浮窗
+### 27. 日志支持长按复制与导出
 
-- 位置：`ui/blueprint/picker/NodePickerPreview.java`、`ColorPickerPreview.java`、`ImagePickerPreview.java`、`AreaPickerPreview.java`
-- 行为：点击「选择控件/颜色/图片/区域」时先隐藏自身窗口，选完（含取消）再显示，避免预览卡挡住要选的目标。
+- 日志列表长按任意条目复制「时间 分类 标签 内容」。
+- 日志弹窗新增「导出日志」，走系统文件保存框写成 UTF-8 的 txt。
 
-### 28. 选择器选完即关，预览窗等关闭后再显示
+### 28. 选择器与预览窗保持官方行为
 
-- 位置：`ui/blueprint/picker/*Preview.java`
-- 行为：点中目标后立即关闭选择器；预览窗改为轮询等待选择器窗口消失再显示，避免「闪一下就回来」。
-- 选择期间预览窗先 `dismiss()`，取消选择时预览窗不再自动回来。
+- `utils/float_window_manager/`、`ui/blueprint/picker/`、`float_picker_node_preview.xml` 回到 origin/master；移除窗口 `setLevel` 与实例复用。
+- 预览卡与选择器都是普通悬浮窗：选择器显示时框架 `hideAll` 隐藏预览卡，关闭时 `showLast` 恢复。
+- 本工程还有保活窗、播放条等窗口，它们关闭时同样触发 `showLast`，可能让预览卡提前出现；业务层不再干预窗口显隐。
+- 尝试过的「选择期间隐藏预览卡」方案（hide / dismiss / 轮询 / 延迟隐藏 / 收起成圆点）全部回退。
+- 保留修复：取色器 `screenInfo` 为空导致的崩溃；补回官方引用的 `picker_image_offset` 文案。
 
-### 29. 控件预览卡支持收起成小圆点
+### 29. 文件操作卡片
 
-- 位置：`res/layout/float_picker_node_preview.xml`、`ui/blueprint/picker/NodePickerPreview.java`
-- 行为：标题栏新增收起按钮，点击后内容隐藏、窗口缩成一个圆形按钮；点圆点恢复原尺寸。选择控件时先收起，避免挡住目标。
-- 布局改为 FrameLayout 包裹内容与小圆点，收起状态用 `FloatWindow.updateLayoutParam` 重设窗口尺寸。
+- 位置：`bean/action/file/`，独立分组「文件」（`ActionGroupType.FILE`，标签排在最后）。
+- 共 10 张：读取文件、读取一行、读取所有行、写入文件、编辑行、删除文件、文件是否存在、列出目录、复制文件、创建。
+- 读取类为计算动作；写入、编辑、删除、创建、复制为执行动作；路径与文本按 UTF-8 处理。
+- 写入/创建自动补父目录，删除文件夹递归删除，行号从 1 开始。
+- 合并：写入文件含「写入方式（覆盖/追加）」；创建含「类型（文件/文件夹）」；编辑行含「操作（写入/替换/删除）」。
+- 依赖「所有文件访问权限」才能读写 `/sdcard` 任意路径（Android 11+ 的 `WRITE_EXTERNAL_STORAGE` 无效）。
 
-### 30. 悬浮窗相关改动全部恢复官方
+### 30. 文件访问权限入口
 
-- `utils/float_window_manager/` 整个包、`ui/blueprint/picker/` 整个包、`float_picker_node_preview.xml` 回到 origin/master。
-- 移除各窗口的 `setLevel` 调用；应用信息与日志恢复 `new Xxx(context).show()` 直接创建。
-- 补回官方代码引用但此前被清理的 `picker_image_offset` 文案。
-- 后果：选择期间预览卡由框架的 `hideAll/showLast` 管理，本工程环境下其它悬浮窗关闭时仍可能把它重新显示；不再做额外压制。
+- Manifest 增加 `MANAGE_EXTERNAL_STORAGE`；`AppUtil.hasAllFilesAccess()` / `requestAllFilesAccess()` 负责查询与跳转系统授权页。
+- 设置页「权限设置」分区新增布尔开关：开关只反映系统授权状态，应用无法自行授予或撤销，点击统一跳系统页，返回时在 `onResume` 同步。
 
-### 31. 新增文件操作卡片
+### 31. 设置弹窗整理
 
-- 位置：`bean/action/file/`（7 个动作）
-- 支持：读取文件（文本）、写入文件（覆盖）、追加一行、文件是否存在、删除文件/文件夹、列出目录（文件列表）、复制文件（覆盖）
-- 读取类为计算动作（读取文件/是否存在/列出目录），写入与删除类为执行动作，路径都以 UTF-8 处理
-- 写入/追加会自动创建父目录；删除文件夹递归删除
-
-### 32. 文件卡片补充 5 个
-
-- 新增：读取一行（按行号）、读取所有行（文本列表）、删除行（按行号或包含内容）、创建文件、创建文件夹
-- 文件分组现共 12 张卡片；行号从 1 开始，删除行在行号为 0 时按包含内容匹配
-
-### 33. 文件卡片新增写入指定行、替换指定行
-
-- 写入指定行：行号存在则覆盖，超出末尾追加
-- 替换指定行：仅替换已存在的行，越界不处理
-- 文件分组现共 14 张卡片
-
-### 34. 文件卡片合并
-
-- 写入文件：新增「写入方式」针脚（覆盖整个文件 / 追加一行），删除「追加一行」独立卡片
-- 创建：新增「类型」针脚（文件 / 文件夹），删除「创建文件夹」独立卡片
-- 编辑行：写入指定行 / 替换指定行 / 删除指定行三合一，新增「操作」针脚
-- 文件分组由 14 张精简为 10 张
-
+- 字号由 `BodyLarge` 降到 `BodyMedium`(14sp)；带开关的行改为 `match_parent`，文本单行省略、开关右对齐，不再被裁切。
+- 删除重复的「文件访问权限」与「重启无障碍服务」入口（后者在主界面「功能启用」卡片已有）。
 ---
 
 ## 三、数据与兼容
@@ -324,12 +306,14 @@
 ## 附录：本分支提交
 
 ```
+fix(share): 分享统一走系统分享面板并修正 MIME 类型
 feat(port): 移植 mod 版的日期「今天」按钮与受限设置引导
 feat(port): 移植 mod 版的数学公式全屏编辑与常用函数插入
 feat(port): 移植 mod 版的图片识别范围与复制区域
 feat(port): 移植 mod 版的蓝图辅助工具（缩放条、四边跳转、结果计数）
-feat(port): 移植 mod 版的连线跳转与跳回
 feat(port): 移植 mod 版的卡片组暂存
+feat(port): 移植 mod 版的连线跳转与跳回
+Merge branch 'fix/share-chooser-mime' into feat/port-mod-tools
 feat(port): 卡片组暂存按钮移入底部卡片工具栏
 feat(port): 优化卡片组暂存交互
 feat(port): 优化卡片组暂存面板的观感
@@ -350,5 +334,72 @@ feat(port): 展开或折叠日志节点后暂停自动跟随
 feat(port): 日志窗口空搜索时上下箭头在展开块内跳转
 feat(port): 日志上下箭头按当前所在层跳转
 feat(port): 日志上箭头改为跳转到展开节点
-fix(share): 分享统一走系统分享面板并修正 MIME 类型
+docs: 补充移植与新增功能说明
+feat(port): 整理任务日志悬浮窗的布局
+feat(port): 日志搜索选项收进展开条并修复缩放失效
+fix(port): 缩放手柄回到悬浮窗右下角并恢复缩放
+fix(port): 折叠后不再残留缩放手柄
+feat(port): 任务菜单改为带图标与开关的对话框
+feat(port): 任务菜单改为贴近右上角的弹出面板
+feat(port): 重做任务截图预览窗口
+feat(port): 任务截图改为按原始尺寸流式导出 PNG
+fix(port): 修复框选后底栏回退，并放宽截图导出留边
+fix(port): 修复任务截图被裁切
+docs: 修正任务截图导出区域与偏移的说明
+feat(port): 控件是否存在新增控件输出针脚
+feat(port): 控件是否存在新增控件列表输出针脚
+fix(port): 工具页悬浮窗在服务未就绪时给出提示
+fix(port): 无障碍服务关键回调加异常兜底
+feat(port): 设置页菜单改为卡片弹窗
+fix(port): 更多按钮图标改为跟随主题色
+fix(port): 设置菜单宽度自适应并增加日志入口
+feat(port): 图片是否存在增加区域与匹配相似度输出
+docs: 补充图片是否存在输出针脚说明
+feat(port): 控件信息面板补齐更多属性
+feat(port): 获取控件信息补齐输出针脚
+fix(port): 修复悬浮窗点了没反应的残留 tag 问题
+perf(port): 悬浮窗事件日志开关、位置持久化与延时任务清理
+perf(port): 工具窗口复用实例并提示重复打开
+feat(port): 悬浮窗增加层级管理
+feat(port): 收起后的悬浮窗显示功能图标
+fix(port): 修复取色器屏幕信息为空导致的崩溃
+feat(port): 控件是否存在与查找控件增加查找方式
+feat(port): 收敛重复动作入口
+feat(port): 合并布尔与数值比较卡片
+chore(port): 删除已合并的旧动作类
+chore(port): 清理已删除动作的无用文案
+chore(port): 全量清理无引用字符串
+feat(port): 设置菜单新增重启无障碍服务
+feat(port): 实现自动重启无障碍与开机自启
+feat(port): 选择时隐藏预览悬浮窗
+fix(port): 选择时销毁预览窗而非隐藏
+fix(port): 修复窗口销毁后闪回
+chore(port): 预览窗重新显示时记录调用栈
+feat(port): 日志支持长按复制与导出
+fix(port): 选择器还开着时不提前显示预览窗
+feat(port): 选择器选完立即关闭
+fix(port): 选择器先关闭再回调结果
+fix(port): NodePicker 先关闭再回调
+feat(port): 选择期间关闭控件预览窗，选择器关闭后恢复
+feat(port): 控件信息工具改为先进选择器再出预览卡
+feat(port): 预览卡在用隐藏代替销毁，选择器关闭后恢复
+fix(port): 预览卡延迟隐藏，避开入场动画覆盖
+tune(port): 预览卡隐藏延迟改为 500ms
+feat(port): 控件预览卡支持收起成小圆点
+fix(port): 选择器截屏期间隐藏控件预览卡
+chore(port): hide 时记录注册表内容用于定位预览卡未隐藏
+fix(port): 预览卡改由选择回调恢复，去掉轮询
+fix(port): 选择器打开期间持续压制控件预览卡
+feat(port): 新增 7 个文件操作卡片
+feat(port): 文件动作独立分组
+feat(port): 文件操作支持所有文件访问权限
+feat(port): 文件访问权限并入权限设置区
+feat(port): 文件访问权限改为布尔开关
+fix(port): 设置弹窗移除残留文件权限行并修正开关溢出
+style(port): 设置弹窗菜单字号调小
+refactor(port): 移除设置弹窗里重复的重启无障碍入口
+fix(port): 文件访问权限开关只反映系统状态
+feat(port): 文件卡片补充读取行/删除行/建文件/建目录
+feat(port): 文件卡片新增写入指定行与替换指定行
+refactor(port): 文件卡片合并为 10 张
 ```
