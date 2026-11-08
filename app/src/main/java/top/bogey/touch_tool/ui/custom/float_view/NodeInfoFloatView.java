@@ -191,6 +191,7 @@ public class NodeInfoFloatView extends FrameLayout implements FloatInterface {
         FloatWindow.with(MainApplication.getInstance().getService())
                 .setLayout(this)
                 .setTag(NodeInfoFloatView.class.getName())
+                    .setLevel(60)
                 .setLocation(EAnchor.CENTER, 0, 0)
                 .setSpecial(true)
                 .show();

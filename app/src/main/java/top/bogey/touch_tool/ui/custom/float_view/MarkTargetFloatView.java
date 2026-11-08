@@ -91,7 +91,8 @@ public class MarkTargetFloatView extends AppCompatImageView implements FloatInte
     public void show() {
         FloatWindow.with(MainApplication.getInstance().getService())
                 .setLayout(this)
-                .setTag(tag)
+                .setTag(tag)
+                .setLevel(70)
                 .setLocation(EAnchor.TOP_LEFT, targetArea.left, targetArea.top)
                 .setAnchor(EAnchor.TOP_LEFT)
                 .setDragAble(false)

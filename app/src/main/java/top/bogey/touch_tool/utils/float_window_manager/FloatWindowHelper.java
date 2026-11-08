@@ -52,6 +52,16 @@ public class FloatWindowHelper {
     // 记录 addView 是否失败：失败时窗口其实没加上，残留的 tag 会让后续 show 直接返回
     public boolean addFailed = false;
 
+    // 重新加入窗口以置顶：无障碍悬浮窗的叠放顺序等于添加顺序
+    void bringToFront() {
+        if (viewParent == null || addFailed) return;
+        try {
+            manager.removeView(viewParent);
+            manager.addView(viewParent, params);
+        } catch (Throwable e) {
+            top.bogey.touch_tool.utils.AppLog.e("悬浮窗", "置顶失败 tag=" + config.tag, e);
+        }
+    }
     public boolean isShowing() {
         return viewParent != null && !addFailed;
     }

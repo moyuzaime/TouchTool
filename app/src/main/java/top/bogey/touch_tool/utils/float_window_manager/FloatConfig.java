@@ -11,6 +11,9 @@ class FloatConfig {
     // 唯一标签
     String tag = null;
 
+    // 窗口层级：数值大的在更上层，用来在多个窗口同时显示时维持叠放顺序
+    int level = 0;
+
     // 布局id
     int layoutId = 0;
     // 布局view

@@ -174,6 +174,11 @@ public class FloatWindow {
             return this;
         }
 
+        public Builder setLevel(int level) {
+            config.level = level;
+            return this;
+        }
+
         public Builder setTag(String tag) {
             config.tag = tag;
             return this;
@@ -287,6 +292,11 @@ public class FloatWindow {
             helper.createFloatWindow();
             tags.add(config.tag);
             views.put(config.tag, helper);
+
+            // 新窗口默认在最上层；把层级更高的窗口重新提到上面，避免被低层级窗口盖住
+            for (FloatWindowHelper other : new java.util.ArrayList<>(views.values())) {
+                if (other != helper && other.config.level > config.level) other.bringToFront();
+            }
             boolean attached = helper.isShowing();
             top.bogey.touch_tool.utils.AppLog.d("悬浮窗", "show tag=" + config.tag + " attached=" + attached);
             if (!attached) {

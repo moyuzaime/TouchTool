@@ -192,7 +192,8 @@ public class AppInfoFloatView extends FrameLayout implements FloatInterface, Res
     public void show() {
         FloatWindow.with(MainApplication.getInstance().getService())
                 .setLayout(this)
-                .setTag(tag)
+                .setTag(tag)
+                .setLevel(60)
                 .setSpecial(true)
                 .setLocation(EAnchor.CENTER, 0, 0)
                 .setExistEditText(true)
