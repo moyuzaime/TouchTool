@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 
 import top.bogey.touch_tool.MainApplication;
+import top.bogey.touch_tool.R;
 import top.bogey.touch_tool.bean.other.ScreenInfo;
 import top.bogey.touch_tool.service.MainAccessibilityService;
 import top.bogey.touch_tool.utils.DisplayUtil;
@@ -32,7 +33,11 @@ public abstract class FullScreenPicker<T> extends BasePicker<T> {
 
     protected void onShow() {
         postDelayed(() -> {
-            screenInfo = new ScreenInfo(service);
+            if (service == null) {
+                FloatWindow.dismiss(tag);
+                return;
+            }
+            if (screenInfo == null) screenInfo = new ScreenInfo(service);
             Bitmap bitmap = screenInfo.getScreenShot();
             if (bitmap != null) {
                 screenInfo.setScreenShot(DisplayUtil.safeClipBitmap(bitmap, location[0], location[1], getWidth(), getHeight()));
@@ -44,7 +49,15 @@ public abstract class FullScreenPicker<T> extends BasePicker<T> {
 
     @Override
     public void show() {
-        FloatWindow.with(MainApplication.getInstance().getService())
+        service = MainApplication.getInstance().getService();
+        if (service == null) {
+            // 服务不在时拿不到截图，窗口加上后绘制必然空指针，这里直接放弃并提示
+            android.widget.Toast.makeText(getContext(), R.string.app_setting_enable_error, android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+        // 先准备好截图，避免窗口加上后、onShow 延迟初始化之前就开始绘制
+        if (screenInfo == null) screenInfo = new ScreenInfo(service);
+        FloatWindow.with(service)
                 .setLayout(this)
                 .setTag(tag)
                 .setDragAble(dragAble)

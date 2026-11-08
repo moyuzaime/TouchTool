@@ -214,6 +214,12 @@
 - 任务日志、应用信息、控件信息三个可收起窗口，收起时按钮图标改为各自功能图标（`icon_note_stack` / `icon_apps` / `icon_widgets`），不再统一显示放大图标。
 - 展开后仍显示收起图标 `icon_zoom_in_map`，点击可再次收起。
 
+### 22. 修复取色/选控件空指针
+
+- 位置：`ui/blueprint/picker/FullScreenPicker.java`、`ColorPicker.java`
+- 原因：`screenInfo` 在 `onShow()` 里延迟 300ms 初始化，而窗口加上后可能立刻绘制，`ColorPicker.dispatchDraw` 取 `screenInfo.getScreenShot()` 时空指针；服务不在时更会直接为空。
+- 修复：`show()` 里先检查服务并同步准备好 `screenInfo`；绘制与取色路径全部加空判断；延迟初始化处再兜一次服务为空则关窗。
+
 ---
 
 ## 三、数据与兼容
