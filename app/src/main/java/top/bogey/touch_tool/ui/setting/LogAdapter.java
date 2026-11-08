@@ -16,6 +16,7 @@ import java.util.Set;
 
 import top.bogey.touch_tool.databinding.LogItemBinding;
 import top.bogey.touch_tool.utils.AppLog;
+import top.bogey.touch_tool.utils.AppUtil;
 
 // 日志弹窗的列表，一行一条，展示时间、分类、标签与内容；内容超过三行的可点击展开收起
 public class LogAdapter extends RecyclerView.Adapter<LogAdapter.ViewHolder> {
@@ -85,6 +86,12 @@ public class LogAdapter extends RecyclerView.Adapter<LogAdapter.ViewHolder> {
         }
 
         public void refresh(AppLog.Entry entry, boolean expanded, Runnable onToggle) {
+            // 长按整条日志直接复制，便于把异常贴给别人
+            binding.getRoot().setOnLongClickListener(v -> {
+                String text = entry.time() + " [" + entry.category() + "] " + entry.tag() + ": " + entry.message();
+                AppUtil.copyToClipboard(binding.getRoot().getContext(), text);
+                return true;
+            });
             binding.time.setText(entry.time());
             binding.category.setText(entry.category());
             binding.tag.setText(entry.tag());

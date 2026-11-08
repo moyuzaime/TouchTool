@@ -597,6 +597,7 @@ public class SettingView extends Fragment {
                 .setTitle(getString(R.string.app_setting_log_title) + " " + getString(R.string.setting_value_current, logs.size()))
                 .setView(dialogBinding.getRoot())
                 .setNeutralButton(R.string.app_setting_clean_cache_button_text, (dialog1, which) -> AppLog.clear())
+                .setNegativeButton(R.string.app_setting_log_export, (dialog1, which) -> exportLogs())
                 .setPositiveButton(R.string.close, null)
                 .create();
         // 宽高按屏幕比例定尺：宽度定死内容才会按固定宽度测量，否则卡片按文字宽度收缩、撑不满整宽；
@@ -614,6 +615,17 @@ public class SettingView extends Fragment {
         dialog.show();
     }
 
+    // 导出应用内日志为 txt，走系统文件选择器保存
+    private void exportLogs() {
+        StringBuilder builder = new StringBuilder();
+        for (AppLog.Entry entry : AppLog.getLogs()) {
+            builder.append(entry.time()).append(" [").append(entry.category()).append("] ")
+                    .append(entry.tag()).append(": ").append(entry.message()).append('\n');
+        }
+        String fileName = "log_" + System.currentTimeMillis() + ".txt";
+        top.bogey.touch_tool.utils.AppUtil.exportFile((top.bogey.touch_tool.ui.BaseActivity) requireActivity(),
+                fileName, builder.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    }
     // 日志只有几条时按钮会跟着内容上移，把自定义视图补到标题与按钮之外的剩余高度，按钮始终贴底
     private void fillLogDialogHeight(AlertDialog dialog) {
         View panel = dialog.findViewById(androidx.appcompat.R.id.parentPanel);
