@@ -1,6 +1,4 @@
 <resources>
-    <string name="main_activity_filter_name">导入任务</string>
-    <string name="instant_activity_filter_name">执行或触发任务</string>
 
     <string name="common_package">top.bogey.common</string>
     <string name="common_name">通用</string>
@@ -17,7 +15,6 @@
 
     <!-- 复制 -->
     <string name="copy_tips">已复制</string>
-    <string name="copy_ttp_url">任务连接</string>
 
     <!-- 时间 -->
     <string name="hours">%d小时</string>
@@ -32,14 +29,11 @@
 
     <!-- 任务标签 -->
     <string name="tag_empty">未分类</string>
-    <string name="tag_shortcut">快捷方式</string>
-    <string name="tag_add">添加新的标签</string>
     <string name="tag_remove">确认要删除这个标签吗？</string>
 
     <!-- 标题 -->
     <string name="task">任务</string>
     <string name="tool">工具</string>
-    <string name="blueprint">蓝图</string>
     <string name="setting">设置</string>
 
     <!-- 底部菜单 -->
@@ -47,15 +41,12 @@
     <string name="remove_task">删除</string>
     <string name="remove_tips">删除之后无法撤回，确定要删除吗？</string>
     <string name="export_task">导出</string>
-    <string name="export_task_tips">导出并发送</string>
     <string name="import_task">导入</string>
     <string name="file_name">文件名称</string>
-    <string name="move_task">标签</string>
 
     <!-- 任务界面相关 -->
     <string name="title">标题</string>
     <string name="des">描述</string>
-    <string name="creator">创建者</string>
     <string name="tag">标签</string>
     <string name="copy_title">%s_复制</string>
     <string name="force_delete">强制删除</string>
@@ -68,19 +59,14 @@
     <string name="task_search_result">搜索结果</string>
     <string name="task_tag_add">添加标签</string>
     <string name="task_delete_tips">有%d个任务调用了此任务，分别是：</string>
-    <string name="tasks_delete_tips">有%d个任务调用了这些任务，分别是：</string>
 
     <string name="task_import">导入任务</string>
     <string name="task_import_tag">导入分类</string>
     <string name="task_import_copy">导入副本</string>
-    <string name="task_import_desc">从你选择的文件中选择需要导入的任务配置和通用自定义卡片</string>
     <string name="task_import_error_tips">将覆盖本地任务“%s”</string>
     <string name="task_import_copy_tips">本地已存在“%s”，将导入为副本</string>
 
     <string name="task_export">导出任务</string>
-    <string name="task_export_desc">选择需要导出的任务配置和通用自定义卡片到你选择的文件夹中</string>
-    <string name="task_export_task_reference">引用任务：</string>
-    <string name="task_export_var_reference">引用变量：</string>
 
     <string name="task_exchange_to_custom">转换为任务内自定义任务</string>
 
@@ -97,8 +83,6 @@
     <string name="log_search_position">序号</string>
     <string name="log_search_case">区分大小写</string>
     <string name="log_search_regex">正则</string>
-    <string name="task_running_log_switch">切换日志开关</string>
-    <string name="task_running_log_clear">清除日志</string>
     <string name="task_running_detail_log">记录日志细节</string>
     <string name="task_running_log_load_error">日志加载失败</string>
 
@@ -155,8 +139,6 @@
 
 
     <!-- 任务 -->
-    <string name="action_add_pin">添加针脚</string>
-    <string name="action_add_execute">添加执行</string>
     <string name="action_add_des">修改备注</string>
 
     <!-- 针脚名 -->
@@ -181,7 +163,6 @@
     <string name="pin_string_single_line">单行文本</string>
     <string name="pin_string_node_path">控件身份</string>
     <string name="pin_string_node_path_text">控件路径</string>
-    <string name="pin_string_log">通配文本</string>
     <string name="pin_string_task">任务</string>
     <string name="pin_string_select">单选</string>
     <string name="pin_string_select_hint">选项(逗号分隔)</string>
@@ -224,7 +205,6 @@
     <string name="picker_color_title">选择颜色</string>
     <string name="picker_color_offset">相似度：%d</string>
     <string name="picker_image_title">选择图片</string>
-    <string name="picker_image_offset">相似度：%d</string>
     <string name="picker_image_similarity">相似度 %d</string>
     <string name="picker_image_similarity_empty">相似度 —</string>
     <string name="picker_test_scope">识别范围</string>
@@ -246,13 +226,7 @@
     <string name="picker_point_title">选择位置</string>
     <string name="picker_touch_title">采集手势</string>
     <string name="picker_node_title">选择控件</string>
-    <string name="picker_node_id">控件ID:</string>
-    <string name="picker_node_text">控件文本:</string>
-    <string name="picker_node_path">控件路径:</string>
     <string name="picker_node_search_hint">长按列表项选中</string>
-    <string name="picker_node_type_1">仅可用</string>
-    <string name="picker_node_type_2">顶部优先</string>
-    <string name="picker_node_type_3">深度优先</string>
     <string name="picker_area_pos_change">位置微调区</string>
     <string name="picker_area_size_change">大小微调区</string>
 
@@ -494,4 +468,6 @@
     <string name="more">更多</string>
     <string name="app_setting_log_event">记录界面事件（开销较大）</string>
     <string name="float_window_already_shown">窗口已打开</string>
+    <string name="main_activity_filter_name">导入任务</string>
+    <string name="instant_activity_filter_name">执行或触发任务</string>
 </resources>

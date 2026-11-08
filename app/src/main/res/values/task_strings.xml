@@ -25,7 +25,6 @@
 
     <string name="application_quit_start_action">退出应用时执行</string>
     <string name="application_quit_start_action_desc">退出对应应用时自动执行</string>
-    <string name="application_quit_start_action_app">触发界面</string>
 
     <string name="time_start_action">定时执行</string>
     <string name="time_start_action_desc">在设定的时间执行</string>
@@ -38,7 +37,6 @@
 
     <string name="notification_start_action">收到新通知时执行</string>
     <string name="notification_start_action_desc">收到新通知或Toast时执行</string>
-    <string name="notification_start_action_match">匹配文本</string>
     <string name="notification_start_action_type">通知类型</string>
     <string name="notification_start_action_notify_app">通知应用</string>
     <string name="notification_start_action_notify_text">通知文本</string>
@@ -68,9 +66,6 @@
     <string name="broadcast_start_action">收到广播时执行</string>
     <string name="broadcast_start_action_desc">收到指定广播时自动执行</string>
     <string name="broadcast_start_action_name">广播动作</string>
-    <string name="broadcast_start_action_uri_scheme">Uri Scheme</string>
-    <string name="broadcast_start_action_category">分类(Category)</string>
-    <string name="broadcast_start_action_data">Uri数据</string>
     <string name="broadcast_start_action_extra">参数</string>
 
     <string name="out_call_start_action">外部调用</string>
@@ -86,10 +81,7 @@
     <string name="wait_if_action">等待条件成立</string>
     <string name="wait_if_action_desc">在一定时间内满足条件就执行，否则执行未达成节点</string>
     <string name="wait_if_action_timeout">超时(ms)</string>
-    <string name="wait_if_action_else">未达成</string>
 
-    <string name="find_execute_action">搜索查找</string>
-    <string name="find_execute_action_timeout">超时(ms)"</string>
     <string name="find_execute_action_interval">检查间隔(ms)"</string>
 
     <string name="switch_action">选择执行</string>
@@ -130,8 +122,6 @@
     <string name="parallel_action_desc">多条执行并行执行，直到超时或者达成指定完成数量</string>
     <string name="parallel_action_count">完成数</string>
     <string name="parallel_action_timeout">超时(ms)</string>
-    <string name="parallel_action_result">结果</string>
-    <string name="parallel_action_complete">结束</string>
 
 
     <!-- 动作-Task -->
@@ -190,9 +180,6 @@
     <string name="stick_close_action_id">标志</string>
 
 
-    <string name="input_param_action">手动输入参数</string>
-    <string name="input_param_action_desc">手动输入任务运行需要的参数</string>
-    <string name="input_param_action_param">参数</string>
 
     <string name="input_config_action">配置面板</string>
     <string name="input_config_action_desc">手动输入任务运行需要的配置</string>
@@ -367,7 +354,6 @@
     <string name="math_expression_action_desc">支持复杂的公式计算</string>
     <string name="math_expression_action_express">公式</string>
     <string name="math_expression_action_result">结果</string>
-    <string name="math_expression_action_tips">表达式错误</string>
     <string name="math_expression_functions_title">常用函数（点一下就能插入）</string>
     <string name="math_expression_operators">变量要用英文字母或下划线开头，后面可以跟字母、数字、下划线，长短不限，大写和小写算不同变量。加、减、乘、除分别用 +、-、*、/，乘方用 ^，取余用 %。换行会直接接在一起、不留空格，留意别把两行的名字连成一个变量。公式也可以由文本拼接等针脚连入：这时请把数值直接拼进公式里（例如 3*sqrt(4)+2），不要留下字母变量名；连入公式时不会生成变量针脚，运行时没地方给它们赋值，公式会算不出来。</string>
 
@@ -497,7 +483,6 @@
 
     <string name="area_offset_action">区域偏移</string>
     <string name="area_offset_action_desc">将区域进行偏移</string>
-    <string name="area_offset_action_offset">偏移</string>
 
     <string name="check_area_contain_pos_action">位置是否在区域里</string>
     <string name="check_area_contain_pos_action_desc">判断一个位置是否在指定区域内</string>
@@ -561,8 +546,6 @@
 
 
     <!-- 动作-Node -->
-    <string name="pin_node_first">首个控件</string>
-    <string name="pin_node_top">最上层控件</string>
 
     <string name="find_node_action">查找控件</string>
     <string name="find_node_action_desc">根据条件获取控件</string>
@@ -582,7 +565,6 @@
     <string name="is_node_exist_action_id">控件ID</string>
     <string name="is_node_exist_action_class">类名</string>
     <string name="is_node_exist_action_node_desc">描述</string>
-    <string name="is_node_exist_action_regex_path">正则路径</string>
 
 
     <string name="get_node_info_action">获取控件信息</string>
@@ -690,7 +672,6 @@
     <string name="touch_image_action_template">目标</string>
     <string name="touch_image_action_similarity">相似度</string>
     <string name="touch_image_action_area">区域限制</string>
-    <string name="touch_image_action_use_accessibility">无障碍截屏</string>
     <string name="touch_image_action_offset">随机偏移</string>
 
     <string name="create_qrcode_action">生成二维码</string>
@@ -709,7 +690,6 @@
     <string name="yolo_detect_action_model">模型</string>
     <string name="yolo_detect_action_similarity">置信度</string>
     <string name="yolo_detect_action_target">所有目标</string>
-    <string name="yolo_detect_action_area">所有区域</string>
 
     <!-- 动作-Color -->
     <string name="get_color_action">获取颜色</string>
@@ -722,8 +702,6 @@
 
     <string name="is_color_exist_action">颜色是否存在</string>
     <string name="is_color_exist_action_desc">判断指定颜色是否存在</string>
-    <string name="is_color_exist_action_template">颜色</string>
-    <string name="is_color_exist_action_similarity">相似度</string>
 
     <string name="color_equal_action">颜色比较</string>
     <string name="color_equal_action_desc">判断两个颜色是否相似</string>
@@ -822,8 +800,6 @@
     <string name="map_contain_value_action">字典是否包含值</string>
     <string name="map_contain_value_action_desc">判断字典是否包含值</string>
 
-    <string name="map_add_action">添加键值对</string>
-    <string name="map_add_action_desc">向字典中添加键值对</string>
 
     <string name="map_remove_action">移除键值对</string>
     <string name="map_remove_action_desc">从字典中移除键值对</string>
@@ -840,7 +816,6 @@
 
     <string name="map_set_action">添加或替换值</string>
     <string name="map_set_action_desc">向字典中添加或替换值</string>
-    <string name="map_set_action_pre_value">替换前的值</string>
 
     <string name="map_keys_action">获取所有键</string>
     <string name="map_keys_action_desc">获取字典中的所有键</string>

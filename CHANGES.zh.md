@@ -235,6 +235,7 @@
 - 同时删除「获取区域内控件」「关闭所有贴图」两个动作类及其枚举与映射。
 - 删除清单：NumberLessAction、NumberEqualAction、BooleanOrAction、BooleanOrShortCircuitAction、BooleanAndShortCircuitAction、GetNodesInAreaAction、StickCloseAllAction，以及 ActionType 中对应枚举。
 - 同时清理这些卡片对应的 17 条无用文案。
+- 全量扫描（1011 条字符串定义，含 Manifest 引用）后再删除 51 条无引用文案；保留 13 条「未实现功能」文案备用（自动重启无障碍、开机自启、重启服务、缓存清理等）。
 
 ---
 
