@@ -145,4 +145,21 @@ public class AreaPickerPreview extends BasePicker<Rect> {
             return 0;
         }
     }
+    // 等选择器窗口真正关掉后再显示预览，避免选择器还开着时把预览卡盖回去
+    private void showAfterPicker(Class<?> pickerClass) {
+        android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
+        Runnable runnable = new Runnable() {
+            private int tries = 0;
+
+            @Override
+            public void run() {
+                if (top.bogey.touch_tool.utils.float_window_manager.FloatWindow.getHelper(pickerClass.getName()) != null && tries++ < 20) {
+                    handler.postDelayed(this, 150);
+                } else {
+                    show();
+                }
+            }
+        };
+        handler.postDelayed(runnable, 150);
+    }
 }

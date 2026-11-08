@@ -69,7 +69,7 @@ public class ImagePickerPreview extends BasePicker<Bitmap> {
         binding.pickerButton.setOnClickListener(v -> new ImagePicker(context, result -> {
         // 选择时先隐藏自身，避免遮挡目标
         dismiss();
-            show();
+            showAfterPicker(ImagePicker.class);
             if (result == null) return;
             template = result;
             binding.current.setImageBitmap(template);
@@ -201,5 +201,22 @@ public class ImagePickerPreview extends BasePicker<Bitmap> {
         canvas.translate(rect.left - area.left, rect.top - area.top);
         canvas.drawRect(new Rect(0, 0, rect.width(), rect.height()), paint);
         binding.matchedImage.setImageBitmap(clipBitmap);
+    }
+    // 等选择器窗口真正关掉后再显示预览，避免选择器还开着时把预览卡盖回去
+    private void showAfterPicker(Class<?> pickerClass) {
+        android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
+        Runnable runnable = new Runnable() {
+            private int tries = 0;
+
+            @Override
+            public void run() {
+                if (top.bogey.touch_tool.utils.float_window_manager.FloatWindow.getHelper(pickerClass.getName()) != null && tries++ < 20) {
+                    handler.postDelayed(this, 150);
+                } else {
+                    show();
+                }
+            }
+        };
+        handler.postDelayed(runnable, 150);
     }
 }
