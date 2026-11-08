@@ -89,7 +89,9 @@ public class ToolView extends Fragment {
 
     // 无障碍服务没起来时悬浮窗加不进去，点了会没反应，这里先判断并提示
     private static boolean checkService() {
-        if (MainApplication.getInstance().getService() != null) return true;
+        MainAccessibilityService service = MainApplication.getInstance().getService();
+        // 仅非空不够：服务被系统停用后单例还在，但窗口 token 已失效，加窗口会抛 BadToken
+        if (service != null && service.isConnected()) return true;
         Toast.makeText(MainApplication.getInstance(), R.string.app_setting_enable_error, Toast.LENGTH_SHORT).show();
         return false;
     }

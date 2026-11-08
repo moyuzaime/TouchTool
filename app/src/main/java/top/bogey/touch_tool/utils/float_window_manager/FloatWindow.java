@@ -256,15 +256,31 @@ public class FloatWindow {
             }
 
             if (tags.contains(config.tag)) {
-                return;
+                // 有记录不代表窗口还在：addView 失败、服务重启都会留下失效记录，
+                // 以前直接 return，表现就是点按钮完全没反应
+                FloatWindowHelper exist = views.get(config.tag);
+                if (exist != null && exist.isShowing()) return;
+                if (exist != null) exist.dismissQuietly();
+                tags.remove(config.tag);
+                views.remove(config.tag);
             }
 
-            if (context == null) return;
+            if (context == null) {
+                top.bogey.touch_tool.utils.AppLog.e("悬浮窗", "创建失败：context 为空 tag=" + config.tag);
+                return;
+            }
 
             FloatWindowHelper helper = new FloatWindowHelper(context, config);
             helper.createFloatWindow();
             tags.add(config.tag);
             views.put(config.tag, helper);
+            boolean attached = helper.isShowing();
+            top.bogey.touch_tool.utils.AppLog.d("悬浮窗", "show tag=" + config.tag + " attached=" + attached);
+            if (!attached) {
+                // 窗口没加上通常是无障碍服务已被系统停用，提示用户去重开，避免点了没反应
+                top.bogey.touch_tool.utils.AppLog.e("悬浮窗", "窗口未附加 tag=" + config.tag);
+                android.widget.Toast.makeText(top.bogey.touch_tool.MainApplication.getInstance(), top.bogey.touch_tool.R.string.app_setting_enable_error, android.widget.Toast.LENGTH_SHORT).show();
+            }
         }
     }
 }

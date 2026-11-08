@@ -184,6 +184,13 @@
 - 行为：在原有类名/控件ID/文本/描述/区域/是否可用/是否可见/控件身份之外，新增包名、可长按、可滚动、可获得焦点、可编辑、已选中、已勾选、已聚焦、是否启用、提示文本、层级深度、支持操作数、窗口ID、输入类型、同级序号、子节点数共 16 个输出针脚。
 - 这些属性直接读 `AccessibilityNodeInfo`，存档节点（无实时 node）时布尔为 false、数值为 0、文本为空。
 
+### 17. 悬浮窗「点了没反应」修复
+
+- 位置：`utils/float_window_manager/FloatWindow.java`、`FloatWindowHelper.java`、`ui/tool/ToolView.java`
+- 原因：无障碍服务被系统停用后单例仍在，`addView` 抛 `BadTokenException`（token null is not valid），而窗口注册表里已留下同名 tag，之后每次 `show()` 都因 tag 已存在直接返回，表现为永久无响应。
+- 修复：`show()` 检查记录对应的窗口是否真的添加成功（`addFailed`），失效则清理后重建；工具页入口改为要求 `isConnected()`；加窗口失败时弹提示并把异常写入「日志 → 异常」。
+- 建议：安装、强停或清理后台后，进系统设置把无障碍服务关一次再开，避免系统保持「已崩溃」状态。
+
 ---
 
 ## 三、数据与兼容
