@@ -449,4 +449,19 @@
         <item>不等于</item>
     </string-array>
 
+    <string-array name="file_write_mode">
+        <item>覆盖整个文件</item>
+        <item>追加一行</item>
+    </string-array>
+
+    <string-array name="file_create_mode">
+        <item>文件</item>
+        <item>文件夹</item>
+    </string-array>
+
+    <string-array name="file_line_mode">
+        <item>写入指定行</item>
+        <item>替换指定行</item>
+        <item>删除指定行</item>
+    </string-array>
 </resources>

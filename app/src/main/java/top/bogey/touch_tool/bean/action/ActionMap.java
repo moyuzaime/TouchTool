@@ -248,18 +248,14 @@ public class ActionMap {
             case FILE -> list.addAll(Arrays.asList(
                     ActionType.READ_FILE,
                     ActionType.WRITE_FILE,
-                    ActionType.APPEND_FILE,
                     ActionType.FILE_EXISTS,
                     ActionType.DELETE_FILE,
                     ActionType.LIST_DIR,
                     ActionType.COPY_FILE,
                     ActionType.READ_FILE_LINE,
                     ActionType.READ_ALL_FILE_LINES,
-                    ActionType.DELETE_FILE_LINE,
                     ActionType.WRITE_FILE_LINE,
-                    ActionType.REPLACE_FILE_LINE,
-                    ActionType.CREATE_FILE,
-                    ActionType.MKDIRS
+                    ActionType.CREATE_FILE
             ));
         }
         return list;

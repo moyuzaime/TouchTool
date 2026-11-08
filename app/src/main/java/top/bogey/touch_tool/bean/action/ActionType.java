@@ -228,18 +228,14 @@ public enum ActionType {
     // 文件
     READ_FILE,
     WRITE_FILE,
-    APPEND_FILE,
     FILE_EXISTS,
     DELETE_FILE,
     LIST_DIR,
     COPY_FILE,
     READ_FILE_LINE,
     READ_ALL_FILE_LINES,
-    DELETE_FILE_LINE,
     WRITE_FILE_LINE,
-    REPLACE_FILE_LINE,
     CREATE_FILE,
-    MKDIRS,
 
     // 变量
     VAR_SET,
