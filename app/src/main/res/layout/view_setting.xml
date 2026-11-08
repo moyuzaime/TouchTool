@@ -224,6 +224,17 @@
                     app:icon="@drawable/icon_bluetooth"
                     app:title="@string/permission_setting_bluetooth" />
 
+                <top.bogey.touch_tool.ui.setting.widget.SettingWidgetNormal
+                    android:id="@+id/fileAccessWidget"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="?attr/defaultOffset"
+                    android:layout_marginTop="?attr/defaultOffset"
+                    app:rowCorner="middle"
+                    app:description="@string/permission_setting_file_access_desc"
+                    app:icon="@drawable/icon_folder"
+                    app:title="@string/permission_setting_file_access" />
+
                 <top.bogey.touch_tool.ui.setting.widget.SettingWidgetSwitch
                     android:id="@+id/locationSwitch"
                     android:layout_width="match_parent"

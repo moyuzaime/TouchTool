@@ -475,4 +475,6 @@
     <string name="app_setting_file_access">文件访问权限</string>
     <string name="app_setting_file_access_on">已授权</string>
     <string name="app_setting_file_access_off">未授权</string>
+    <string name="permission_setting_file_access">文件访问权限</string>
+    <string name="permission_setting_file_access_desc">读写手机存储中的任意文件需要该权限</string>
 </resources>
