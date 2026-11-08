@@ -236,6 +236,8 @@ public enum ActionType {
     READ_FILE_LINE,
     READ_ALL_FILE_LINES,
     DELETE_FILE_LINE,
+    WRITE_FILE_LINE,
+    REPLACE_FILE_LINE,
     CREATE_FILE,
     MKDIRS,
 

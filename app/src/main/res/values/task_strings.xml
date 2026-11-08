@@ -863,4 +863,8 @@
     <string name="file_action_line_no">行号</string>
     <string name="file_action_contains">包含内容</string>
     <string name="file_action_texts">文本列表</string>
+    <string name="file_action_write_line">写入指定行</string>
+    <string name="file_action_write_line_desc">向指定行号写入内容，行号超出末尾时追加到末尾</string>
+    <string name="file_action_replace_line">替换指定行</string>
+    <string name="file_action_replace_line_desc">替换已存在的指定行，行号越界不处理</string>
 </resources>

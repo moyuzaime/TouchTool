@@ -256,6 +256,8 @@ public class ActionMap {
                     ActionType.READ_FILE_LINE,
                     ActionType.READ_ALL_FILE_LINES,
                     ActionType.DELETE_FILE_LINE,
+                    ActionType.WRITE_FILE_LINE,
+                    ActionType.REPLACE_FILE_LINE,
                     ActionType.CREATE_FILE,
                     ActionType.MKDIRS
             ));
