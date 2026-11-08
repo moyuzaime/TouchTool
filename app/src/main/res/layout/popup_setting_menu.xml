@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="272dp"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:minWidth="188dp"
     app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
     app:cardCornerRadius="16dp"
     app:cardElevation="6dp">
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingVertical="?attr/defaultPadding">
@@ -73,6 +74,20 @@
             <TextView
                 style="@style/Theme.TouchTool.PopupMenuText"
                 android:text="@string/setting_give_restricted_settings" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/rowLog"
+            style="@style/Theme.TouchTool.PopupMenuRow">
+
+            <ImageView
+                style="@style/Theme.TouchTool.PopupMenuIcon"
+                android:importantForAccessibility="no"
+                android:src="@drawable/icon_note_stack" />
+
+            <TextView
+                style="@style/Theme.TouchTool.PopupMenuText"
+                android:text="@string/app_setting_log_title" />
         </LinearLayout>
 
     </LinearLayout>

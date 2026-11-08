@@ -42,7 +42,7 @@
 
     <!-- 设置页右上角菜单：卡片行样式，保证图标与文字对齐、行高一致 -->
     <style name="Theme.TouchTool.PopupMenuRow">
-        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:orientation">horizontal</item>
         <item name="android:gravity">center_vertical</item>
@@ -59,9 +59,9 @@
     </style>
 
     <style name="Theme.TouchTool.PopupMenuText">
-        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_weight">1</item>
+        <item name="android:maxWidth">200dp</item>
         <item name="android:textAppearance">@style/TextAppearance.Material3.BodyLarge</item>
         <item name="android:textColor">?attr/colorOnSurface</item>
     </style>

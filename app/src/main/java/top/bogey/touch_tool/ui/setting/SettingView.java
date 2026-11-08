@@ -103,6 +103,10 @@ public class SettingView extends Fragment {
             dismissPopup(menu.getRoot());
             showRestrictedSettingsCmd();
         });
+        menu.rowLog.setOnClickListener(v -> {
+            dismissPopup(menu.getRoot());
+            showLogDialog();
+        });
 
         PopupWindow popup = new PopupWindow(menu.getRoot(),
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
