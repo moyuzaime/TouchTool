@@ -107,6 +107,10 @@ public class SettingView extends Fragment {
             dismissPopup(menu.getRoot());
             showLogDialog();
         });
+        menu.rowRestartService.setOnClickListener(v -> {
+            dismissPopup(menu.getRoot());
+            restartAccessibilityService();
+        });
 
         PopupWindow popup = new PopupWindow(menu.getRoot(),
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
@@ -145,6 +149,24 @@ public class SettingView extends Fragment {
         }
     }
 
+    // 重启无障碍服务：需要 WRITE_SECURE_SETTINGS（adb 或 root 授予），否则引导去系统设置
+    private void restartAccessibilityService() {
+        if (AppUtil.restartAccessibilityService(requireContext())) {
+            Toast.makeText(requireContext(), R.string.app_setting_reload_button_running, Toast.LENGTH_SHORT).show();
+            binding.enableHero.postDelayed(this::syncServiceState, 1500);
+        } else {
+            Toast.makeText(requireContext(), R.string.bind_service_failed_tips, Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS));
+        }
+    }
+
+    // 服务状态回填到页面
+    private void syncServiceState() {
+        if (binding == null) return;
+        MainAccessibilityService serv = MainApplication.getInstance().getService();
+        binding.enableHero.setChecked(serv != null && serv.isEnabled());
+        refreshHeroCorner((MainActivity) requireActivity());
+    }
     // 部分机型禁止侧载应用开启无障碍，需要放开「受限设置」，用 appops 指令授予
     private void showRestrictedSettingsCmd() {
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext())

@@ -237,6 +237,12 @@
 - 同时清理这些卡片对应的 17 条无用文案。
 - 全量扫描（1011 条字符串定义，含 Manifest 引用）后再删除 51 条无引用文案；保留 13 条「未实现功能」文案备用（自动重启无障碍、开机自启、重启服务、缓存清理等）。
 
+### 25. 设置菜单新增「重启无障碍服务」
+
+- 位置：`ui/setting/SettingView.java`、`utils/AppUtil.java`、`res/layout/popup_setting_menu.xml`、`AndroidManifest.xml`
+- 行为：菜单点击后通过 `WRITE_SECURE_SETTINGS` 把本服务从已启用列表摘掉再写回，触发系统重新拉起；成功后提示「重启中」并回填启用状态，失败则提示并跳转系统无障碍设置。
+- 需 adb 或 root 授予 `WRITE_SECURE_SETTINGS`（`appops` 或 `pm grant`），否则走手动引导。
+
 ---
 
 ## 三、数据与兼容

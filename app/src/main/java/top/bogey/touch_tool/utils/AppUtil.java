@@ -778,4 +778,31 @@ public class AppUtil {
         }
         return windows;
     }
+    // 通过安全设置重绑无障碍服务：先摘掉自己再写回，可让系统重新拉起服务
+    public static boolean canWriteSecureSettings(Context context) {
+        return context.checkSelfPermission(android.Manifest.permission.WRITE_SECURE_SETTINGS) == android.content.pm.PackageManager.PERMISSION_GRANTED;
+    }
+
+    public static boolean restartAccessibilityService(Context context) {
+        if (!canWriteSecureSettings(context)) return false;
+        try {
+            String key = android.provider.Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES;
+            String self = context.getPackageName() + "/com.google.android.accessibility.selecttospeak.SelectToSpeakService";
+            String current = android.provider.Settings.Secure.getString(context.getContentResolver(), key);
+            if (current == null) current = "";
+            StringBuilder without = new StringBuilder();
+            for (String item : current.split(":")) {
+                if (item.isEmpty() || item.equals(self)) continue;
+                if (without.length() > 0) without.append(':');
+                without.append(item);
+            }
+            android.provider.Settings.Secure.putString(context.getContentResolver(), key, without.toString());
+            android.provider.Settings.Secure.putString(context.getContentResolver(), key,
+                    without.length() == 0 ? self : without + ":" + self);
+            return true;
+        } catch (Throwable e) {
+            top.bogey.touch_tool.utils.AppLog.e("无障碍服务", "重启失败", e);
+            return false;
+        }
+    }
 }
