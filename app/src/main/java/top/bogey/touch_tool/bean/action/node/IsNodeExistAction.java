@@ -11,6 +11,7 @@ import top.bogey.touch_tool.bean.other.NodeInfo;
 import top.bogey.touch_tool.bean.pin.Pin;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinBase;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinBoolean;
+import top.bogey.touch_tool.bean.pin.pin_objects.PinNode;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinObject;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_scale_able.PinArea;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinNodePathString;
@@ -34,21 +35,24 @@ public class IsNodeExistAction extends CalculateAction {
     private final transient Pin areaPin = new NotAllPathShowablePin(new PinArea(), R.string.pin_area);
     private final transient Pin pathTextPin = new PathTextShowablePin(new PinNodePathTextString(), R.string.find_node_action_regex_path);
     private final transient Pin resultPin = new Pin(new PinBoolean(), R.string.pin_boolean_result, true);
+    // 命中的控件，供下游动作直接使用
+    private final transient Pin nodePin = new Pin(new PinNode(), R.string.pin_node, true);
 
     public IsNodeExistAction() {
         super(ActionType.IS_NODE_EXIST);
-        addPins(typePin, pathPin, fullPathPin, textPin, idPin, classPin, descPin, areaPin, pathTextPin, resultPin);
+        addPins(typePin, pathPin, fullPathPin, textPin, idPin, classPin, descPin, areaPin, pathTextPin, resultPin, nodePin);
     }
 
     public IsNodeExistAction(JsonObject jsonObject) {
         super(jsonObject);
-        reAddPins(typePin, pathPin, fullPathPin, textPin, idPin, classPin, descPin, areaPin, pathTextPin, resultPin);
+        reAddPins(typePin, pathPin, fullPathPin, textPin, idPin, classPin, descPin, areaPin, pathTextPin, resultPin, nodePin);
     }
 
     @Override
     public void calculate(TaskRunnable runnable, Pin pin) {
         PinSingleSelect type = typePin.getValue();
         boolean result = false;
+        NodeInfo foundNode = null;
 
         switch (type.getIndex()) {
             case 0 -> {
@@ -58,6 +62,7 @@ public class IsNodeExistAction extends CalculateAction {
                 NodeInfo nodeInfo = path.findNode(NodeInfo.getWindows(), fullPath.getValue());
                 if (nodeInfo == null) break;
                 result = true;
+                foundNode = nodeInfo;
                 MarkTargetFloatView.showTargetArea(nodeInfo.area);
             }
             case 1, 2 -> {
@@ -77,6 +82,7 @@ public class IsNodeExistAction extends CalculateAction {
                     children = nodeInfo.findChildrenById(value, area.getValue());
                 }
                 if (children == null || children.isEmpty()) break;
+                foundNode = children.get(0);
                 for (NodeInfo child : children) {
                     MarkTargetFloatView.showTargetArea(child.area);
                 }
@@ -87,6 +93,7 @@ public class IsNodeExistAction extends CalculateAction {
                 PinNodePathTextString path = new PinNodePathTextString(pathString.toString());
                 List<NodeInfo> findNodes = path.findNodes(NodeInfo.getWindows());
                 if (findNodes == null || findNodes.isEmpty()) break;
+                foundNode = findNodes.get(0);
                 for (NodeInfo findNode : findNodes) {
                     MarkTargetFloatView.showTargetArea(findNode.area);
                 }
@@ -99,6 +106,7 @@ public class IsNodeExistAction extends CalculateAction {
                 if (nodeInfo == null) break;
                 List<NodeInfo> children = nodeInfo.findChildrenByClass(className.toString(), area.getValue());
                 if (children == null || children.isEmpty()) break;
+                foundNode = children.get(0);
                 for (NodeInfo child : children) {
                     MarkTargetFloatView.showTargetArea(child.area);
                 }
@@ -111,6 +119,7 @@ public class IsNodeExistAction extends CalculateAction {
                 if (nodeInfo == null) break;
                 List<NodeInfo> children = nodeInfo.findChildrenByDesc(desc.toString(), area.getValue());
                 if (children == null || children.isEmpty()) break;
+                foundNode = children.get(0);
                 for (NodeInfo child : children) {
                     MarkTargetFloatView.showTargetArea(child.area);
                 }
@@ -119,6 +128,7 @@ public class IsNodeExistAction extends CalculateAction {
         }
 
         resultPin.getValue(PinBoolean.class).setValue(result);
+        nodePin.getValue(PinNode.class).setNodeInfo(result ? foundNode : null);
     }
 
     private int getTypeValue() {
