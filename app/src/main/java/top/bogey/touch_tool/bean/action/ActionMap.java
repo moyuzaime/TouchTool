@@ -48,14 +48,6 @@ public class ActionMap {
                     ActionType.STICK,
                     ActionType.CLOSE_STICK,
 
-                    ActionType.READ_FILE,
-                    ActionType.WRITE_FILE,
-                    ActionType.APPEND_FILE,
-                    ActionType.FILE_EXISTS,
-                    ActionType.DELETE_FILE,
-                    ActionType.LIST_DIR,
-                    ActionType.COPY_FILE,
-
                     ActionType.INPUT_CONFIG,
                     ActionType.STOP_TASK,
                     ActionType.SWITCH_TASK,
@@ -252,12 +244,22 @@ public class ActionMap {
                     ActionType.MAP_KEYS,
                     ActionType.MAP_VALUES
             ));
+
+            case FILE -> list.addAll(Arrays.asList(
+                    ActionType.READ_FILE,
+                    ActionType.WRITE_FILE,
+                    ActionType.APPEND_FILE,
+                    ActionType.FILE_EXISTS,
+                    ActionType.DELETE_FILE,
+                    ActionType.LIST_DIR,
+                    ActionType.COPY_FILE
+            ));
         }
         return list;
     }
 
     public enum ActionGroupType {
-        START, LOGIC, NORMAL, CLICK, APP, SYSTEM, NUMBER, STRING, BOOLEAN, NODE, IMAGE, AREA, POINT, LIST, MAP;
+        START, LOGIC, NORMAL, CLICK, APP, SYSTEM, NUMBER, STRING, BOOLEAN, NODE, IMAGE, AREA, POINT, LIST, MAP, FILE;
 
         public String getName() {
             String[] strings = MainApplication.getInstance().getResources().getStringArray(R.array.action_group);
