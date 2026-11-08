@@ -267,6 +267,13 @@
 - 行为：标题栏新增收起按钮，点击后内容隐藏、窗口缩成一个圆形按钮；点圆点恢复原尺寸。选择控件时先收起，避免挡住目标。
 - 布局改为 FrameLayout 包裹内容与小圆点，收起状态用 `FloatWindow.updateLayoutParam` 重设窗口尺寸。
 
+### 30. 悬浮窗相关改动全部恢复官方
+
+- `utils/float_window_manager/` 整个包、`ui/blueprint/picker/` 整个包、`float_picker_node_preview.xml` 回到 origin/master。
+- 移除各窗口的 `setLevel` 调用；应用信息与日志恢复 `new Xxx(context).show()` 直接创建。
+- 补回官方代码引用但此前被清理的 `picker_image_offset` 文案。
+- 后果：选择期间预览卡由框架的 `hideAll/showLast` 管理，本工程环境下其它悬浮窗关闭时仍可能把它重新显示；不再做额外压制。
+
 ---
 
 ## 三、数据与兼容

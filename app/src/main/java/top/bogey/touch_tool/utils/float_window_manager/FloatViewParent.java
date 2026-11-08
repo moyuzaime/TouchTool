@@ -81,8 +81,6 @@ public class FloatViewParent extends FrameLayout {
                 config.dragging = false;
 
                 toDockSide();
-                // 拖动结束保存位置，下次打开回到这里
-                FloatWindow.saveLocation(config.tag, helper.getRelativePoint());
             }
         }
 

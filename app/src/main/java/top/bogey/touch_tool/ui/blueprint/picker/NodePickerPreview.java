@@ -8,7 +8,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.view.LayoutInflater;
-import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import androidx.annotation.NonNull;
@@ -48,24 +47,6 @@ public class NodePickerPreview extends BasePicker<String> {
 
         binding.pathText.setText(path);
 
-        // 收起成小圆点：选择控件时不挡视线，点圆点可展开
-        final int[] expandSize = new int[]{ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT};
-        binding.collapseButton.setOnClickListener(v -> {
-            ViewGroup.LayoutParams params = binding.getRoot().getLayoutParams();
-            expandSize[0] = params.width;
-            expandSize[1] = params.height;
-            binding.contentBox.setVisibility(GONE);
-            binding.expandButton.setVisibility(VISIBLE);
-            binding.getRoot().setLayoutParams(new ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-            FloatWindow.updateLayoutParam(tag);
-        });
-        binding.expandButton.setOnClickListener(v -> {
-            binding.contentBox.setVisibility(VISIBLE);
-            binding.expandButton.setVisibility(GONE);
-            binding.getRoot().setLayoutParams(new ViewGroup.LayoutParams(expandSize[0], expandSize[1]));
-            FloatWindow.updateLayoutParam(tag);
-        });
         binding.backButton.setOnClickListener(v -> dismiss());
 
         binding.saveButton.setOnClickListener(v -> {
@@ -73,26 +54,13 @@ public class NodePickerPreview extends BasePicker<String> {
             dismiss();
         });
 
-        binding.pickerButton.setOnClickListener(v -> {
-            new NodePicker(context, result -> {
-                nodePath.setValue(result);
-                binding.pathText.setText(nodePath.getSimpleValue(10, true));
-            }, nodePath.getValue()).show();
-            // 选择器打开期间持续压制预览卡：其它窗口关闭时的 showLast 会把它重新显示出来
-            android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    if (FloatWindow.getHelper(NodePicker.class.getName()) == null) {
-                        FloatWindow.show(tag);
-                        return;
-                    }
-                    FloatWindow.hide(tag);
-                    handler.postDelayed(this, 150);
-                }
-            }, 100);
-        });
+        binding.pickerButton.setOnClickListener(v -> new NodePicker(context, result -> {
+            nodePath.setValue(result);
+            binding.pathText.setText(nodePath.getSimpleValue(10, true));
+        }, nodePath.getValue()).show());
+
         binding.copyButton.setOnClickListener(v -> AppUtil.copyToClipboard(getContext(), nodePath.getValue()));
+
         binding.matchButton.setOnClickListener(v -> {
             FloatWindow.hide(tag);
             postDelayed(() -> {

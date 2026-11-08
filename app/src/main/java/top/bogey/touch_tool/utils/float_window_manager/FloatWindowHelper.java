@@ -49,35 +49,6 @@ public class FloatWindowHelper {
         this.config = config;
     }
 
-    // 记录 addView 是否失败：失败时窗口其实没加上，残留的 tag 会让后续 show 直接返回
-    public boolean addFailed = false;
-
-    // 重新加入窗口以置顶：无障碍悬浮窗的叠放顺序等于添加顺序
-    void bringToFront() {
-        if (viewParent == null || addFailed) return;
-        try {
-            manager.removeView(viewParent);
-            manager.addView(viewParent, params);
-        } catch (Throwable e) {
-            top.bogey.touch_tool.utils.AppLog.e("悬浮窗", "置顶失败 tag=" + config.tag, e);
-        }
-    }
-    public boolean isShowing() {
-        return viewParent != null && !addFailed;
-    }
-
-    // 清理失效记录时调用，任何异常都不应影响后续重建
-    public void dismissQuietly() {
-        try {
-            if (viewParent != null && viewParent.getWindowToken() != null) {
-                WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-                manager.removeView(viewParent);
-            }
-        } catch (Throwable ignored) {
-        }
-        viewParent = null;
-    }
-
     void createFloatWindow() {
         manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         params = new WindowManager.LayoutParams();
@@ -111,14 +82,10 @@ public class FloatWindowHelper {
 
         try {
             manager.addView(viewParent, params);
-            top.bogey.touch_tool.utils.AppLog.d("悬浮窗", "addView 成功 type=" + params.type);
         } catch (android.view.WindowManager.BadTokenException e) {
-            addFailed = true;
-            top.bogey.touch_tool.utils.AppLog.e("悬浮窗", e.toString(), e);
             new android.os.Handler(Looper.getMainLooper()).postDelayed(() -> {
                 try {
                     manager.addView(viewParent, params);
-                    addFailed = false;
                 } catch (Exception ignored) {
                 }
             }, 200);
@@ -274,10 +241,6 @@ public class FloatWindowHelper {
     }
 
     private void removeViewFromWindow(View view) {
-        // 先把内容视图摘出来，窗口容器丢掉后布局视图还能被复用
-        if (view instanceof android.view.ViewGroup group && config.layoutView != null && config.layoutView.getParent() == group) {
-            group.removeView(config.layoutView);
-        }
         try {
             manager.removeView(view);
         } catch (Exception ignored) {

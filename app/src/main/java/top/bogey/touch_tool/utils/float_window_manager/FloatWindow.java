@@ -31,11 +31,9 @@ public class FloatWindow {
         tag = checkTag(tag);
         if (tags.contains(tag)) {
             FloatWindowHelper helper = getHelper(tag);
-            // 先摘掉记录再销毁窗口：销毁回调里的 showLast 会把最后一个隐藏窗口重新显示，
-            // 记录还在的话会把正在销毁的自己又显示回来（表现为窗口闪一下就回来）
+            if (helper != null) helper.dismissFloatWindow();
             tags.remove(tag);
             views.remove(tag);
-            if (helper != null) helper.dismissFloatWindow();
         }
     }
 
@@ -50,8 +48,6 @@ public class FloatWindow {
 
     public static void hide(String tag) {
         tag = checkTag(tag);
-        // 诊断：确认要隐藏的 tag 是否在注册表里
-        top.bogey.touch_tool.utils.AppLog.d("悬浮窗", "hide 请求 tag=" + tag + " 注册表=" + tags);
         if (tags.contains(tag)) {
             FloatWindowHelper helper = getHelper(tag);
             if (helper != null) {
@@ -178,11 +174,6 @@ public class FloatWindow {
             return this;
         }
 
-        public Builder setLevel(int level) {
-            config.level = level;
-            return this;
-        }
-
         public Builder setTag(String tag) {
             config.tag = tag;
             return this;
@@ -265,83 +256,15 @@ public class FloatWindow {
             }
 
             if (tags.contains(config.tag)) {
-                // 有记录不代表窗口还在：addView 失败、服务重启都会留下失效记录，
-                // 以前直接 return，表现就是点按钮完全没反应
-                FloatWindowHelper exist = views.get(config.tag);
-                if (exist != null && exist.isShowing()) {
-                    // 窗口已经在屏幕上，给个提示，避免用户以为点击没生效
-                    try {
-                        android.widget.Toast.makeText(context, top.bogey.touch_tool.R.string.float_window_already_shown, android.widget.Toast.LENGTH_SHORT).show();
-                    } catch (Throwable ignored) {
-                    }
-                    return;
-                }
-                if (exist != null) exist.dismissQuietly();
-                tags.remove(config.tag);
-                views.remove(config.tag);
-            }
-
-            if (context == null) {
-                top.bogey.touch_tool.utils.AppLog.e("悬浮窗", "创建失败：context 为空 tag=" + config.tag);
                 return;
             }
 
-            // 未显式指定位置时，用上次拖动保存的位置
-            if (config.location == null) {
-                android.graphics.Point saved = loadLocation(config.tag);
-                if (saved != null) config.location = saved;
-            }
+            if (context == null) return;
 
             FloatWindowHelper helper = new FloatWindowHelper(context, config);
             helper.createFloatWindow();
             tags.add(config.tag);
             views.put(config.tag, helper);
-
-            // 新窗口默认在最上层；把层级更高的窗口重新提到上面，避免被低层级窗口盖住
-            for (FloatWindowHelper other : new java.util.ArrayList<>(views.values())) {
-                if (other != helper && other.config.level > config.level) other.bringToFront();
-            }
-            if (config.tag != null && config.tag.contains("Preview")) {
-            }
-            boolean attached = helper.isShowing();
-            top.bogey.touch_tool.utils.AppLog.d("悬浮窗", "show tag=" + config.tag + " attached=" + attached);
-            if (!attached) {
-                // 窗口没加上通常是无障碍服务已被系统停用，提示用户去重开，避免点了没反应
-                top.bogey.touch_tool.utils.AppLog.e("悬浮窗", "窗口未附加 tag=" + config.tag);
-                android.widget.Toast.makeText(top.bogey.touch_tool.MainApplication.getInstance(), top.bogey.touch_tool.R.string.app_setting_enable_error, android.widget.Toast.LENGTH_SHORT).show();
-            }
         }
     }
-    // 悬浮窗位置按 tag 持久化，进程重启后能回到用户拖动的位置
-    static android.graphics.Point loadLocation(String tag) {
-        String saved = top.bogey.touch_tool.bean.save.setting.SettingSaver.FLOAT_WINDOW_LOCATION.get();
-        if (saved == null || saved.isEmpty()) return null;
-        for (String item : saved.split(";")) {
-            String[] parts = item.split("\\|");
-            if (parts.length != 3) continue;
-            if (!tag.equals(parts[0])) continue;
-            try {
-                return new android.graphics.Point(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
-            } catch (NumberFormatException ignored) {
-                return null;
-            }
-        }
-        return null;
-    }
-
-    static void saveLocation(String tag, android.graphics.Point point) {
-        if (tag == null || point == null) return;
-        String saved = top.bogey.touch_tool.bean.save.setting.SettingSaver.FLOAT_WINDOW_LOCATION.get();
-        StringBuilder builder = new StringBuilder();
-        if (saved != null && !saved.isEmpty()) {
-            for (String item : saved.split(";")) {
-                if (item.isEmpty()) continue;
-                if (item.startsWith(tag + "|")) continue;
-                builder.append(item).append(';');
-            }
-        }
-        builder.append(tag).append('|').append(point.x).append('|').append(point.y);
-        top.bogey.touch_tool.bean.save.setting.SettingSaver.FLOAT_WINDOW_LOCATION.set(builder.toString());
-    }
-
 }

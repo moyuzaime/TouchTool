@@ -84,8 +84,7 @@ public class SinglePlayView extends PlayFloatItemView implements FloatInterface 
         ManualStartAction action = (ManualStartAction) startAction;
         int statusBarHeight = DisplayUtil.getStatusBarHeight(null, null);
         FloatWindow.with(MainApplication.getInstance().getService())
-                .setTag(tag)
-                .setLevel(30)
+                .setTag(tag)
                 .setLayout(this)
                 .setAnchor(action.getAnchor())
                 .setLocation(action.getGravity(), action.getShowPos().x, action.getShowPos().y - statusBarHeight)

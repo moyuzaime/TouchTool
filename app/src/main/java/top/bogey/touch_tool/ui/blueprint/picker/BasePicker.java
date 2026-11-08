@@ -36,8 +36,7 @@ public class BasePicker<T> extends FrameLayout implements FloatInterface {
     public void show() {
         FloatWindow.with(MainApplication.getInstance().getService())
                 .setLayout(this)
-                .setTag(tag)
-                .setLevel(100)
+                .setTag(tag)
                 .setDragAble(dragAble)
                 .setExistEditText(editable)
                 .setHideByScreenshot(SettingSaver.MANUAL_PLAY_VIEW_HIDE_WHEN_SCREENSHOT.get())

@@ -331,8 +331,7 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
         Size size = DisplayUtil.getScreenSize(getContext());
         FloatWindow.with(MainApplication.getInstance().getService())
                 .setLayout(this)
-                .setTag(tag)
-                .setLevel(60)
+                .setTag(tag)
                 .setSpecial(true)
                 .setLocation(EAnchor.BOTTOM_CENTER, 0, -size.getHeight() / 4)
                 .setExistEditText(true)

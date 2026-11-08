@@ -312,7 +312,6 @@ public class PlayFloatView extends FrameLayout implements FloatInterface, ITaskL
         Point pos = SettingSaver.MANUAL_PLAY_VIEW_POS.get();
         FloatWindow.with(MainApplication.getInstance().getService())
                 .setTag(PlayFloatView.class.getName())
-                    .setLevel(30)
                 .setLayout(this)
                 .setDockSide(FloatDockSide.HORIZONTAL)
                 .setAnchor(EAnchor.TOP_LEFT)

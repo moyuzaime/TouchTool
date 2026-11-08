@@ -5,135 +5,116 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content">
 
-    <FrameLayout
+    <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="?attr/defaultPadding">
 
         <LinearLayout
-            android:id="@+id/contentBox"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="?attr/defaultPadding">
+            android:gravity="center_vertical">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/title"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical">
+                android:layout_weight="1"
+                android:text="@string/picker_node_title"
+                android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
 
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/title"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/picker_node_title"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/collapseButton"
-                    style="?attr/iconButtonFilled"
-                    app:icon="@drawable/icon_zoom_in_map" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/switchButton"
-                    style="?attr/iconButtonFilled"
-                    app:icon="@drawable/icon_swap_horiz" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <com.google.android.material.textview.MaterialTextView
-                        android:id="@+id/pathText"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:breakStrategy="simple"
-                        android:maxWidth="240dp"
-                        android:textAppearance="@style/TextAppearance.Material3.LabelSmall" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/copyButton"
-                        style="?attr/iconButtonFilled"
-                        android:layout_gravity="end"
-                        app:icon="@drawable/icon_content_copy" />
-
-                </FrameLayout>
-
-                <FrameLayout
-                    android:id="@+id/testBox"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone">
-
-                    <com.google.android.material.imageview.ShapeableImageView
-                        android:id="@+id/matchedImage"
-                        android:layout_width="match_parent"
-                        android:layout_height="96dp"
-                        android:layout_gravity="center"
-                        android:scaleType="fitCenter"
-                        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium" />
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="end">
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/matchButton"
-                            style="?attr/iconButtonFilled"
-                            app:icon="@drawable/icon_image" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/touchButton"
-                            style="?attr/iconButtonFilled"
-                            app:icon="@drawable/icon_touch_app" />
-
-                    </LinearLayout>
-
-                </FrameLayout>
-
-            </LinearLayout>
-
-            <com.google.android.material.button.MaterialButtonGroup
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:spacing="?attr/defaultOffset">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/backButton"
-                    style="?attr/iconButtonFilled"
-                    app:icon="@drawable/icon_arrow_back" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/saveButton"
-                    style="?attr/iconButtonFilled"
-                    app:icon="@drawable/icon_save" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/pickerButton"
-                    style="?attr/iconButtonFilled"
-                    app:icon="@drawable/icon_widgets" />
-
-            </com.google.android.material.button.MaterialButtonGroup>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/switchButton"
+                style="?attr/iconButtonFilled"
+                app:icon="@drawable/icon_swap_horiz" />
 
         </LinearLayout>
 
-        <!-- 收起后显示的小圆点：点击展开 -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/expandButton"
-            style="?attr/iconButtonFilled"
-            android:layout_gravity="center"
-            android:visibility="gone"
-            app:icon="@drawable/icon_widgets" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-    </FrameLayout>
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/pathText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:breakStrategy="simple"
+                    android:maxWidth="240dp"
+                    android:textAppearance="@style/TextAppearance.Material3.LabelSmall" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/copyButton"
+                    style="?attr/iconButtonFilled"
+                    android:layout_gravity="end"
+                    app:icon="@drawable/icon_content_copy" />
+
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/testBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone">
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/matchedImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="96dp"
+                    android:layout_gravity="center"
+                    android:scaleType="fitCenter"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/matchButton"
+                        style="?attr/iconButtonFilled"
+                        app:icon="@drawable/icon_image" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/touchButton"
+                        style="?attr/iconButtonFilled"
+                        app:icon="@drawable/icon_touch_app" />
+
+                </LinearLayout>
+
+            </FrameLayout>
+
+        </LinearLayout>
+
+
+        <com.google.android.material.button.MaterialButtonGroup
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:spacing="?attr/defaultOffset">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/backButton"
+                style="?attr/iconButtonFilled"
+                app:icon="@drawable/icon_arrow_back" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/saveButton"
+                style="?attr/iconButtonFilled"
+                app:icon="@drawable/icon_save" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/pickerButton"
+                style="?attr/iconButtonFilled"
+                app:icon="@drawable/icon_widgets" />
+
+        </com.google.android.material.button.MaterialButtonGroup>
+
+    </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

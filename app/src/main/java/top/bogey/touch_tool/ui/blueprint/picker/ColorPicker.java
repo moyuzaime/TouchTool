@@ -111,7 +111,7 @@ public class ColorPicker extends FullScreenPicker<PinColor.ColorInfo> {
     }
 
     private void matchColor(int x, int y) {
-        Bitmap screenShot = screenInfo == null ? null : screenInfo.getScreenShot();
+        Bitmap screenShot = screenInfo.getScreenShot();
         if (screenShot != null) {
             int pixel = screenShot.getPixel(x, y);
             matchColor(pixel, 0, Integer.MAX_VALUE);
@@ -119,7 +119,7 @@ public class ColorPicker extends FullScreenPicker<PinColor.ColorInfo> {
     }
 
     private void matchColor(int color, int minArea, int maxArea) {
-        if (screenInfo == null || screenInfo.getScreenShot() == null) return;
+        if (screenInfo.getScreenShot() == null) return;
 
         pickList = DisplayUtil.matchColor(screenInfo.getScreenShot(), color, new Rect(), 80);
 
@@ -172,7 +172,7 @@ public class ColorPicker extends FullScreenPicker<PinColor.ColorInfo> {
             binding.colorBox.setScaleY(1f);
             binding.colorBox.setY(currentY - px);
         }
-        Bitmap screenShot = screenInfo == null ? null : screenInfo.getScreenShot();
+        Bitmap screenShot = screenInfo.getScreenShot();
         if (screenShot != null && screenShot.getWidth() > currentX && screenShot.getHeight() > currentY) {
             int pixel = screenShot.getPixel((int) currentX, (int) currentY);
             binding.colorPreview.setBackgroundColor(pixel);
@@ -196,7 +196,7 @@ public class ColorPicker extends FullScreenPicker<PinColor.ColorInfo> {
             canvas.scale(scale, scale);
         }
 
-        Bitmap screenShot = screenInfo == null ? null : screenInfo.getScreenShot();
+        Bitmap screenShot = screenInfo.getScreenShot();
         if (screenShot != null) canvas.drawBitmap(screenShot, 0, 0, bitmapPaint);
 
         if (!picking) {
