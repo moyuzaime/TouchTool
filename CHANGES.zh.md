@@ -231,7 +231,9 @@
 
 - **布尔四张 → 条件组合**：`BooleanAndAction` 改造为可切换「与/或」并支持「短路」，隐藏 任意条件达成/短路任意/短路所有。
 - **数值比较三张 → 数值比较**：`NumberResultAction` 增加比较方式（大于/小于/等于/大于等于/小于等于/不等于），隐藏 数值比较 < 与 数值比较 =。
-- 旧类型保留类与映射，仅从添加列表移除；新任务使用合并后的卡片。
+- 被合并的旧卡片类、枚举与映射已一并删除（无老任务包袱）。
+- 同时删除「获取区域内控件」「关闭所有贴图」两个动作类及其枚举与映射。
+- 删除清单：NumberLessAction、NumberEqualAction、BooleanOrAction、BooleanOrShortCircuitAction、BooleanAndShortCircuitAction、GetNodesInAreaAction、StickCloseAllAction，以及 ActionType 中对应枚举。
 
 ---
 

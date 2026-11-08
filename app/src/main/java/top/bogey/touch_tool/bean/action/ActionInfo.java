@@ -25,10 +25,7 @@ import top.bogey.touch_tool.bean.action.area.GetAreaIntersectionAction;
 import top.bogey.touch_tool.bean.action.area.GetAreaRandomAction;
 import top.bogey.touch_tool.bean.action.area.PickAreaAction;
 import top.bogey.touch_tool.bean.action.bool.BooleanAndAction;
-import top.bogey.touch_tool.bean.action.bool.BooleanAndShortCircuitAction;
 import top.bogey.touch_tool.bean.action.bool.BooleanNotAction;
-import top.bogey.touch_tool.bean.action.bool.BooleanOrAction;
-import top.bogey.touch_tool.bean.action.bool.BooleanOrShortCircuitAction;
 import top.bogey.touch_tool.bean.action.image.ColorEqualAction;
 import top.bogey.touch_tool.bean.action.image.CreateQRCodeAction;
 import top.bogey.touch_tool.bean.action.image.CropImageAction;
@@ -92,7 +89,6 @@ import top.bogey.touch_tool.bean.action.node.FindNodeAction;
 import top.bogey.touch_tool.bean.action.node.GetNodeChildrenAction;
 import top.bogey.touch_tool.bean.action.node.GetNodeInfoAction;
 import top.bogey.touch_tool.bean.action.node.GetNodeParentAction;
-import top.bogey.touch_tool.bean.action.node.GetNodesInAreaAction;
 import top.bogey.touch_tool.bean.action.node.GetWindowsAction;
 import top.bogey.touch_tool.bean.action.node.IsNodeExistAction;
 import top.bogey.touch_tool.bean.action.node.NodeTouchAction;
@@ -103,16 +99,13 @@ import top.bogey.touch_tool.bean.action.normal.LoggerAction;
 import top.bogey.touch_tool.bean.action.area.MarkAreaAction;
 import top.bogey.touch_tool.bean.action.normal.ShowTextAction;
 import top.bogey.touch_tool.bean.action.normal.StickCloseAction;
-import top.bogey.touch_tool.bean.action.normal.StickCloseAllAction;
 import top.bogey.touch_tool.bean.action.normal.StickScreenAction;
 import top.bogey.touch_tool.bean.action.number.CheckNumberInValueArea;
 import top.bogey.touch_tool.bean.action.number.MathExpressionAction;
 import top.bogey.touch_tool.bean.action.number.NumberAbsAction;
 import top.bogey.touch_tool.bean.action.number.NumberAddAction;
 import top.bogey.touch_tool.bean.action.number.NumberDivAction;
-import top.bogey.touch_tool.bean.action.number.NumberEqualAction;
 import top.bogey.touch_tool.bean.action.number.NumberGreaterAction;
-import top.bogey.touch_tool.bean.action.number.NumberLessAction;
 import top.bogey.touch_tool.bean.action.number.NumberModAction;
 import top.bogey.touch_tool.bean.action.number.NumberMulAction;
 import top.bogey.touch_tool.bean.action.number.NumberRandomAction;
@@ -244,7 +237,6 @@ public class ActionInfo {
     private final static ActionInfo LOG_INFO = new ActionInfo(ActionType.LOG, LoggerAction.class, R.drawable.icon_draw, R.string.log_action, R.string.log_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo STICK_INFO = new ActionInfo(ActionType.STICK, StickScreenAction.class, R.drawable.icon_note_stack, R.string.stick_screen_action, R.string.stick_screen_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo CLOSE_STICK_INFO = new ActionInfo(ActionType.CLOSE_STICK, StickCloseAction.class, R.drawable.icon_note_stack, R.string.stick_close_action, R.string.stick_close_action_desc, 0, NormalActionCard.class);
-    private final static ActionInfo CLOSE_ALL_STICK_INFO = new ActionInfo(ActionType.CLOSE_ALL_STICK, StickCloseAllAction.class, R.drawable.icon_note_stack, R.string.stick_close_all_action, R.string.stick_close_all_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo INPUT_CONFIG_INFO = new ActionInfo(ActionType.INPUT_CONFIG, InputConfigAction.class, R.drawable.icon_edit, R.string.input_config_action, R.string.input_config_action_desc, 0, InputConfigActionCard.class);
     private final static ActionInfo SHOW_TEXT_INFO = new ActionInfo(ActionType.SHOW_TEXT, ShowTextAction.class, R.drawable.icon_edit, R.string.show_text_action, R.string.show_text_action_desc, 0, ShowTextActionCard.class);
 
@@ -301,9 +293,7 @@ public class ActionInfo {
     private final static ActionInfo NUMBER_DIV_INFO = new ActionInfo(ActionType.NUMBER_DIV, NumberDivAction.class, R.drawable.icon_stream, R.string.number_divide_action, R.string.number_divide_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo NUMBER_MOD_INFO = new ActionInfo(ActionType.NUMBER_MOD, NumberModAction.class, R.drawable.icon_percent, R.string.number_mod_action, R.string.number_mod_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo NUMBER_ABS_INFO = new ActionInfo(ActionType.NUMBER_ABS, NumberAbsAction.class, R.drawable.icon_data_array, R.string.number_abs_action, R.string.number_abs_action_desc, 0, NormalActionCard.class);
-    private final static ActionInfo NUMBER_EQUAL_INFO = new ActionInfo(ActionType.NUMBER_EQUAL, NumberEqualAction.class, R.drawable.icon_equal, R.string.number_equal_action, R.string.number_equal_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo NUMBER_GREATER_INFO = new ActionInfo(ActionType.NUMBER_GREATER, NumberGreaterAction.class, R.drawable.icon_keyboard_arrow_right, R.string.number_greater_action, R.string.number_greater_action_desc, 0, NormalActionCard.class);
-    private final static ActionInfo NUMBER_LESS_INFO = new ActionInfo(ActionType.NUMBER_LESS, NumberLessAction.class, R.drawable.icon_keyboard_arrow_left, R.string.number_less_action, R.string.number_less_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo NUMBER_RANDOM_INFO = new ActionInfo(ActionType.NUMBER_RANDOM, NumberRandomAction.class, R.drawable.icon_shuffle, R.string.number_random_action, R.string.number_random_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo NUMBER_TO_INT_INFO = new ActionInfo(ActionType.NUMBER_TO_INT, NumberToIntegerAction.class, R.drawable.icon_decimal_decrease, R.string.number_to_integer_action, R.string.number_to_integer_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo CHECK_NUMBER_IN_VALUE_AREA_INFO = new ActionInfo(ActionType.CHECK_NUMBER_IN_VALUE_AREA, CheckNumberInValueArea.class, R.drawable.icon_straighten, R.string.check_number_in_value_area_action, R.string.check_number_in_value_area_action_desc, 0, NormalActionCard.class);
@@ -331,18 +321,14 @@ public class ActionInfo {
 
 
     // 条件判断
-    private final static ActionInfo BOOLEAN_OR_INFO = new ActionInfo(ActionType.BOOLEAN_OR, BooleanOrAction.class, R.drawable.icon_repeat_one, R.string.boolean_or_action, R.string.boolean_or_action_desc, 0, DynamicPinsActionCard.class);
     private final static ActionInfo BOOLEAN_AND_INFO = new ActionInfo(ActionType.BOOLEAN_AND, BooleanAndAction.class, R.drawable.icon_repeat, R.string.boolean_and_action, R.string.boolean_and_action_desc, 0, DynamicPinsActionCard.class);
      private final static ActionInfo BOOLEAN_NOT_INFO = new ActionInfo(ActionType.BOOLEAN_NOT, BooleanNotAction.class, R.drawable.icon_swap_horiz, R.string.boolean_not_action, R.string.boolean_not_action_desc, 0, NormalActionCard.class);
-     private final static ActionInfo BOOLEAN_AND_SHORT_INFO = new ActionInfo(ActionType.BOOLEAN_AND_SHORT, BooleanAndShortCircuitAction.class, R.drawable.icon_repeat, R.string.boolean_and_short_action, R.string.boolean_and_short_action_desc, 0, DynamicPinsActionCard.class);
-     private final static ActionInfo BOOLEAN_OR_SHORT_INFO = new ActionInfo(ActionType.BOOLEAN_OR_SHORT, BooleanOrShortCircuitAction.class, R.drawable.icon_repeat_one, R.string.boolean_or_short_action, R.string.boolean_or_short_action_desc, 0, DynamicPinsActionCard.class);
 
 
     // 控件操作
     private final static ActionInfo FIND_NODE_BY_PATH_INFO = new ActionInfo(ActionType.FIND_NODE, FindNodeAction.class, R.drawable.icon_widgets, R.string.find_node_action, R.string.find_node_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo IS_NODE_EXIST_BY_PATH_INFO = new ActionInfo(ActionType.IS_NODE_EXIST, IsNodeExistAction.class, R.drawable.icon_check, R.string.is_node_exist_action, R.string.is_node_exist_action_desc, 0, NormalActionCard.class);
 
-    private final static ActionInfo FIND_NODES_IN_AREA_INFO = new ActionInfo(ActionType.GET_NODES_IN_AREA, GetNodesInAreaAction.class, R.drawable.icon_widgets, R.string.find_nodes_in_area_action, R.string.find_nodes_in_area_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo GET_NODE_INFO_INFO = new ActionInfo(ActionType.GET_NODE_INFO, GetNodeInfoAction.class, R.drawable.icon_info, R.string.get_node_info_action, R.string.get_node_info_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo GET_NODE_CHILDREN_INFO = new ActionInfo(ActionType.GET_NODE_CHILDREN, GetNodeChildrenAction.class, R.drawable.icon_widgets, R.string.get_node_children_action, R.string.get_node_children_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo GET_NODE_PARENT_INFO = new ActionInfo(ActionType.GET_NODE_PARENT, GetNodeParentAction.class, R.drawable.icon_widgets, R.string.get_node_parent_action, R.string.get_node_parent_action_desc, 0, NormalActionCard.class);
@@ -475,7 +461,6 @@ public class ActionInfo {
             case LOG -> LOG_INFO;
             case STICK -> STICK_INFO;
             case CLOSE_STICK -> CLOSE_STICK_INFO;
-            case CLOSE_ALL_STICK -> CLOSE_ALL_STICK_INFO;
             case INPUT_CONFIG -> INPUT_CONFIG_INFO;
             case SHOW_TEXT -> SHOW_TEXT_INFO;
 
@@ -531,8 +516,6 @@ public class ActionInfo {
             case NUMBER_DIV -> NUMBER_DIV_INFO;
             case NUMBER_MOD -> NUMBER_MOD_INFO;
             case NUMBER_ABS -> NUMBER_ABS_INFO;
-            case NUMBER_EQUAL -> NUMBER_EQUAL_INFO;
-            case NUMBER_LESS -> NUMBER_LESS_INFO;
             case NUMBER_GREATER -> NUMBER_GREATER_INFO;
             case NUMBER_RANDOM -> NUMBER_RANDOM_INFO;
             case NUMBER_TO_INT -> NUMBER_TO_INT_INFO;
@@ -561,16 +544,12 @@ public class ActionInfo {
             case STRING_TO_SINGLE_SELECT -> STRING_TO_SINGLE_SELECT_INFO;
 
 
-            case BOOLEAN_OR -> BOOLEAN_OR_INFO;
             case BOOLEAN_AND -> BOOLEAN_AND_INFO;
-            case BOOLEAN_OR_SHORT -> BOOLEAN_OR_SHORT_INFO;
-            case BOOLEAN_AND_SHORT -> BOOLEAN_AND_SHORT_INFO;
             case BOOLEAN_NOT -> BOOLEAN_NOT_INFO;
 
 
             case FIND_NODE -> FIND_NODE_BY_PATH_INFO;
             case IS_NODE_EXIST -> IS_NODE_EXIST_BY_PATH_INFO;
-            case GET_NODES_IN_AREA -> FIND_NODES_IN_AREA_INFO;
             case GET_NODE_INFO -> GET_NODE_INFO_INFO;
             case GET_NODE_CHILDREN -> GET_NODE_CHILDREN_INFO;
             case GET_NODE_PARENT -> GET_NODE_PARENT_INFO;

@@ -42,7 +42,6 @@ public enum ActionType {
     LOG,
     STICK,
     CLOSE_STICK,
-    CLOSE_ALL_STICK,
 
     INPUT_CONFIG,
     MARK_AREA,
@@ -105,8 +104,6 @@ public enum ActionType {
     NUMBER_DIV,
     NUMBER_MOD,
     NUMBER_ABS,
-    NUMBER_EQUAL,
-    NUMBER_LESS,
     NUMBER_GREATER,
     NUMBER_RANDOM,
     NUMBER_TO_INT,
@@ -136,16 +133,12 @@ public enum ActionType {
     STRING_TO_SINGLE_SELECT,
 
     // 条件
-    BOOLEAN_OR,
     BOOLEAN_AND,
-    BOOLEAN_OR_SHORT,
-    BOOLEAN_AND_SHORT,
     BOOLEAN_NOT,
 
     // 控件
     FIND_NODE,
     IS_NODE_EXIST,
-    GET_NODES_IN_AREA,
     GET_NODE_INFO,
     GET_NODE_CHILDREN,
     GET_NODE_PARENT,
