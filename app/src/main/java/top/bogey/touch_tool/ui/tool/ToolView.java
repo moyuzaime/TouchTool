@@ -77,7 +77,14 @@ public class ToolView extends Fragment {
             }
             case TOOL_NODE_PICKER -> {
                 if (!checkService()) return;
-                new NodePickerPreview(context, null, null).show();
+                // 先进选择器，选完再弹预览卡：避免预览卡与选择器两个悬浮窗同屏
+                new top.bogey.touch_tool.ui.blueprint.picker.NodePicker(context, result -> {
+                    if (result == null) return;
+                    top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinNodePathString path =
+                            new top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinNodePathString();
+                    path.setValue(result);
+                    new NodePickerPreview(context, null, path.getValue()).show();
+                }, null).show();
             }
             case TOOL_COLOR_PICKER -> {
                 if (!checkService()) return;
