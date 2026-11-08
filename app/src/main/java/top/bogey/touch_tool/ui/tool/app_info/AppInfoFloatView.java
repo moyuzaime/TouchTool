@@ -83,7 +83,8 @@ public class AppInfoFloatView extends FrameLayout implements FloatInterface, Res
                 params.width = binding.expandButton.getWidth();
                 params.height = binding.expandButton.getHeight();
                 binding.getRoot().setLayoutParams(params);
-                binding.expandButton.setIconResource(R.drawable.icon_zoom_out_map);
+                // 收起时显示本功能的图标，方便在桌面上认出是哪个窗口
+                binding.expandButton.setIconResource(R.drawable.icon_apps);
 
             }
             FloatWindow.updateLayoutParam(tag);
