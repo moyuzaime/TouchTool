@@ -55,12 +55,14 @@ public class NodePickerPreview extends BasePicker<String> {
         });
 
         binding.pickerButton.setOnClickListener(v -> {
-            // 选择时先把自身藏起来，避免挡住要选的控件
-            new NodePicker(context, result -> {
+            // 选择期间关闭预览窗，等选择器关闭后再显示
+            NodePicker picker = new NodePicker(context, result -> {
                 nodePath.setValue(result);
                 binding.pathText.setText(nodePath.getSimpleValue(10, true));
-                // 回调可能在选择器还开着时就触发，等它关了再把自己显示回来
-            }, nodePath.getValue()).show();
+            }, nodePath.getValue());
+            picker.setOnDismissAction(this::show);
+            dismiss();
+            picker.show();
         });
 
         binding.copyButton.setOnClickListener(v -> AppUtil.copyToClipboard(getContext(), nodePath.getValue()));

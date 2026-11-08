@@ -21,6 +21,8 @@ public abstract class FullScreenPicker<T> extends BasePicker<T> {
 
     protected MainAccessibilityService service;
     protected ScreenInfo screenInfo;
+    // 选择器关闭后的回调：预览窗据此重新显示
+    private Runnable onDismissAction;
 
     public FullScreenPicker(@NonNull Context context, ResultCallback<T> callback) {
         super(context, callback);
@@ -30,6 +32,10 @@ public abstract class FullScreenPicker<T> extends BasePicker<T> {
     }
 
     protected abstract void realShow();
+
+    public void setOnDismissAction(Runnable action) {
+        this.onDismissAction = action;
+    }
 
     protected void onShow() {
         postDelayed(() -> {
