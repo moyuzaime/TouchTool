@@ -434,4 +434,18 @@
         <item>signum|求符号（负 -1、零 0、正 1）</item>
     </string-array>
 
+    <string-array name="boolean_combine_type">
+        <item>全部成立（与）</item>
+        <item>任一成立（或）</item>
+    </string-array>
+
+    <string-array name="number_compare_type">
+        <item>大于</item>
+        <item>小于</item>
+        <item>等于</item>
+        <item>大于等于</item>
+        <item>小于等于</item>
+        <item>不等于</item>
+    </string-array>
+
 </resources>

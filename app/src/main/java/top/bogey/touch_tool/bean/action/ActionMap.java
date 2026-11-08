@@ -116,8 +116,6 @@ public class ActionMap {
                     ActionType.NUMBER_MUL,
                     ActionType.NUMBER_DIV,
                     ActionType.NUMBER_MOD,
-                    ActionType.NUMBER_EQUAL,
-                    ActionType.NUMBER_LESS,
                     ActionType.NUMBER_GREATER,
                     ActionType.NUMBER_RANDOM,
                     ActionType.NUMBER_TO_INT,
@@ -149,11 +147,8 @@ public class ActionMap {
             ));
 
              case BOOLEAN -> list.addAll(Arrays.asList(
-                     ActionType.BOOLEAN_OR,
-                     ActionType.BOOLEAN_AND,
-                     ActionType.BOOLEAN_OR_SHORT,
-                     ActionType.BOOLEAN_AND_SHORT,
-                     ActionType.BOOLEAN_NOT
+                      ActionType.BOOLEAN_AND,
+                       ActionType.BOOLEAN_NOT
              ));
 
             case NODE -> list.addAll(Arrays.asList(
