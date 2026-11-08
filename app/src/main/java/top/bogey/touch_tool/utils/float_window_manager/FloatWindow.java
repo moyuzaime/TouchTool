@@ -299,9 +299,7 @@ public class FloatWindow {
             for (FloatWindowHelper other : new java.util.ArrayList<>(views.values())) {
                 if (other != helper && other.config.level > config.level) other.bringToFront();
             }
-            // 诊断：预览窗被重新显示时记录调用栈，便于定位是谁把窗口拉回来的
             if (config.tag != null && config.tag.contains("Preview")) {
-                top.bogey.touch_tool.utils.AppLog.e("悬浮窗", "重新显示 " + config.tag, new Throwable("show stack"));
             }
             boolean attached = helper.isShowing();
             top.bogey.touch_tool.utils.AppLog.d("悬浮窗", "show tag=" + config.tag + " attached=" + attached);
