@@ -61,7 +61,8 @@ public class NodePickerPreview extends BasePicker<String> {
                 binding.pathText.setText(nodePath.getSimpleValue(10, true));
             }, nodePath.getValue());
             picker.setOnDismissAction(this::show);
-            dismiss();
+            // 用隐藏而不是销毁：销毁会触发 onDismiss→showLast 把预览卡立刻复活
+            FloatWindow.hide(tag);
             picker.show();
         });
 
