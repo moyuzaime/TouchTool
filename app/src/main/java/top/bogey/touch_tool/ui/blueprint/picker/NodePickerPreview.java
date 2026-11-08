@@ -83,24 +83,10 @@ public class NodePickerPreview extends BasePicker<String> {
             for (int delay : new int[]{50, 150, 300, 450}) {
                 postDelayed(() -> FloatWindow.hide(tag), delay);
             }
-            // 选择器关闭后恢复显示
-            android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
-            handler.postDelayed(new Runnable() {
-                private int tries = 0;
 
-                @Override
-                public void run() {
-                    if (FloatWindow.getHelper(NodePicker.class.getName()) != null && tries++ < 25) {
-                        handler.postDelayed(this, 200);
-                    } else {
-                        FloatWindow.show(tag);
-                    }
-                }
-            }, 200);
         });
 
         binding.copyButton.setOnClickListener(v -> AppUtil.copyToClipboard(getContext(), nodePath.getValue()));
-
         binding.matchButton.setOnClickListener(v -> {
             FloatWindow.hide(tag);
             postDelayed(() -> {
