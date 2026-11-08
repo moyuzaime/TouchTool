@@ -104,7 +104,15 @@ public class MainAccessibilityService extends AccessibilityService {
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         if (event == null) return;
+        // 事件处理里抛异常会让系统把服务判定为崩溃并停用，这里统一兜底记录
+        try {
+            handleAccessibilityEvent(event);
+        } catch (Throwable e) {
+            AppLog.e("无障碍事件", "onAccessibilityEvent 异常", e);
+        }
+    }
 
+    private void handleAccessibilityEvent(AccessibilityEvent event) {
         AppLog.d("事件", "onAccessibilityEvent: " + event);
         // 窗口变化事件不带包名与类名，这里按需取值
         String packageName = event.getPackageName() == null ? null : event.getPackageName().toString();
@@ -185,8 +193,12 @@ public class MainAccessibilityService extends AccessibilityService {
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
-        connected.setValue(true);
-        setEnabled(SettingSaver.APP_SERVICE.get());
+        try {
+            connected.setValue(true);
+            setEnabled(SettingSaver.APP_SERVICE.get());
+        } catch (Throwable e) {
+            AppLog.e("无障碍服务", "onServiceConnected 异常", e);
+        }
     }
 
     @Override
@@ -198,16 +210,24 @@ public class MainAccessibilityService extends AccessibilityService {
     @Override
     public void onCreate() {
         super.onCreate();
-        MainApplication.getInstance().setService(this);
+        try {
+            MainApplication.getInstance().setService(this);
+        } catch (Throwable e) {
+            AppLog.e("无障碍服务", "onCreate 异常", e);
+        }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        connected.setValue(false);
-        setEnabled(false);
-        MainApplication.getInstance().setService(null);
-        FloatWindow.reset();
+        try {
+            connected.setValue(false);
+            setEnabled(false);
+            MainApplication.getInstance().setService(null);
+            FloatWindow.reset();
+        } catch (Throwable e) {
+            AppLog.e("无障碍服务", "onDestroy 异常", e);
+        }
     }
 
     public boolean isConnected() {
@@ -220,6 +240,15 @@ public class MainAccessibilityService extends AccessibilityService {
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     public void setEnabled(boolean bool) {
+        // 启停会注册广播、闹钟、TTS 等，任何一步异常都不该让服务崩掉
+        try {
+            doSetEnabled(bool);
+        } catch (Throwable e) {
+            AppLog.e("无障碍服务", "setEnabled 异常", e);
+        }
+    }
+
+    private void doSetEnabled(boolean bool) {
         enabled.setValue(bool);
 
         if (isEnabled()) {
@@ -304,18 +333,26 @@ public class MainAccessibilityService extends AccessibilityService {
 
             @Override
             public void onStart(TaskRunnable runnable) {
-                StartAction action = runnable.getStartAction();
-                if (!action.isShow()) return;
+                try {
+                    StartAction action = runnable.getStartAction();
+                    if (!action.isShow()) return;
 
-                ActionType actionType = action.getType();
-                if (actionType == ActionType.MANUAL_START) return;
-                if (actionType == ActionType.INNER_START) return;
-                PlayFloatView.addRunningAction(runnable);
+                    ActionType actionType = action.getType();
+                    if (actionType == ActionType.MANUAL_START) return;
+                    if (actionType == ActionType.INNER_START) return;
+                    PlayFloatView.addRunningAction(runnable);
+                } catch (Throwable e) {
+                    AppLog.e("任务", "onStart 回调异常", e);
+                }
             }
 
             @Override
             public void onFinish(TaskRunnable runnable) {
-                tasks.remove(runnable);
+                try {
+                    tasks.remove(runnable);
+                } catch (Throwable e) {
+                    AppLog.e("任务", "onFinish 回调异常", e);
+                }
             }
         });
 
