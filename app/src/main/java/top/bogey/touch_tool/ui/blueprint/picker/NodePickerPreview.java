@@ -54,10 +54,15 @@ public class NodePickerPreview extends BasePicker<String> {
             dismiss();
         });
 
-        binding.pickerButton.setOnClickListener(v -> new NodePicker(context, result -> {
-            nodePath.setValue(result);
-            binding.pathText.setText(nodePath.getSimpleValue(10, true));
-        }, nodePath.getValue()).show());
+        binding.pickerButton.setOnClickListener(v -> {
+            // 选择时先把自身藏起来，避免挡住要选的控件
+            FloatWindow.hide(tag);
+            new NodePicker(context, result -> {
+                nodePath.setValue(result);
+                binding.pathText.setText(nodePath.getSimpleValue(10, true));
+                FloatWindow.show(tag);
+            }, nodePath.getValue()).show();
+        });
 
         binding.copyButton.setOnClickListener(v -> AppUtil.copyToClipboard(getContext(), nodePath.getValue()));
 

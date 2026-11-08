@@ -250,6 +250,11 @@
 - 重启服务入口改为先弹说明确认；两个开关首次开启时显示对应说明文案。
 - 日志弹窗标题显示当前条数，清空按钮文案改「清理」。
 
+### 27. 选择时隐藏预览悬浮窗
+
+- 位置：`ui/blueprint/picker/NodePickerPreview.java`、`ColorPickerPreview.java`、`ImagePickerPreview.java`、`AreaPickerPreview.java`
+- 行为：点击「选择控件/颜色/图片/区域」时先隐藏自身窗口，选完（含取消）再显示，避免预览卡挡住要选的目标。
+
 ---
 
 ## 三、数据与兼容

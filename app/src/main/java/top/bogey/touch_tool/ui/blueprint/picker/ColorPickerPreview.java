@@ -106,18 +106,23 @@ public class ColorPickerPreview extends BasePicker<PinColor.ColorInfo> {
             dismiss();
         });
 
-        binding.pickerButton.setOnClickListener(v -> new ColorPicker(context, result -> {
-            colorInfo.setColor(result.getColor());
-            colorInfo.setMinArea(result.getMinArea());
-            colorInfo.setMaxArea(result.getMaxArea());
-            int resultColor = result.getColor();
+        binding.pickerButton.setOnClickListener(v -> {
+            // 取色时先把自身藏起来，避免挡住要取的位置
+            FloatWindow.hide(tag);
+            new ColorPicker(context, result -> {
+                colorInfo.setColor(result.getColor());
+                colorInfo.setMinArea(result.getMinArea());
+                colorInfo.setMaxArea(result.getMaxArea());
+                int resultColor = result.getColor();
 
-            binding.redEdit.setText(String.valueOf(Color.red(resultColor)));
-            binding.greenEdit.setText(String.valueOf(Color.green(resultColor)));
-            binding.blueEdit.setText(String.valueOf(Color.blue(resultColor)));
+                binding.redEdit.setText(String.valueOf(Color.red(resultColor)));
+                binding.greenEdit.setText(String.valueOf(Color.green(resultColor)));
+                binding.blueEdit.setText(String.valueOf(Color.blue(resultColor)));
 
-            refreshColorInfo(colorInfo);
-        }, colorInfo).show());
+                refreshColorInfo(colorInfo);
+                FloatWindow.show(tag);
+            }, colorInfo).show();
+        });
 
         binding.timeSlider.setLabelFormatter(value -> getContext().getString(R.string.picker_color_offset, (int) value));
         binding.matchButton.setOnClickListener(v -> {
