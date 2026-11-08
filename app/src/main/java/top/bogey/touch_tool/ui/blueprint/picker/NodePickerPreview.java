@@ -61,9 +61,10 @@ public class NodePickerPreview extends BasePicker<String> {
                 binding.pathText.setText(nodePath.getSimpleValue(10, true));
             }, nodePath.getValue());
             picker.setOnDismissAction(this::show);
-            // 用隐藏而不是销毁：销毁会触发 onDismiss→showLast 把预览卡立刻复活
-            FloatWindow.hide(tag);
             picker.show();
+            // 延迟一点再隐藏：窗口的入场动画结束时会把可见性改回 VISIBLE，
+            // 立刻 hide 会被动画覆盖，表现为卡片没消失
+            postDelayed(() -> FloatWindow.hide(tag), 250);
         });
 
         binding.copyButton.setOnClickListener(v -> AppUtil.copyToClipboard(getContext(), nodePath.getValue()));
