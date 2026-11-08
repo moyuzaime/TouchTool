@@ -73,10 +73,25 @@ public class NodePickerPreview extends BasePicker<String> {
             dismiss();
         });
 
-        binding.pickerButton.setOnClickListener(v -> new NodePicker(context, result -> {
-            nodePath.setValue(result);
-            binding.pathText.setText(nodePath.getSimpleValue(10, true));
-        }, nodePath.getValue()).show());
+        binding.pickerButton.setOnClickListener(v -> {
+            new NodePicker(context, result -> {
+                nodePath.setValue(result);
+                binding.pathText.setText(nodePath.getSimpleValue(10, true));
+            }, nodePath.getValue()).show();
+            // 选择器打开期间持续压制预览卡：其它窗口关闭时的 showLast 会把它重新显示出来
+            android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (FloatWindow.getHelper(NodePicker.class.getName()) == null) {
+                        FloatWindow.show(tag);
+                        return;
+                    }
+                    FloatWindow.hide(tag);
+                    handler.postDelayed(this, 150);
+                }
+            }, 100);
+        });
         binding.copyButton.setOnClickListener(v -> AppUtil.copyToClipboard(getContext(), nodePath.getValue()));
         binding.matchButton.setOnClickListener(v -> {
             FloatWindow.hide(tag);
