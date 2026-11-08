@@ -220,6 +220,13 @@
 - 原因：`screenInfo` 在 `onShow()` 里延迟 300ms 初始化，而窗口加上后可能立刻绘制，`ColorPicker.dispatchDraw` 取 `screenInfo.getScreenShot()` 时空指针；服务不在时更会直接为空。
 - 修复：`show()` 里先检查服务并同步准备好 `screenInfo`；绘制与取色路径全部加空判断；延迟初始化处再兜一次服务为空则关窗。
 
+### 23. 「控件是否存在」「查找控件」增加查找方式
+
+- 位置：`bean/action/node/IsNodeExistAction.java`、`FindNodeAction.java`、`res/values/string_array.xml`（`find_node_type`）
+- 新增 5 种：坐标（命中当前位置最上层控件）、区域（区域内可用控件）、全部控件、可点击控件、可编辑控件。
+- 坐标模式只命中单个控件，卡片新增「位置」输入针脚，同时隐藏控件列表输出；其余新方式都输出列表。
+- 查找控件在超时重试前会清空结果列表，避免重复累加。
+
 ---
 
 ## 三、数据与兼容

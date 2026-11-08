@@ -99,6 +99,11 @@
         <item>正则路径</item>
         <item>类名</item>
         <item>描述</item>
+        <item>坐标</item>
+        <item>区域</item>
+        <item>全部控件</item>
+        <item>可点击控件</item>
+        <item>可编辑控件</item>
     </string-array>
 
     <string-array name="string_encode_type">
