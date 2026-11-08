@@ -47,7 +47,6 @@ public class ActionMap {
                     ActionType.LOG,
                     ActionType.STICK,
                     ActionType.CLOSE_STICK,
-                    ActionType.CLOSE_ALL_STICK,
 
                     ActionType.INPUT_CONFIG,
                     ActionType.STOP_TASK,
@@ -160,7 +159,6 @@ public class ActionMap {
             case NODE -> list.addAll(Arrays.asList(
                     ActionType.FIND_NODE,
                     ActionType.IS_NODE_EXIST,
-                    ActionType.GET_NODES_IN_AREA,
                     ActionType.GET_NODE_INFO,
                     ActionType.GET_NODE_CHILDREN,
                     ActionType.GET_NODE_PARENT,

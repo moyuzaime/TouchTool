@@ -869,4 +869,5 @@
     <string name="map_foreach_action_desc">遍历字典中的每个键值对</string>
     <string name="map_foreach_action_break">跳出循环</string>
 
+    <string name="stick_close_action_all">全部</string>
 </resources>
