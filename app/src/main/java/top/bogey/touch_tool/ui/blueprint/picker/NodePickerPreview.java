@@ -64,7 +64,7 @@ public class NodePickerPreview extends BasePicker<String> {
             picker.show();
             // 延迟一点再隐藏：窗口的入场动画结束时会把可见性改回 VISIBLE，
             // 立刻 hide 会被动画覆盖，表现为卡片没消失
-            postDelayed(() -> FloatWindow.hide(tag), 250);
+            postDelayed(() -> FloatWindow.hide(tag), 500);
         });
 
         binding.copyButton.setOnClickListener(v -> AppUtil.copyToClipboard(getContext(), nodePath.getValue()));
