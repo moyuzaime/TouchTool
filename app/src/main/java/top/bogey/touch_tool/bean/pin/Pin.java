@@ -234,8 +234,7 @@ public class Pin extends Identity {
 
     @Override
     public Pin copy() {
-        // 按实际类型复制，保留 NotLinkAblePin 等特殊针脚的约束
-        Pin copy = GsonUtil.copy(this, getClass());
+        Pin copy = GsonUtil.copy(this, Pin.class);
         copy.setTitleId(getTitleId());
         return copy;
     }

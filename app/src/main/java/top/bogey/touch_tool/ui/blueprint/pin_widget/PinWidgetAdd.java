@@ -30,7 +30,13 @@ public class PinWidgetAdd extends PinWidget<PinAdd> {
         binding.addPinButton.setOnClickListener(v -> {
             List<Pin> pins = pinBase.getPins();
             for (Pin pin : pins) {
-                Pin copy = pin.newCopy();
+                Pin copy;
+                if (pin instanceof top.bogey.touch_tool.bean.pin.special_pin.NotLinkAblePin) {
+                    // 不可链接针脚用构造器复制：既保留约束，又能初始化监听集合
+                    copy = new top.bogey.touch_tool.bean.pin.special_pin.NotLinkAblePin(pin.getValue());
+                } else {
+                    copy = pin.newCopy();
+                }
                 copy.setUid(UUID.randomUUID().toString());
                 copy.setTitleId(pin.getTitleId());
                 copy.setDynamic(true);
