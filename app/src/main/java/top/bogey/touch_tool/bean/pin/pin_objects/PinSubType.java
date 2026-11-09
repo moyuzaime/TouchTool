@@ -5,7 +5,7 @@ public enum PinSubType {
 
     // 文本：链接，快捷方式，铃声路径，自动填充，单行文本，控件路径，任务ID
     URL, SHORTCUT, RINGTONE, AUTO_PIN, FILE_CONTENT,
-    SINGLE_LINE, NODE_PATH, NODE_PATH_TEXT, TASK_ID, ALL_TASK_ID, SINGLE_SELECT, NODE_INFO,
+    SINGLE_LINE, NODE_PATH, NODE_PATH_TEXT, TASK_ID, ALL_TASK_ID, SINGLE_SELECT,
 
     // 数字：整数，浮点数，长整型，大浮点数
     INTEGER, FLOAT, LONG, DOUBLE,

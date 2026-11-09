@@ -69,6 +69,10 @@ public abstract class PinView extends FrameLayout implements PinListener {
         if (slotBox != null) {
             slotBox.removeAllViews();
             PinInfo info = PinInfo.getPinInfo(pin.getValue());
+            if (pin.getValue() != null && pin.getValue().getClass().getName().contains("NodeInfo")) {
+                android.util.Log.d("NODEINFO", "pin=" + pin.getValue().getClass().getSimpleName()
+                        + " info=" + info + " widget=" + (info == null ? "null" : info.getWidget()));
+            }
             try {
                 Constructor<? extends PinSlotView> constructor = info.getSlot().getConstructor(Context.class, Pin.class);
                 slotView = constructor.newInstance(getContext(), pin);
@@ -163,6 +167,10 @@ public abstract class PinView extends FrameLayout implements PinListener {
             widgetBox.removeAllViews();
 
             PinInfo info = PinInfo.getPinInfo(pin.getValue());
+            if (pin.getValue() != null && pin.getValue().getClass().getName().contains("NodeInfo")) {
+                android.util.Log.d("NODEINFO", "pin=" + pin.getValue().getClass().getSimpleName()
+                        + " info=" + info + " widget=" + (info == null ? "null" : info.getWidget()));
+            }
             if (info != null) {
                 Class<? extends PinWidget<? extends PinBase>> widgetClass = info.getWidget();
                 if (widgetClass != null) {

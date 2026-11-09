@@ -863,6 +863,7 @@
     <string name="file_action_create_mode">类型</string>
     <string name="file_action_line_mode">操作</string>
     <string name="node_info_test_action">测试控件信息</string>
-    <string name="node_info_test_action_desc">可添加输出针脚，每个针脚下拉选择要输出的控件信息</string>
+    <string name="node_info_test_action_desc">可添加输出项，每个下拉选择要输出的控件信息，结果汇总到「结果」针脚</string>
     <string name="node_info_test_item">输出项</string>
+    <string name="node_info_test_result">结果</string>
 </resources>

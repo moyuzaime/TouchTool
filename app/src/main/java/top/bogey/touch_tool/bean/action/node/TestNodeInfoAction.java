@@ -15,38 +15,51 @@ import top.bogey.touch_tool.bean.other.NodeInfo;
 import top.bogey.touch_tool.bean.pin.Pin;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinAdd;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinNode;
-import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinNodeInfoValue;
+import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinSingleSelect;
+import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinString;
 import top.bogey.touch_tool.service.TaskRunnable;
 
-// 测试卡：可添加输出针脚，每个针脚下拉选择要输出的控件信息
+// 测试卡：可添加「输出项」针脚，每个针脚下拉选择内容，结果汇总到「结果」针脚
 public class TestNodeInfoAction extends CalculateAction {
     private final transient Pin nodePin = new Pin(new PinNode(), R.string.pin_node);
-    private final transient Pin addPin = new Pin(new PinAdd(new Pin(new PinNodeInfoValue(), R.string.node_info_test_item, true)));
+    private final transient Pin addPin = new Pin(new PinAdd(new Pin(new PinSingleSelect(R.array.node_info_type))));
+    private final transient Pin resultPin = new Pin(new PinString(), R.string.node_info_test_result, true);
 
     public TestNodeInfoAction() {
         super(ActionType.TEST_NODE_INFO);
-        addPins(nodePin, addPin);
+        addPins(nodePin, addPin, resultPin);
     }
 
     public TestNodeInfoAction(JsonObject jsonObject) {
         super(jsonObject);
-        reAddPins(nodePin, addPin);
+        reAddPins(nodePin, addPin, resultPin);
     }
 
     @Override
     public void calculate(TaskRunnable runnable, Pin pin) {
         PinNode node = getPinValue(runnable, nodePin);
-        if (node == null) return;
-        NodeInfo nodeInfo = node.getNodeInfo();
-        if (nodeInfo == null) return;
-
-        for (Pin dynamicPin : getDynamicPins()) {
-            PinNodeInfoValue value = dynamicPin.getValue(PinNodeInfoValue.class);
-            value.setValue(readNodeInfo(nodeInfo, value.getIndex()));
+        if (node == null) {
+            resultPin.getValue(PinString.class).setValue("");
+            return;
         }
+        NodeInfo nodeInfo = node.getNodeInfo();
+        if (nodeInfo == null) {
+            resultPin.getValue(PinString.class).setValue("");
+            return;
+        }
+        StringBuilder builder = new StringBuilder();
+        for (Pin dynamicPin : getDynamicPins()) {
+            PinSingleSelect select = dynamicPin.getValue(PinSingleSelect.class);
+            if (select == null) continue;
+            int index = select.getIndex();
+            String text = readNodeInfo(nodeInfo, index);
+            if (builder.length() > 0) builder.append("\n");
+            builder.append(select.getValue()).append(": ").append(text);
+        }
+        resultPin.getValue(PinString.class).setValue(builder.toString());
     }
 
-    // 添加针脚之后的所有输出针脚
+    // 添加针脚之后的所有输出项
     public List<Pin> getDynamicPins() {
         PinAdd pinAdd = addPin.getValue(PinAdd.class);
         return pinAdd == null ? Collections.emptyList() : pinAdd.getPins();
