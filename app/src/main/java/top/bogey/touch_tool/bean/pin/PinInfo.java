@@ -51,6 +51,7 @@ import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinNodePathTextStrin
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinRingtoneString;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinShortcutString;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinSingleLineString;
+import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinNodeInfoValue;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinSingleSelect;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinString;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinTaskString;
@@ -73,6 +74,7 @@ import top.bogey.touch_tool.ui.blueprint.pin_widget.PinWidgetImage;
 import top.bogey.touch_tool.ui.blueprint.pin_widget.PinWidgetList;
 import top.bogey.touch_tool.ui.blueprint.pin_widget.PinWidgetNumber;
 import top.bogey.touch_tool.ui.blueprint.pin_widget.PinWidgetPoint;
+import top.bogey.touch_tool.ui.blueprint.pin_widget.PinWidgetNodeInfo;
 import top.bogey.touch_tool.ui.blueprint.pin_widget.PinWidgetSelect;
 import top.bogey.touch_tool.ui.blueprint.pin_widget.PinWidgetString;
 import top.bogey.touch_tool.ui.blueprint.pin_widget.PinWidgetTouch;
@@ -106,6 +108,7 @@ public class PinInfo {
     private final static PinInfo TASK_STRING_INFO = new PinInfo(PinType.STRING, PinSubType.TASK_ID, PinTaskString.class, NormalPinSlotView.class, R.color.StringPinColor, 0, R.string.pin_string_task, PinWidgetString.class, false, false);
     private final static PinInfo ALL_TASK_STRING_INFO = new PinInfo(PinType.STRING, PinSubType.ALL_TASK_ID, PinTaskString.class, NormalPinSlotView.class, R.color.StringPinColor, 0, R.string.pin_string_task, PinWidgetString.class, false, false);
 
+    private final static PinInfo NODE_INFO_STRING_INFO = new PinInfo(PinType.STRING, PinSubType.NODE_INFO, PinNodeInfoValue.class, NormalPinSlotView.class, R.color.StringPinColor, 0, R.string.node_info_test_item, PinWidgetNodeInfo.class, true, true);
     private final static PinInfo SELECT_STRING_INFO = new PinInfo(PinType.STRING, PinSubType.SINGLE_SELECT, PinSingleSelect.class, NormalPinSlotView.class, R.color.SelectPinColor, 0, R.string.pin_string_select, PinWidgetSelect.class, true, true);
 
     private final static PinInfo INTEGER_INFO = new PinInfo(PinType.NUMBER, PinSubType.INTEGER, PinInteger.class, NormalPinSlotView.class, R.color.IntegerPinColor, 0, R.string.pin_number_integer, PinWidgetNumber.class, false, true);
@@ -173,6 +176,7 @@ public class PinInfo {
                     case TASK_ID -> info = TASK_STRING_INFO;
                     case ALL_TASK_ID -> info = ALL_TASK_STRING_INFO;
                     case SINGLE_SELECT -> info = SELECT_STRING_INFO;
+                    case NODE_INFO -> info = NODE_INFO_STRING_INFO;
                 }
             }
             case NUMBER -> {

@@ -862,4 +862,7 @@
             <string name="file_action_write_mode">写入方式</string>
     <string name="file_action_create_mode">类型</string>
     <string name="file_action_line_mode">操作</string>
+    <string name="node_info_test_action">测试控件信息</string>
+    <string name="node_info_test_action_desc">可添加输出针脚，每个针脚下拉选择要输出的控件信息</string>
+    <string name="node_info_test_item">输出项</string>
 </resources>
