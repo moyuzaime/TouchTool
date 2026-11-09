@@ -17,14 +17,14 @@ import top.bogey.touch_tool.bean.pin.pin_objects.PinAdd;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinNode;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_list.PinList;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinSingleSelect;
-import top.bogey.touch_tool.bean.pin.special_pin.NotLinkAblePin;
+import top.bogey.touch_tool.bean.pin.special_pin.NodeInfoSelectPin;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinString;
 import top.bogey.touch_tool.service.TaskRunnable;
 
 // 测试卡：可添加「输出项」针脚，每个针脚下拉选择内容，结果汇总到「结果」针脚
 public class TestNodeInfoAction extends CalculateAction {
     private final transient Pin nodePin = new Pin(new PinNode(), R.string.pin_node);
-    private final transient Pin addPin = new Pin(new PinAdd(new NotLinkAblePin(new PinSingleSelect(R.array.node_info_type), R.string.node_info_test_item)));
+    private final transient Pin addPin = new Pin(new PinAdd(new NodeInfoSelectPin()));
     private final transient Pin resultPin = new Pin(new PinList(new PinString()), R.string.node_info_test_result, true);
 
     public TestNodeInfoAction() {
