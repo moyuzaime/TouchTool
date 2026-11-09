@@ -24,7 +24,7 @@ import top.bogey.touch_tool.service.TaskRunnable;
 // 测试卡：可添加「输出项」针脚，每个针脚下拉选择内容，结果汇总到「结果」针脚
 public class TestNodeInfoAction extends CalculateAction {
     private final transient Pin nodePin = new Pin(new PinNode(), R.string.pin_node);
-    private final transient Pin addPin = new Pin(new PinAdd(new NodeInfoSelectPin()));
+    private final transient Pin addPin = new Pin(new PinAdd(new NodeInfoSelectPin()), true);
     private final transient Pin resultPin = new Pin(new PinList(new PinString()), R.string.node_info_test_result, true);
 
     public TestNodeInfoAction() {
