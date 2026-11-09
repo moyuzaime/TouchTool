@@ -24,7 +24,7 @@ import top.bogey.touch_tool.service.TaskRunnable;
 // 获取控件信息：可添加「输出项」下拉选择要读取的内容，结果以文本列表输出
 public class GetNodeInfoAction extends CalculateAction {
     private final transient Pin nodePin = new Pin(new PinNode(), R.string.pin_node);
-    private final transient Pin addPin = new Pin(new PinAdd(new NotLinkAblePin(new PinSingleSelect(R.array.node_info_type))));
+    private final transient Pin addPin = new Pin(new PinAdd(new NotLinkAblePin(new PinSingleSelect(R.array.node_info_type), R.string.node_info_test_item)));
     private final transient Pin resultPin = new Pin(new PinList(new PinString()), R.string.get_node_info_action_result, true);
 
     public GetNodeInfoAction() {
