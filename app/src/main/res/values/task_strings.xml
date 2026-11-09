@@ -867,4 +867,5 @@
     <string name="node_info_test_item">输出项</string>
     <string name="node_info_test_result">结果</string>
     <string name="get_node_info_action_result">结果</string>
+    <string name="node_info_select">输出内容</string>
 </resources>
