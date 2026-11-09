@@ -5,39 +5,36 @@ import android.view.accessibility.AccessibilityNodeInfo;
 
 import com.google.gson.JsonObject;
 
+import java.util.Collections;
 import java.util.List;
 
-import top.bogey.touch_tool.MainApplication;
 import top.bogey.touch_tool.R;
 import top.bogey.touch_tool.bean.action.ActionType;
 import top.bogey.touch_tool.bean.action.parent.CalculateAction;
 import top.bogey.touch_tool.bean.other.NodeInfo;
 import top.bogey.touch_tool.bean.pin.Pin;
+import top.bogey.touch_tool.bean.pin.pin_objects.PinAdd;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinNode;
-import top.bogey.touch_tool.bean.pin.pin_objects.PinObject;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_list.PinList;
-import top.bogey.touch_tool.bean.pin.pin_objects.pin_list.PinMultiSelect;
-import top.bogey.touch_tool.bean.pin.pin_objects.pin_number.PinInteger;
-import top.bogey.touch_tool.bean.pin.pin_objects.pin_number.PinNumber;
+import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinSingleSelect;
+import top.bogey.touch_tool.bean.pin.special_pin.NodeInfoSelectPin;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinString;
 import top.bogey.touch_tool.service.TaskRunnable;
 
-// 获取控件信息：多选要读取的内容，结果以文本列表输出
+// 获取控件信息：可添加「输出项」下拉选择要读取的内容，结果以文本列表输出
 public class GetNodeInfoAction extends CalculateAction {
     private final transient Pin nodePin = new Pin(new PinNode(), R.string.pin_node);
-    private final transient Pin selectPin = new Pin(new PinMultiSelect(new PinInteger()), R.string.node_info_select);
+    private final transient Pin addPin = new Pin(new PinAdd(new NodeInfoSelectPin()), true);
     private final transient Pin resultPin = new Pin(new PinList(new PinString()), R.string.get_node_info_action_result, true);
 
     public GetNodeInfoAction() {
         super(ActionType.GET_NODE_INFO);
-        addPins(nodePin, selectPin, resultPin);
-        initSelection();
+        addPins(nodePin, addPin, resultPin);
     }
 
     public GetNodeInfoAction(JsonObject jsonObject) {
         super(jsonObject);
-        reAddPins(nodePin, selectPin, resultPin);
-        initSelection();
+        reAddPins(nodePin, addPin, resultPin);
     }
 
     @Override
@@ -50,20 +47,17 @@ public class GetNodeInfoAction extends CalculateAction {
         NodeInfo nodeInfo = node.getNodeInfo();
         if (nodeInfo == null) return;
 
-        for (PinObject object : selectPin.getValue(PinMultiSelect.class)) {
-            if (!(object instanceof PinNumber<?> number)) continue;
-            result.add(new PinString(readNodeInfo(nodeInfo, number.intValue())));
+        for (Pin dynamicPin : getDynamicPins()) {
+            PinSingleSelect select = dynamicPin.getValue(PinSingleSelect.class);
+            if (select == null) continue;
+            result.add(new PinString(readNodeInfo(nodeInfo, select.getIndex())));
         }
     }
 
-    // 把 26 种控件信息注册为多选项，值为列表下标
-    private void initSelection() {
-        PinMultiSelect multiSelect = selectPin.getValue(PinMultiSelect.class);
-        multiSelect.resetSelectObjects();
-        String[] names = MainApplication.getInstance().getResources().getStringArray(R.array.node_info_type);
-        for (int i = 0; i < names.length; i++) {
-            multiSelect.addSelectObject(new PinMultiSelect.MultiSelectObject(names[i], "", i));
-        }
+    // 添加针脚之后的所有输出项
+    public List<Pin> getDynamicPins() {
+        PinAdd pinAdd = addPin.getValue(PinAdd.class);
+        return pinAdd == null ? Collections.emptyList() : pinAdd.getPins();
     }
 
     private String readNodeInfo(NodeInfo nodeInfo, int index) {
