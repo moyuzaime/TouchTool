@@ -13,6 +13,11 @@ public class NodeInfoSelectPin extends NotLinkAblePin {
         super(new PinSingleSelect(R.array.node_info_type), R.string.node_info_test_item);
     }
 
+    // PinAdd 添加针脚时按实际类型用该构造器复制，保证复制后仍是不可链接针脚
+    public NodeInfoSelectPin(PinBase value) {
+        super(value, R.string.node_info_test_item);
+    }
+
     public NodeInfoSelectPin(JsonObject jsonObject) {
         super(jsonObject);
     }
