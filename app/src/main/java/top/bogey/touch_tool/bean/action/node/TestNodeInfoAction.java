@@ -15,6 +15,7 @@ import top.bogey.touch_tool.bean.other.NodeInfo;
 import top.bogey.touch_tool.bean.pin.Pin;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinAdd;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinNode;
+import top.bogey.touch_tool.bean.pin.pin_objects.pin_list.PinList;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinSingleSelect;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinString;
 import top.bogey.touch_tool.service.TaskRunnable;
@@ -23,7 +24,7 @@ import top.bogey.touch_tool.service.TaskRunnable;
 public class TestNodeInfoAction extends CalculateAction {
     private final transient Pin nodePin = new Pin(new PinNode(), R.string.pin_node);
     private final transient Pin addPin = new Pin(new PinAdd(new Pin(new PinSingleSelect(R.array.node_info_type))));
-    private final transient Pin resultPin = new Pin(new PinString(), R.string.node_info_test_result, true);
+    private final transient Pin resultPin = new Pin(new PinList(new PinString()), R.string.node_info_test_result, true);
 
     public TestNodeInfoAction() {
         super(ActionType.TEST_NODE_INFO);
@@ -37,26 +38,19 @@ public class TestNodeInfoAction extends CalculateAction {
 
     @Override
     public void calculate(TaskRunnable runnable, Pin pin) {
+        PinList result = resultPin.getValue(PinList.class);
+        result.clear();
+
         PinNode node = getPinValue(runnable, nodePin);
-        if (node == null) {
-            resultPin.getValue(PinString.class).setValue("");
-            return;
-        }
+        if (node == null) return;
         NodeInfo nodeInfo = node.getNodeInfo();
-        if (nodeInfo == null) {
-            resultPin.getValue(PinString.class).setValue("");
-            return;
-        }
-        StringBuilder builder = new StringBuilder();
+        if (nodeInfo == null) return;
+
         for (Pin dynamicPin : getDynamicPins()) {
             PinSingleSelect select = dynamicPin.getValue(PinSingleSelect.class);
             if (select == null) continue;
-            int index = select.getIndex();
-            String text = readNodeInfo(nodeInfo, index);
-            if (builder.length() > 0) builder.append("\n");
-            builder.append(select.getValue()).append(": ").append(text);
+            result.add(new PinString(readNodeInfo(nodeInfo, select.getIndex())));
         }
-        resultPin.getValue(PinString.class).setValue(builder.toString());
     }
 
     // 添加针脚之后的所有输出项
