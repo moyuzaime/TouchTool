@@ -57,7 +57,8 @@ public class SteeringWheelView extends android.view.View {
         float cy = getHeight() / 2f;
         float radius = Math.min(getWidth(), getHeight()) / 2f;
 
-        // 四向箭头
+        // 四向箭头：必须显式设回描边，否则会沿用中心圆盘的填充样式变成实心三角
+        paint.setStyle(Paint.Style.STROKE);
         float distance = radius * 0.59f;
         float size = radius * 0.15f;
         paint.setStrokeWidth(Math.max(2f, 0.07f * radius));
