@@ -629,7 +629,8 @@ public class BlueprintView extends Fragment {
         binding.jumpBackButton.setOnClickListener(v -> binding.cardLayout.jumpBack());
         binding.cardLayout.initSavedGroupViews(binding.savedGroupPanel, binding.savedGroupListBox, binding.savedGroupButton);
         binding.cardLayout.setSavedGroupBarButton(binding.savedGroupBarButton);
-        binding.cardLayout.setSavedGroupBadge(binding.savedGroupBadge);
+        binding.cardLayout.addSavedGroupBadge(binding.savedGroupButton);
+        binding.cardLayout.addSavedGroupBadge(binding.savedGroupBarButton);
         setResultCount("");
 
         pushStack(task);

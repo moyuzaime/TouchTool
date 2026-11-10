@@ -117,7 +117,7 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
     private View savedGroupButton;
     // 顶栏入口：有暂存组时常驻，用来在没有选中卡片时也能打开面板
     private View savedGroupBarButton;
-    private TextView savedGroupBadge;
+    private final java.util.List<com.google.android.material.badge.BadgeDrawable> savedGroupBadges = new java.util.ArrayList<>();
 
     // 连线跳转：记住跳转前的视图位置，供「跳回」还原
     private PinView focusLinkPin;
@@ -353,10 +353,16 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
     }
 
     // 顶栏常驻入口：只要存在暂存组就显示，没有选中卡片时也能打开面板
-    // 暂存组数量角标
-    public void setSavedGroupBadge(TextView badge) {
-        savedGroupBadge = badge;
-        refreshSavedGroupViews();
+    // 暂存组数量角标：贴到暂存按钮右上角（底部按钮与顶栏按钮都挂）
+    public void addSavedGroupBadge(android.view.View anchor) {
+        if (anchor == null) return;
+        anchor.post(() -> {
+            com.google.android.material.badge.BadgeDrawable badge = com.google.android.material.badge.BadgeDrawable.create(anchor.getContext());
+            badge.setMaxCharacterCount(2);
+            com.google.android.material.badge.BadgeUtils.attachBadgeDrawable(badge, anchor, null);
+            savedGroupBadges.add(badge);
+            refreshSavedGroupViews();
+        });
     }
 
     public void setSavedGroupBarButton(View button) {
@@ -522,9 +528,9 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
         boolean empty = savedCardGroups.isEmpty();
         // 按钮本身挂在底部工具栏里，只切换它自己的可见性，不能动整个按钮组
         savedGroupButton.setVisibility(!empty || addMode ? View.VISIBLE : View.GONE);
-        if (savedGroupBadge != null) {
-            savedGroupBadge.setVisibility(empty ? View.GONE : View.VISIBLE);
-            savedGroupBadge.setText(String.valueOf(savedCardGroups.size()));
+        for (com.google.android.material.badge.BadgeDrawable badge : savedGroupBadges) {
+            badge.setVisible(!empty);
+            badge.setNumber(savedCardGroups.size());
         }
         if (savedGroupBarButton != null) savedGroupBarButton.setVisibility(empty ? View.GONE : View.VISIBLE);
 
