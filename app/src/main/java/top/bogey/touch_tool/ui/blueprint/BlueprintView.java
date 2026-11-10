@@ -71,7 +71,7 @@ public class BlueprintView extends Fragment {
     private ZoomBarView zoomBar;
     private SteeringWheelView steeringWheel;
 
-    private final static List<Action> copyActions = new ArrayList<>();
+    private final static List<List<Action>> copyGroups = new ArrayList<>();
 
     private final Stack<Task> taskStack = new Stack<>();
 
@@ -117,6 +117,15 @@ public class BlueprintView extends Fragment {
     }
 
     // 控制栏位置：方向盘与缩放条按横竖屏摆放（与 mod 一致）
+    // 复制缓冲状态：控制粘贴按钮显隐与数量
+    private void updateCopyPasteState() {
+        boolean empty = copyGroups.isEmpty();
+        binding.pasteButton.setVisibility(empty ? View.GONE : View.VISIBLE);
+        binding.pasteButton.setText(empty ? "" : String.valueOf(copyGroups.size()));
+        binding.pasteButton.setTextSize(11);
+        binding.pasteButton.setInsetTop(0);
+        binding.pasteButton.setInsetBottom(0);
+    }
     private void applyControlLayout() {
         int dp = (int) DisplayUtil.dp2px(requireContext(), 1);
         boolean portrait = DisplayUtil.isPortrait(requireContext());
@@ -527,15 +536,16 @@ public class BlueprintView extends Fragment {
         binding.cardLayout.setEditable(SettingSaver.BLUEPRINT_EDITABLE.get());
 
         binding.pasteButton.setOnClickListener(v -> {
-            binding.cardLayout.pasteActionsAtViewCenter(new ArrayList<>(copyActions));
-            copyActions.clear();
-            binding.pasteButton.setVisibility(View.GONE);
+            if (copyGroups.isEmpty()) return;
+            List<Action> group = copyGroups.remove(copyGroups.size() - 1);
+            binding.cardLayout.pasteActionsAtViewCenter(group);
+            updateCopyPasteState();
         });
-        binding.pasteButton.setVisibility(copyActions.isEmpty() ? View.GONE : View.VISIBLE);
+        updateCopyPasteState();
 
         binding.pasteButton.setOnLongClickListener(v -> {
-            copyActions.clear();
-            binding.pasteButton.setVisibility(View.GONE);
+            copyGroups.clear();
+            updateCopyPasteState();
             return true;
         });
 
@@ -578,18 +588,18 @@ public class BlueprintView extends Fragment {
             });
         });
 
-        // 复制：与暂存组一致，先把选中卡片放进缓冲，再点粘贴放到视图中心
+        // 复制：多次复制会累积成多组，粘贴按钮角标显示组数
         binding.copyButton.setOnClickListener(v -> {
-            copyActions.clear();
-            copyActions.addAll(binding.cardLayout.getSelectedActionsCopy());
-            binding.pasteButton.setVisibility(copyActions.isEmpty() ? View.GONE : View.VISIBLE);
+            List<Action> selectedActions = binding.cardLayout.getSelectedActionsCopy();
+            if (!selectedActions.isEmpty()) copyGroups.add(selectedActions);
+            updateCopyPasteState();
             binding.cardLayout.cleanSelectedCards();
         });
 
         binding.copyButton.setOnLongClickListener(v -> {
-            copyActions.clear();
-            copyActions.addAll(binding.cardLayout.getSelectedActionsCopy());
-            binding.pasteButton.setVisibility(copyActions.isEmpty() ? View.GONE : View.VISIBLE);
+            List<Action> selectedActions = binding.cardLayout.getSelectedActionsCopy();
+            if (!selectedActions.isEmpty()) copyGroups.add(selectedActions);
+            updateCopyPasteState();
             binding.cardLayout.cleanSelectedCards();
             return true;
         });
