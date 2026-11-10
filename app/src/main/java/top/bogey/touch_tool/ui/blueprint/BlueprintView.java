@@ -119,24 +119,29 @@ public class BlueprintView extends Fragment {
     // 控制栏位置：方向盘与缩放条按横竖屏摆放（与 mod 一致）
     private void applyControlLayout() {
         int dp = (int) DisplayUtil.dp2px(requireContext(), 1);
+        boolean portrait = DisplayUtil.isPortrait(requireContext());
+
         android.view.ViewGroup.LayoutParams zoomParams = binding.zoomSliderBox.getLayoutParams();
-        android.view.ViewGroup.LayoutParams wheelParams = binding.steeringWheelBox.getLayoutParams();
-        if (zoomParams instanceof android.widget.FrameLayout.LayoutParams zoom) {
-            boolean portrait = DisplayUtil.isPortrait(requireContext());
-            zoom.gravity = android.view.Gravity.START | android.view.Gravity.BOTTOM;
+        if (zoomParams instanceof android.view.ViewGroup.MarginLayoutParams zoom) {
             zoom.width = dp * 40;
             zoom.height = dp * (portrait ? 203 : 120);
             zoom.leftMargin = dp * 21;
             zoom.bottomMargin = dp * (portrait ? 209 : 80);
+            if (zoom instanceof androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams lp) {
+                lp.gravity = android.view.Gravity.START | android.view.Gravity.BOTTOM;
+            }
             binding.zoomSliderBox.setLayoutParams(zoom);
         }
-        if (wheelParams instanceof android.widget.FrameLayout.LayoutParams wheel) {
-            boolean portrait = DisplayUtil.isPortrait(requireContext());
-            wheel.gravity = android.view.Gravity.START | android.view.Gravity.BOTTOM;
+
+        android.view.ViewGroup.LayoutParams wheelParams = binding.steeringWheelBox.getLayoutParams();
+        if (wheelParams instanceof android.view.ViewGroup.MarginLayoutParams wheel) {
             wheel.width = dp * 80;
             wheel.height = dp * 80;
             wheel.leftMargin = dp * (portrait ? 11 : 73);
             wheel.bottomMargin = dp * (portrait ? 108 : 88);
+            if (wheel instanceof androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams lp) {
+                lp.gravity = android.view.Gravity.START | android.view.Gravity.BOTTOM;
+            }
             binding.steeringWheelBox.setLayoutParams(wheel);
         }
     }
