@@ -527,28 +527,7 @@ public class BlueprintView extends Fragment {
         binding.cardLayout.setEditable(SettingSaver.BLUEPRINT_EDITABLE.get());
 
         binding.pasteButton.setOnClickListener(v -> {
-            binding.cardLayout.cleanSelectedCards();
-            boolean first = true;
-            int offsetX = 0, offsetY = 0;
-            copyActions.sort(Comparator.comparingInt(o -> o.getPos().y));
-
-            for (Action copyAction : copyActions) {
-                ActionCard card = binding.cardLayout.addCard(copyAction);
-                if (card == null) continue;
-                if (first) {
-                    first = false;
-                    int x = copyAction.getPos().x;
-                    int y = copyAction.getPos().y;
-                    binding.cardLayout.initCardPos(card);
-                    offsetX = card.getAction().getPos().x - x;
-                    offsetY = card.getAction().getPos().y - y;
-                } else {
-                    Point pos = copyAction.getPos();
-                    copyAction.setPos(pos.x + offsetX, pos.y + offsetY);
-                    binding.cardLayout.updateCardPos(card);
-                }
-                binding.cardLayout.addSelectedCard(copyAction);
-            }
+            binding.cardLayout.pasteActionsAtViewCenter(new ArrayList<>(copyActions));
             copyActions.clear();
             binding.pasteButton.setVisibility(View.GONE);
         });
@@ -599,13 +578,12 @@ public class BlueprintView extends Fragment {
             });
         });
 
+        // 复制：与暂存组一致，先把选中卡片放进缓冲，再点粘贴放到视图中心
         binding.copyButton.setOnClickListener(v -> {
-            List<Action> selectedActions = binding.cardLayout.getSelectedActionsCopy();
+            copyActions.clear();
+            copyActions.addAll(binding.cardLayout.getSelectedActionsCopy());
+            binding.pasteButton.setVisibility(copyActions.isEmpty() ? View.GONE : View.VISIBLE);
             binding.cardLayout.cleanSelectedCards();
-            selectedActions.forEach(action -> {
-                binding.cardLayout.addCard(action);
-                binding.cardLayout.addSelectedCard(action);
-            });
         });
 
         binding.copyButton.setOnLongClickListener(v -> {

@@ -691,6 +691,37 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
         return true;
     }
 
+    // 把一批动作副本粘贴到视图中心（复制卡片用，参考暂存组的居中逻辑）
+    public void pasteActionsAtViewCenter(List<Action> actions) {
+        if (actions == null || actions.isEmpty()) return;
+        cleanSelectedCards();
+
+        int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE;
+        int minY = Integer.MAX_VALUE, maxY = Integer.MIN_VALUE;
+        for (Action action : actions) {
+            Point pos = action.getPos();
+            if (pos == null) continue;
+            minX = Math.min(minX, pos.x);
+            maxX = Math.max(maxX, pos.x);
+            minY = Math.min(minY, pos.y);
+            maxY = Math.max(maxY, pos.y);
+        }
+        if (minX == Integer.MAX_VALUE) return;
+
+        float grid = getScaleGridSize();
+        if (grid <= 0 || getWidth() <= 0 || getHeight() <= 0) return;
+        float areaCx = (minX + maxX) / 2f;
+        float areaCy = (minY + maxY) / 2f;
+        int dx = Math.round((getWidth() / 2f - offsetX) / grid - areaCx);
+        int dy = Math.round((getHeight() / 2f - offsetY) / grid - areaCy);
+
+        for (Action action : actions) {
+            Point pos = action.getPos();
+            if (pos != null) pos.offset(dx, dy);
+            ActionCard card = addCard(action);
+            if (card != null) addSelectedCard(action);
+        }
+    }
     private boolean moveCardsToViewCenter(Collection<ActionCard> collection) {
         if (collection.isEmpty()) return false;
         List<ActionCard> movable = new ArrayList<>();
