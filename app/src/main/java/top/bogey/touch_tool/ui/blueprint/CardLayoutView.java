@@ -117,6 +117,7 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
     private View savedGroupButton;
     // 顶栏入口：有暂存组时常驻，用来在没有选中卡片时也能打开面板
     private View savedGroupBarButton;
+    private TextView savedGroupBadge;
 
     // 连线跳转：记住跳转前的视图位置，供「跳回」还原
     private PinView focusLinkPin;
@@ -352,6 +353,12 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
     }
 
     // 顶栏常驻入口：只要存在暂存组就显示，没有选中卡片时也能打开面板
+    // 暂存组数量角标
+    public void setSavedGroupBadge(TextView badge) {
+        savedGroupBadge = badge;
+        refreshSavedGroupViews();
+    }
+
     public void setSavedGroupBarButton(View button) {
         savedGroupBarButton = button;
         button.setOnClickListener(v -> {
@@ -515,6 +522,10 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
         boolean empty = savedCardGroups.isEmpty();
         // 按钮本身挂在底部工具栏里，只切换它自己的可见性，不能动整个按钮组
         savedGroupButton.setVisibility(!empty || addMode ? View.VISIBLE : View.GONE);
+        if (savedGroupBadge != null) {
+            savedGroupBadge.setVisibility(empty ? View.GONE : View.VISIBLE);
+            savedGroupBadge.setText(String.valueOf(savedCardGroups.size()));
+        }
         if (savedGroupBarButton != null) savedGroupBarButton.setVisibility(empty ? View.GONE : View.VISIBLE);
 
         if (savedGroupButton instanceof MaterialButton button) {

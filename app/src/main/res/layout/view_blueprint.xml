@@ -548,6 +548,19 @@
 
         </com.google.android.material.button.MaterialButtonGroup>
 
+            <TextView
+                android:id="@+id/savedGroupBadge"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="2dp"
+                android:background="@drawable/bg_saved_group_badge"
+                android:gravity="center"
+                android:textColor="?attr/colorOnPrimary"
+                android:textSize="10sp"
+                android:visibility="gone" />
+
     </com.google.android.material.card.MaterialCardView>
 
     <LinearLayout
