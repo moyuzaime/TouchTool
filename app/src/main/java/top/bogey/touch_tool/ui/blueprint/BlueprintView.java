@@ -820,6 +820,20 @@ public class BlueprintView extends Fragment {
         copyPanelList = list;
     }
 
+    // 把面板里的图标按钮压到工具栏同尺寸
+    private void compactIconButton(com.google.android.material.button.MaterialButton button) {
+        int size = (int) DisplayUtil.dp2px(requireContext(), 40);
+        button.setMinWidth(size);
+        button.setMinimumWidth(size);
+        button.setMinHeight(size);
+        button.setMinimumHeight(size);
+        button.setPadding(0, 0, 0, 0);
+        button.setInsetTop(0);
+        button.setInsetBottom(0);
+        button.setIconPadding(0);
+        button.setIconSize((int) DisplayUtil.dp2px(requireContext(), 20));
+        button.setCornerRadius((int) DisplayUtil.dp2px(requireContext(), 20));
+    }
     private void refreshCopyPanel() {
         if (copyPanelList == null) return;
         copyPanelList.removeAllViews();
