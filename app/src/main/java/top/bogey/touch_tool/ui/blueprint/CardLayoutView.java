@@ -640,7 +640,7 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
         }
     }
 
-    private View makeSavedGroupActionButton(int size, int iconRes, int descRes, OnClickListener listener) {
+    public View makeSavedGroupActionButton(int size, int iconRes, int descRes, OnClickListener listener) {
         MaterialButton button = new MaterialButton(getContext(), null, com.google.android.material.R.attr.materialIconButtonStyle);
         button.setLayoutParams(new LinearLayout.LayoutParams(size, size));
         button.setIconResource(iconRes);

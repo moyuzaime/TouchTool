@@ -798,9 +798,9 @@ public class BlueprintView extends Fragment {
 
     private void buildCopyPanel() {
         com.google.android.material.card.MaterialCardView card = new com.google.android.material.card.MaterialCardView(requireContext());
-        card.setCardBackgroundColor(DisplayUtil.getAttrColor(requireContext(), com.google.android.material.R.attr.colorSurfaceContainerHigh));
-        card.setRadius(DisplayUtil.dp2px(requireContext(), 16));
-        card.setCardElevation(DisplayUtil.dp2px(requireContext(), 6));
+        card.setCardBackgroundColor(DisplayUtil.getAttrColor(requireContext(), com.google.android.material.R.attr.colorSurface));
+        card.setRadius(DisplayUtil.dp2px(requireContext(), 12));
+        card.setCardElevation(DisplayUtil.dp2px(requireContext(), 8));
         card.setVisibility(View.GONE);
         android.widget.LinearLayout list = new android.widget.LinearLayout(requireContext());
         list.setOrientation(android.widget.LinearLayout.VERTICAL);
@@ -815,10 +815,10 @@ public class BlueprintView extends Fragment {
 
         androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams params =
                 new androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams(
-                        android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
-                        android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+                        (int) DisplayUtil.dp2px(requireContext(), 176),
+                        (int) DisplayUtil.dp2px(requireContext(), 152));
         params.gravity = android.view.Gravity.BOTTOM | android.view.Gravity.CENTER_HORIZONTAL;
-        params.bottomMargin = (int) DisplayUtil.dp2px(requireContext(), 96);
+        params.bottomMargin = (int) DisplayUtil.dp2px(requireContext(), 112);
         binding.getRoot().addView(card, params);
 
         copyPanel = card;
@@ -852,6 +852,7 @@ public class BlueprintView extends Fragment {
             final int index = i;
             List<Action> group = copyGroups.get(i);
             android.widget.LinearLayout row = new android.widget.LinearLayout(requireContext());
+            row.setLayoutParams(new android.widget.LinearLayout.LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, (int) DisplayUtil.dp2px(requireContext(), 36)));
             row.setOrientation(android.widget.LinearLayout.HORIZONTAL);
             row.setGravity(android.view.Gravity.CENTER_VERTICAL);
             int rowPadding = (int) DisplayUtil.dp2px(requireContext(), 6);
@@ -859,36 +860,30 @@ public class BlueprintView extends Fragment {
 
             android.widget.TextView text = new android.widget.TextView(requireContext());
             text.setText(getString(R.string.blueprint_copy_group_item, index + 1, group.size()));
-            text.setTextSize(13);
+            text.setTextSize(12);
+            text.setTextColor(DisplayUtil.getAttrColor(requireContext(), androidx.appcompat.R.attr.colorPrimary));
+            text.setMaxLines(1);
+            text.setEllipsize(android.text.TextUtils.TruncateAt.END);
             row.addView(text, new android.widget.LinearLayout.LayoutParams(0, android.view.ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
-            com.google.android.material.button.MaterialButton paste = new com.google.android.material.button.MaterialButton(requireContext());
-            paste.setIconResource(R.drawable.icon_content_paste);
-            compactIconButton(paste);
-            paste.setIconPadding(0);
-            paste.setInsetTop(0);
-            paste.setInsetBottom(0);
-            paste.setOnClickListener(v -> {
-                List<Action> target = copyGroups.remove(index);
-                binding.cardLayout.pasteActionsAtViewCenter(target);
-                updateCopyPasteState();
-                if (copyGroups.isEmpty()) copyPanel.setVisibility(View.GONE);
-                else refreshCopyPanel();
-            });
+            int buttonSize = (int) DisplayUtil.dp2px(requireContext(), 32);
+            android.view.View paste = binding.cardLayout.makeSavedGroupActionButton(buttonSize,
+                    R.drawable.icon_content_paste, R.string.blueprint_copy_group_title, v -> {
+                        List<Action> target = copyGroups.remove(index);
+                        binding.cardLayout.pasteActionsAtViewCenter(target);
+                        updateCopyPasteState();
+                        if (copyGroups.isEmpty()) copyPanel.setVisibility(View.GONE);
+                        else refreshCopyPanel();
+                    });
             row.addView(paste);
 
-            com.google.android.material.button.MaterialButton delete = new com.google.android.material.button.MaterialButton(requireContext());
-            delete.setIconResource(R.drawable.icon_delete);
-            compactIconButton(delete);
-            delete.setIconPadding(0);
-            delete.setInsetTop(0);
-            delete.setInsetBottom(0);
-            delete.setOnClickListener(v -> {
-                copyGroups.remove(index);
-                updateCopyPasteState();
-                if (copyGroups.isEmpty()) copyPanel.setVisibility(View.GONE);
-                else refreshCopyPanel();
-            });
+            android.view.View delete = binding.cardLayout.makeSavedGroupActionButton(buttonSize,
+                    R.drawable.icon_delete, R.string.remove_task, v -> {
+                        copyGroups.remove(index);
+                        updateCopyPasteState();
+                        if (copyGroups.isEmpty()) copyPanel.setVisibility(View.GONE);
+                        else refreshCopyPanel();
+                    });
             row.addView(delete);
 
             copyPanelList.addView(row);
