@@ -794,7 +794,7 @@ public class BlueprintView extends Fragment {
     // ===== 复制组浮动面板（与暂存组同样式）=====
     private com.google.android.material.card.MaterialCardView copyPanel;
     private android.widget.LinearLayout copyPanelList;
-    private android.view.View copyPanelScrim;
+
 
     private void toggleCopyPanel() {
         if (copyGroups.isEmpty()) {
@@ -830,21 +830,6 @@ public class BlueprintView extends Fragment {
                         (int) DisplayUtil.dp2px(requireContext(), 152));
         params.gravity = android.view.Gravity.BOTTOM | android.view.Gravity.CENTER_HORIZONTAL;
         params.bottomMargin = (int) DisplayUtil.dp2px(requireContext(), 112);
-        // 透明遮罩：点击面板外任意位置关闭
-        android.view.View scrim = new android.view.View(requireContext());
-        androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams scrimParams =
-                new androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams(
-                        android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                        android.view.ViewGroup.LayoutParams.MATCH_PARENT);
-        scrim.setLayoutParams(scrimParams);
-        scrim.setOnClickListener(v -> {
-            if (copyPanel != null) copyPanel.setVisibility(View.GONE);
-            if (copyPanelScrim != null) copyPanelScrim.setVisibility(View.GONE);
-        });
-        scrim.setVisibility(View.GONE);
-        binding.getRoot().addView(scrim);
-        copyPanelScrim = scrim;
-
         binding.getRoot().addView(card, params);
 
         copyPanel = card;

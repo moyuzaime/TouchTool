@@ -112,6 +112,7 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
     private final List<ActionCard> savedGroupHighlightCards = new ArrayList<>();
     private int highlightedGroup = -1;
     private boolean savedGroupPanelOpen = false;
+    private Runnable onCanvasTouchListener;
     private View savedGroupPanel;
     private ViewGroup savedGroupListBox;
     private View savedGroupButton;
@@ -392,6 +393,11 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
             }
         }
     }
+    // 画布按下回调：用于收起其它浮动面板（如复制组面板）
+    public void setOnCanvasTouchListener(Runnable listener) {
+        onCanvasTouchListener = listener;
+    }
+
     public void setSavedGroupBarButton(View button) {
         savedGroupBarButton = button;
         button.setOnClickListener(v -> {
