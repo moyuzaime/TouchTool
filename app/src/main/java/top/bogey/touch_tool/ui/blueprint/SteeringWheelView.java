@@ -57,18 +57,6 @@ public class SteeringWheelView extends android.view.View {
         float cy = getHeight() / 2f;
         float radius = Math.min(getWidth(), getHeight()) / 2f;
 
-        // 四条对角连接线
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(Math.max(2f, 0.045f * radius));
-        paint.setColor(outlineColor);
-        for (double angle : new double[]{45d, 135d, 225d, 315d}) {
-            double radians = Math.toRadians(angle);
-            double inner = 0.34f * radius;
-            double outer = 0.82f * radius;
-            canvas.drawLine((float) (Math.cos(radians) * inner) + cx, (float) (inner * Math.sin(radians)) + cy,
-                    (float) (outer * Math.cos(radians)) + cx, (float) (outer * Math.sin(radians)) + cy, paint);
-        }
-
         // 四向箭头
         float distance = radius * 0.59f;
         float size = radius * 0.15f;
