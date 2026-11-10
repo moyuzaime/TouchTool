@@ -212,6 +212,12 @@
                             android:visibility="gone"
                             app:icon="@drawable/icon_copy" />
 
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/pasteAreaButton"
+                            style="?attr/iconButtonFilled"
+                            android:contentDescription="@string/picker_test_paste_area"
+                            app:icon="@drawable/icon_content_paste" />
+
                     </LinearLayout>
 
                 </FrameLayout>

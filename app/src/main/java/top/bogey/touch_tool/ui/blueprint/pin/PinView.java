@@ -55,6 +55,18 @@ public abstract class PinView extends FrameLayout implements PinListener {
         }
     }
 
+    // 查看当前剪贴板针脚值（不消费）
+    public static PinObject peekCopyValue() {
+        return copyValue;
+    }
+
+    // 取出剪贴板针脚值并清空
+    public static PinObject consumeCopyValue() {
+        PinObject object = copyValue;
+        copyValue = null;
+        return object;
+    }
+
     public PinView(@NonNull Context context, ActionCard card, Pin pin, boolean custom) {
         super(context);
         this.card = card;

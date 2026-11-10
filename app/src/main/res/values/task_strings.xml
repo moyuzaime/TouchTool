@@ -862,4 +862,5 @@
             <string name="file_action_write_mode">写入方式</string>
     <string name="file_action_create_mode">类型</string>
     <string name="file_action_line_mode">操作</string>
-                        </resources>
+                            <string name="picker_test_paste_area">粘贴区域</string>
+</resources>
