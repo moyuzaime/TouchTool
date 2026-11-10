@@ -535,11 +535,24 @@ public class BlueprintView extends Fragment {
         binding.editButton.setChecked(!SettingSaver.BLUEPRINT_EDITABLE.get());
         binding.cardLayout.setEditable(SettingSaver.BLUEPRINT_EDITABLE.get());
 
+        // 粘贴：弹出组列表，最近复制优先显示
         binding.pasteButton.setOnClickListener(v -> {
             if (copyGroups.isEmpty()) return;
-            List<Action> group = copyGroups.remove(copyGroups.size() - 1);
-            binding.cardLayout.pasteActionsAtViewCenter(group);
-            updateCopyPasteState();
+            String[] items = new String[copyGroups.size()];
+            for (int i = 0; i < copyGroups.size(); i++) {
+                int groupIndex = copyGroups.size() - 1 - i;
+                items[i] = getString(R.string.blueprint_copy_group_item, groupIndex + 1, copyGroups.get(groupIndex).size());
+            }
+            new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.blueprint_copy_group_title)
+                    .setItems(items, (dialog, which) -> {
+                        int groupIndex = copyGroups.size() - 1 - which;
+                        List<Action> group = copyGroups.remove(groupIndex);
+                        binding.cardLayout.pasteActionsAtViewCenter(group);
+                        updateCopyPasteState();
+                    })
+                    .setNegativeButton(R.string.cancel, null)
+                    .show();
         });
         updateCopyPasteState();
 

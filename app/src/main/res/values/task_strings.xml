@@ -865,4 +865,6 @@
                             <string name="picker_test_paste_area">粘贴区域</string>
     <string name="blueprint_steering_wheel_on">方向盘：一键到边界已开启，四向跳到边界并选中边界卡片</string>
     <string name="blueprint_steering_wheel_off">方向盘：一键到边界已关闭，四向按屏幕中心平移画布</string>
+    <string name="blueprint_copy_group_title">选择复制组</string>
+    <string name="blueprint_copy_group_item">第 %1$d 组（%2$d 张）</string>
 </resources>
