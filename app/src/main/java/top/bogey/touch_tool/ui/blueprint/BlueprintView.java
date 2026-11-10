@@ -17,6 +17,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Toast;
@@ -67,6 +68,7 @@ import top.bogey.touch_tool.utils.ThreadUtil;
 import top.bogey.touch_tool.utils.listener.TextChangedListener;
 
 public class BlueprintView extends Fragment {
+    private ZoomBarView zoomBar;
 
     private final static List<Action> copyActions = new ArrayList<>();
 
@@ -91,11 +93,13 @@ public class BlueprintView extends Fragment {
         binding.edgeBottomButton.setOnClickListener(v -> binding.cardLayout.jumpToEdge(3));
         binding.edgeLeftButton.setOnClickListener(v -> binding.cardLayout.jumpToEdge(0));
         binding.edgeRightButton.setOnClickListener(v -> binding.cardLayout.jumpToEdge(2));
-        binding.zoomSlider.addOnChangeListener((slider, value, fromUser) -> {
-            if (fromUser) binding.cardLayout.setScaleValue(value / 100f);
-        });
+        // 缩放条：0~1 对应 0.2~2.0 倍
+        zoomBar = new ZoomBarView(requireContext());
+        binding.zoomBarHost.addView(zoomBar, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        zoomBar.setListener(percent -> binding.cardLayout.setScaleValue(0.2f + percent * 1.8f));
         binding.cardLayout.setOnScaleChangedListener(scaleValue ->
-                binding.zoomSlider.setValue(Math.max(20f, Math.min(200f, scaleValue * 100f))));
+                zoomBar.setPercent((scaleValue - 0.2f) / 1.8f));
         applyEditToolsVisible(binding.searchButton.isChecked());
     }
 
@@ -107,7 +111,7 @@ public class BlueprintView extends Fragment {
         binding.edgeRightBox.setVisibility(visible);
         binding.zoomSliderBox.setVisibility(visible);
         if (showEditTools) {
-            binding.zoomSlider.setValue(Math.max(20f, Math.min(200f, binding.cardLayout.getScaleValue() * 100f)));
+            zoomBar.setPercent((binding.cardLayout.getScaleValue() - 0.2f) / 1.8f);
         }
     }
 
