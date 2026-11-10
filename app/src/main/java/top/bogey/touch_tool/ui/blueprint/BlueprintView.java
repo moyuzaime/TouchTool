@@ -548,24 +548,10 @@ public class BlueprintView extends Fragment {
         binding.editButton.setChecked(!SettingSaver.BLUEPRINT_EDITABLE.get());
         binding.cardLayout.setEditable(SettingSaver.BLUEPRINT_EDITABLE.get());
 
-        // 粘贴：弹出组列表，最近复制优先显示
+        // 粘贴：切换与暂存组同样式的复制组面板
         binding.pasteButton.setOnClickListener(v -> {
             if (copyGroups.isEmpty()) return;
-            String[] items = new String[copyGroups.size()];
-            for (int i = 0; i < copyGroups.size(); i++) {
-                int groupIndex = copyGroups.size() - 1 - i;
-                items[i] = getString(R.string.blueprint_copy_group_item, groupIndex + 1, copyGroups.get(groupIndex).size());
-            }
-            new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
-                    .setTitle(R.string.blueprint_copy_group_title)
-                    .setItems(items, (dialog, which) -> {
-                        int groupIndex = copyGroups.size() - 1 - which;
-                        List<Action> group = copyGroups.remove(groupIndex);
-                        binding.cardLayout.pasteActionsAtViewCenter(group);
-                        updateCopyPasteState();
-                    })
-                    .setNegativeButton(R.string.cancel, null)
-                    .show();
+            toggleCopyPanel();
         });
         updateCopyPasteState();
 
@@ -795,4 +781,91 @@ public class BlueprintView extends Fragment {
             }
         }
     }
+    // ===== 复制组浮动面板（与暂存组同样式）=====
+    private com.google.android.material.card.MaterialCardView copyPanel;
+    private android.widget.LinearLayout copyPanelList;
+
+    private void toggleCopyPanel() {
+        if (copyGroups.isEmpty()) {
+            if (copyPanel != null) copyPanel.setVisibility(View.GONE);
+            return;
+        }
+        if (copyPanel == null) buildCopyPanel();
+        boolean show = copyPanel.getVisibility() != View.VISIBLE;
+        copyPanel.setVisibility(show ? View.VISIBLE : View.GONE);
+        if (show) refreshCopyPanel();
+    }
+
+    private void buildCopyPanel() {
+        com.google.android.material.card.MaterialCardView card = new com.google.android.material.card.MaterialCardView(requireContext());
+        card.setCardBackgroundColor(DisplayUtil.getAttrColor(requireContext(), com.google.android.material.R.attr.colorSurfaceContainerHigh));
+        card.setRadius(DisplayUtil.dp2px(requireContext(), 16));
+        card.setCardElevation(DisplayUtil.dp2px(requireContext(), 6));
+        card.setVisibility(View.GONE);
+        android.widget.LinearLayout list = new android.widget.LinearLayout(requireContext());
+        list.setOrientation(android.widget.LinearLayout.VERTICAL);
+        int padding = (int) DisplayUtil.dp2px(requireContext(), 8);
+        list.setPadding(padding, padding, padding, padding);
+        card.addView(list);
+
+        androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams params =
+                new androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams(
+                        android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                        android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.gravity = android.view.Gravity.BOTTOM | android.view.Gravity.CENTER_HORIZONTAL;
+        params.bottomMargin = (int) DisplayUtil.dp2px(requireContext(), 96);
+        binding.getRoot().addView(card, params);
+
+        copyPanel = card;
+        copyPanelList = list;
+    }
+
+    private void refreshCopyPanel() {
+        if (copyPanelList == null) return;
+        copyPanelList.removeAllViews();
+        for (int i = copyGroups.size() - 1; i >= 0; i--) {
+            final int index = i;
+            List<Action> group = copyGroups.get(i);
+            android.widget.LinearLayout row = new android.widget.LinearLayout(requireContext());
+            row.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+            row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            int rowPadding = (int) DisplayUtil.dp2px(requireContext(), 6);
+            row.setPadding(rowPadding, rowPadding, rowPadding, rowPadding);
+
+            android.widget.TextView text = new android.widget.TextView(requireContext());
+            text.setText(getString(R.string.blueprint_copy_group_item, index + 1, group.size()));
+            text.setTextSize(13);
+            row.addView(text, new android.widget.LinearLayout.LayoutParams(0, android.view.ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+            com.google.android.material.button.MaterialButton paste = new com.google.android.material.button.MaterialButton(requireContext());
+            paste.setIconResource(R.drawable.icon_content_paste);
+            paste.setIconPadding(0);
+            paste.setInsetTop(0);
+            paste.setInsetBottom(0);
+            paste.setOnClickListener(v -> {
+                List<Action> target = copyGroups.remove(index);
+                binding.cardLayout.pasteActionsAtViewCenter(target);
+                updateCopyPasteState();
+                if (copyGroups.isEmpty()) copyPanel.setVisibility(View.GONE);
+                else refreshCopyPanel();
+            });
+            row.addView(paste);
+
+            com.google.android.material.button.MaterialButton delete = new com.google.android.material.button.MaterialButton(requireContext());
+            delete.setIconResource(R.drawable.icon_delete);
+            delete.setIconPadding(0);
+            delete.setInsetTop(0);
+            delete.setInsetBottom(0);
+            delete.setOnClickListener(v -> {
+                copyGroups.remove(index);
+                updateCopyPasteState();
+                if (copyGroups.isEmpty()) copyPanel.setVisibility(View.GONE);
+                else refreshCopyPanel();
+            });
+            row.addView(delete);
+
+            copyPanelList.addView(row);
+        }
+    }
+
 }
