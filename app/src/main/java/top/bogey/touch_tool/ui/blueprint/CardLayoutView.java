@@ -353,7 +353,7 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
     }
 
     // 顶栏常驻入口：只要存在暂存组就显示，没有选中卡片时也能打开面板
-    // 暂存组数量角标：按钮可见时贴到右上角，并放开父容器裁剪
+    // 暂存组数量角标：直接显示在按钮文字上，避免浮层被卡片圆角裁切
     public void addSavedGroupBadge(android.view.View anchor) {
         if (anchor == null) return;
         savedGroupBadges.put(anchor, null);
@@ -361,30 +361,16 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
     }
 
     private void updateSavedGroupBadges(boolean empty) {
-        for (java.util.Map.Entry<android.view.View, com.google.android.material.badge.BadgeDrawable> entry : savedGroupBadges.entrySet()) {
-            android.view.View anchor = entry.getKey();
-            if (anchor == null || anchor.getVisibility() != android.view.View.VISIBLE) continue;
-            com.google.android.material.badge.BadgeDrawable badge = entry.getValue();
-            if (badge == null) {
-                // 角标画在父容器上，必须放开裁剪，否则只显示一半
-                if (anchor.getParent() instanceof android.view.ViewGroup parent) {
-                    parent.setClipChildren(false);
-                    parent.setClipToPadding(false);
-                    if (parent.getParent() instanceof android.view.ViewGroup grand) {
-                        grand.setClipChildren(false);
-                        grand.setClipToPadding(false);
-                    }
-                }
-                badge = com.google.android.material.badge.BadgeDrawable.create(anchor.getContext());
-                badge.setMaxCharacterCount(2);
-                com.google.android.material.badge.BadgeUtils.attachBadgeDrawable(badge, anchor, null);
-                entry.setValue(badge);
+        String count = empty ? "" : String.valueOf(savedCardGroups.size());
+        for (android.view.View anchor : savedGroupBadges.keySet()) {
+            if (anchor instanceof com.google.android.material.button.MaterialButton button) {
+                button.setText(count);
+                button.setTextSize(11);
+                button.setInsetTop(0);
+                button.setInsetBottom(0);
             }
-            badge.setVisible(!empty);
-            badge.setNumber(savedCardGroups.size());
         }
     }
-
     public void setSavedGroupBarButton(View button) {
         savedGroupBarButton = button;
         button.setOnClickListener(v -> {
