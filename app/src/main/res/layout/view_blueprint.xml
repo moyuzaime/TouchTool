@@ -274,81 +274,9 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/edgeTopBox"
-        style="?attr/materialCardViewFilledStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|center_horizontal"
-        android:layout_marginTop="72dp"
-        android:visibility="gone"
-        app:cardBackgroundColor="?attr/colorSurface"
-        app:cardElevation="5dp"
-        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/edgeTopButton"
-            style="?attr/iconButton"
-            app:icon="@drawable/icon_keyboard_arrow_up" />
 
-    </com.google.android.material.card.MaterialCardView>
 
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/edgeBottomBox"
-        style="?attr/materialCardViewFilledStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="112dp"
-        android:visibility="gone"
-        app:cardBackgroundColor="?attr/colorSurface"
-        app:cardElevation="5dp"
-        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/edgeBottomButton"
-            style="?attr/iconButton"
-            app:icon="@drawable/icon_keyboard_arrow_down" />
-
-    </com.google.android.material.card.MaterialCardView>
-
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/edgeLeftBox"
-        style="?attr/materialCardViewFilledStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="start|center_vertical"
-        android:layout_marginStart="?attr/defaultPadding"
-        android:visibility="gone"
-        app:cardBackgroundColor="?attr/colorSurface"
-        app:cardElevation="5dp"
-        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/edgeLeftButton"
-            style="?attr/iconButton"
-            app:icon="@drawable/icon_keyboard_arrow_left" />
-
-    </com.google.android.material.card.MaterialCardView>
-
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/edgeRightBox"
-        style="?attr/materialCardViewFilledStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end|center_vertical"
-        android:layout_marginEnd="?attr/defaultPadding"
-        android:visibility="gone"
-        app:cardBackgroundColor="?attr/colorSurface"
-        app:cardElevation="5dp"
-        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/edgeRightButton"
-            style="?attr/iconButton"
-            app:icon="@drawable/icon_keyboard_arrow_right" />
-
-    </com.google.android.material.card.MaterialCardView>
 
     <FrameLayout
         android:id="@+id/steeringWheelBox"

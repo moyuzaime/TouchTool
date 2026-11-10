@@ -101,18 +101,18 @@ public class BlueprintView extends Fragment {
         steeringWheel = new SteeringWheelView(requireContext());
         binding.steeringWheelHost.addView(steeringWheel, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
-        steeringWheel.setListener((direction, jumpToEdge) -> {
-            if (jumpToEdge) {
-                binding.cardLayout.jumpToEdge(direction);
-                return;
+        steeringWheel.setListener(new SteeringWheelView.Listener() {
+            @Override
+            public void onCenterToggled(boolean jumpEnabled) {
+                // 模式切换提示由控件通过无障碍描述播报
             }
-            float halfWidth = binding.cardLayout.getWidth() / 2f;
-            float halfHeight = binding.cardLayout.getHeight() / 2f;
-            float dx = direction == 0 ? halfWidth : direction == 2 ? -halfWidth : 0;
-            float dy = direction == 1 ? halfHeight : direction == 3 ? -halfHeight : 0;
-            binding.cardLayout.panBy(dx, dy);
-        });
-        applyControlLayout();
+
+            @Override
+            public void onDirection(int direction) {
+                if (steeringWheel.isJumpEnabled()) binding.cardLayout.jumpToEdge(direction);
+                else binding.cardLayout.panToEdge(direction);
+            }
+        });        applyControlLayout();
         applyEditToolsVisible(binding.searchButton.isChecked());
     }
 
