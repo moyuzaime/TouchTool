@@ -6,16 +6,16 @@ import top.bogey.touch_tool.R;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinBase;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinSingleSelect;
 
-// 控件信息输出项针脚：下拉选择要读取的控件信息，不可被连线
+// 控件信息输出项针脚：下拉选择要读取的控件信息，不可被连线，位于卡片输出侧
 public class NodeInfoSelectPin extends NotLinkAblePin {
 
     public NodeInfoSelectPin() {
-        super(new PinSingleSelect(R.array.node_info_type), R.string.node_info_test_item);
+        super(new PinSingleSelect(R.array.node_info_type), R.string.node_info_test_item, true);
     }
 
-    // PinAdd 添加针脚时按实际类型用该构造器复制，保证复制后仍是不可链接针脚
+    // PinAdd 添加针脚时按实际类型用该构造器复制，保证复制后仍不可链接且位于输出侧
     public NodeInfoSelectPin(PinBase value) {
-        super(value, R.string.node_info_test_item);
+        super(value, R.string.node_info_test_item, true);
     }
 
     public NodeInfoSelectPin(JsonObject jsonObject) {
