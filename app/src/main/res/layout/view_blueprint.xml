@@ -388,10 +388,8 @@
                 style="?attr/defaultIconButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:padding="4dp"
                 android:visibility="gone"
-                app:icon="@drawable/icon_content_paste_more"
-                app:iconSize="32dp" />
+                app:icon="@drawable/icon_content_paste" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/savedGroupBarButton"
@@ -454,9 +452,7 @@
                 style="?attr/defaultIconButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:padding="4dp"
-                app:icon="@drawable/icon_content_copy_more"
-                app:iconSize="32dp" />
+                app:icon="@drawable/icon_content_copy" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/deleteButton"
