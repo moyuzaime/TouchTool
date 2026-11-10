@@ -806,7 +806,12 @@ public class BlueprintView extends Fragment {
         list.setOrientation(android.widget.LinearLayout.VERTICAL);
         int padding = (int) DisplayUtil.dp2px(requireContext(), 8);
         list.setPadding(padding, padding, padding, padding);
-        card.addView(list);
+        android.widget.ScrollView scroll = new android.widget.ScrollView(requireContext());
+        scroll.setLayoutParams(new android.view.ViewGroup.LayoutParams(
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                (int) DisplayUtil.dp2px(requireContext(), 208)));
+        scroll.addView(list);
+        card.addView(scroll);
 
         androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams params =
                 new androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams(
@@ -821,8 +826,10 @@ public class BlueprintView extends Fragment {
     }
 
     // 把面板里的图标按钮压到工具栏同尺寸
+    // 面板里的图标按钮：描边样式、32dp
     private void compactIconButton(com.google.android.material.button.MaterialButton button) {
-        int size = (int) DisplayUtil.dp2px(requireContext(), 40);
+        int size = (int) DisplayUtil.dp2px(requireContext(), 32);
+        int primary = DisplayUtil.getAttrColor(requireContext(), androidx.appcompat.R.attr.colorPrimary);
         button.setMinWidth(size);
         button.setMinimumWidth(size);
         button.setMinHeight(size);
@@ -831,8 +838,12 @@ public class BlueprintView extends Fragment {
         button.setInsetTop(0);
         button.setInsetBottom(0);
         button.setIconPadding(0);
-        button.setIconSize((int) DisplayUtil.dp2px(requireContext(), 20));
-        button.setCornerRadius((int) DisplayUtil.dp2px(requireContext(), 20));
+        button.setIconSize((int) DisplayUtil.dp2px(requireContext(), 16));
+        button.setCornerRadius(size / 2);
+        button.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));
+        button.setStrokeColor(android.content.res.ColorStateList.valueOf(primary));
+        button.setStrokeWidth((int) DisplayUtil.dp2px(requireContext(), 1));
+        button.setIconTint(android.content.res.ColorStateList.valueOf(primary));
     }
     private void refreshCopyPanel() {
         if (copyPanelList == null) return;
@@ -853,6 +864,7 @@ public class BlueprintView extends Fragment {
 
             com.google.android.material.button.MaterialButton paste = new com.google.android.material.button.MaterialButton(requireContext());
             paste.setIconResource(R.drawable.icon_content_paste);
+            compactIconButton(paste);
             paste.setIconPadding(0);
             paste.setInsetTop(0);
             paste.setInsetBottom(0);
@@ -867,6 +879,7 @@ public class BlueprintView extends Fragment {
 
             com.google.android.material.button.MaterialButton delete = new com.google.android.material.button.MaterialButton(requireContext());
             delete.setIconResource(R.drawable.icon_delete);
+            compactIconButton(delete);
             delete.setIconPadding(0);
             delete.setInsetTop(0);
             delete.setInsetBottom(0);
