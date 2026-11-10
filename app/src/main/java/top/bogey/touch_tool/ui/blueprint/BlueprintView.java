@@ -71,7 +71,17 @@ public class BlueprintView extends Fragment {
     private ZoomBarView zoomBar;
     private SteeringWheelView steeringWheel;
 
-    private final static List<List<Action>> copyGroups = new ArrayList<>();
+    // 复制组：带名字，方便区分与重命名
+    public static class CopyGroup {
+        private String name;
+        private final List<Action> actions;
+
+        public CopyGroup(List<Action> actions) {
+            this.actions = actions;
+        }
+    }
+
+    private final static List<CopyGroup> copyGroups = new ArrayList<>();
 
     private final Stack<Task> taskStack = new Stack<>();
 
@@ -603,14 +613,14 @@ public class BlueprintView extends Fragment {
         // 复制：多次复制会累积成多组，粘贴按钮角标显示组数
         binding.copyButton.setOnClickListener(v -> {
             List<Action> selectedActions = binding.cardLayout.getSelectedActionsCopy();
-            if (!selectedActions.isEmpty()) copyGroups.add(selectedActions);
+            if (!selectedActions.isEmpty()) copyGroups.add(new CopyGroup(selectedActions));
             updateCopyPasteState();
             binding.cardLayout.cleanSelectedCards();
         });
 
         binding.copyButton.setOnLongClickListener(v -> {
             List<Action> selectedActions = binding.cardLayout.getSelectedActionsCopy();
-            if (!selectedActions.isEmpty()) copyGroups.add(selectedActions);
+            if (!selectedActions.isEmpty()) copyGroups.add(new CopyGroup(selectedActions));
             updateCopyPasteState();
             binding.cardLayout.cleanSelectedCards();
             return true;
@@ -848,9 +858,18 @@ public class BlueprintView extends Fragment {
     private void refreshCopyPanel() {
         if (copyPanelList == null) return;
         copyPanelList.removeAllViews();
+        int rowHeightPx = (int) DisplayUtil.dp2px(requireContext(), 36);
+        int paddingPx = (int) DisplayUtil.dp2px(requireContext(), 8);
+        int targetHeight = Math.min((int) DisplayUtil.dp2px(requireContext(), 152),
+                copyGroups.size() * rowHeightPx + paddingPx);
+        android.view.ViewGroup.LayoutParams panelParams = copyPanel.getLayoutParams();
+        if (panelParams != null) {
+            panelParams.height = targetHeight;
+            copyPanel.setLayoutParams(panelParams);
+        }
         for (int i = copyGroups.size() - 1; i >= 0; i--) {
             final int index = i;
-            List<Action> group = copyGroups.get(i);
+            CopyGroup group = copyGroups.get(i);
             android.widget.LinearLayout row = new android.widget.LinearLayout(requireContext());
             row.setLayoutParams(new android.widget.LinearLayout.LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, (int) DisplayUtil.dp2px(requireContext(), 36)));
             row.setOrientation(android.widget.LinearLayout.HORIZONTAL);
@@ -859,18 +878,28 @@ public class BlueprintView extends Fragment {
             row.setPadding(rowPadding, rowPadding, rowPadding, rowPadding);
 
             android.widget.TextView text = new android.widget.TextView(requireContext());
-            text.setText(getString(R.string.blueprint_copy_group_item, index + 1, group.size()));
+            String name = group.name;
+            if (name == null || name.isEmpty()) name = getString(R.string.blueprint_copy_group_item, index + 1, group.actions.size());
+            text.setText(name);
             text.setTextSize(12);
             text.setTextColor(DisplayUtil.getAttrColor(requireContext(), androidx.appcompat.R.attr.colorPrimary));
             text.setMaxLines(1);
             text.setEllipsize(android.text.TextUtils.TruncateAt.END);
             row.addView(text, new android.widget.LinearLayout.LayoutParams(0, android.view.ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            text.setOnLongClickListener(v -> {
+                top.bogey.touch_tool.utils.AppUtil.showEditDialog(requireContext(),
+                        R.string.blueprint_copy_group_name, group.name == null ? "" : group.name, newName -> {
+                            group.name = newName == null ? "" : newName;
+                            refreshCopyPanel();
+                        });
+                return true;
+            });
 
             int buttonSize = (int) DisplayUtil.dp2px(requireContext(), 32);
             android.view.View paste = binding.cardLayout.makeSavedGroupActionButton(buttonSize,
                     R.drawable.icon_content_paste, R.string.blueprint_copy_group_title, v -> {
-                        List<Action> target = copyGroups.remove(index);
-                        binding.cardLayout.pasteActionsAtViewCenter(target);
+                        CopyGroup target = copyGroups.remove(index);
+                        binding.cardLayout.pasteActionsAtViewCenter(target.actions);
                         updateCopyPasteState();
                         if (copyGroups.isEmpty()) copyPanel.setVisibility(View.GONE);
                         else refreshCopyPanel();

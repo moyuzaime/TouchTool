@@ -867,4 +867,5 @@
     <string name="blueprint_steering_wheel_off">方向盘：一键到边界已关闭，四向按屏幕中心平移画布</string>
     <string name="blueprint_copy_group_title">选择复制组</string>
     <string name="blueprint_copy_group_item">第 %1$d 组（%2$d 张）</string>
+    <string name="blueprint_copy_group_name">复制组名称</string>
 </resources>
