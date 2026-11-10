@@ -357,7 +357,14 @@
         android:layout_gravity="start|bottom"
         android:layout_marginBottom="108dp"
         android:layout_marginStart="11dp"
-        android:visibility="gone" />
+        android:visibility="gone">
+
+        <FrameLayout
+            android:id="@+id/steeringWheelHost"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </FrameLayout>
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/zoomSliderBox"
@@ -378,19 +385,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:padding="?attr/defaultOffset" />
-
-        <com.google.android.material.slider.Slider
-            android:id="@+id/zoomSlider"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:rotation="270"
-            android:value="75"
-            android:valueFrom="20"
-            android:valueTo="200"
-            android:visibility="gone"
-            app:labelBehavior="gone"
-            app:tickVisible="false" />
 
     </com.google.android.material.card.MaterialCardView>
 

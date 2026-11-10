@@ -261,6 +261,14 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
     public void panBy(float dx, float dy) {
         animateOffsetTo(offsetX + dx, offsetY + dy);
     }
+    // 平移到某个方向的边界（不改变选中）
+    public void panToEdge(int direction) {
+        float halfWidth = getWidth() / 2f;
+        float halfHeight = getHeight() / 2f;
+        float dx = direction == 0 ? halfWidth : direction == 2 ? -halfWidth : 0;
+        float dy = direction == 1 ? halfHeight : direction == 3 ? -halfHeight : 0;
+        panBy(dx, dy);
+    }
     public void jumpToEdge(int direction) {
         if (cards.isEmpty()) return;
 

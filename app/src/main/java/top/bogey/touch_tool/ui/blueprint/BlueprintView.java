@@ -90,10 +90,6 @@ public class BlueprintView extends Fragment {
 
     // 辅助工具：四边跳转按钮 + 缩放条
     private void initEditTools() {
-        binding.edgeTopButton.setOnClickListener(v -> binding.cardLayout.jumpToEdge(1));
-        binding.edgeBottomButton.setOnClickListener(v -> binding.cardLayout.jumpToEdge(3));
-        binding.edgeLeftButton.setOnClickListener(v -> binding.cardLayout.jumpToEdge(0));
-        binding.edgeRightButton.setOnClickListener(v -> binding.cardLayout.jumpToEdge(2));
         // 缩放条：0~1 对应 0.2~2.0 倍
         zoomBar = new ZoomBarView(requireContext());
         binding.zoomBarHost.addView(zoomBar, new FrameLayout.LayoutParams(
@@ -103,7 +99,7 @@ public class BlueprintView extends Fragment {
                 zoomBar.setPercent((scaleValue - 0.2f) / 1.8f));
         // 方向盘：一键到边界 / 平移画布
         steeringWheel = new SteeringWheelView(requireContext());
-        binding.steeringWheelBox.addView(steeringWheel, new FrameLayout.LayoutParams(
+        binding.steeringWheelHost.addView(steeringWheel, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
         steeringWheel.setListener((direction, jumpToEdge) -> {
             if (jumpToEdge) {
@@ -116,15 +112,36 @@ public class BlueprintView extends Fragment {
             float dy = direction == 1 ? halfHeight : direction == 3 ? -halfHeight : 0;
             binding.cardLayout.panBy(dx, dy);
         });
+        applyControlLayout();
         applyEditToolsVisible(binding.searchButton.isChecked());
     }
 
+    // 控制栏位置：方向盘与缩放条按横竖屏摆放（与 mod 一致）
+    private void applyControlLayout() {
+        int dp = (int) DisplayUtil.dp2px(requireContext(), 1);
+        android.view.ViewGroup.LayoutParams zoomParams = binding.zoomSliderBox.getLayoutParams();
+        android.view.ViewGroup.LayoutParams wheelParams = binding.steeringWheelBox.getLayoutParams();
+        if (zoomParams instanceof android.widget.FrameLayout.LayoutParams zoom) {
+            boolean portrait = DisplayUtil.isPortrait(requireContext());
+            zoom.gravity = android.view.Gravity.START | android.view.Gravity.BOTTOM;
+            zoom.width = dp * 40;
+            zoom.height = dp * (portrait ? 203 : 120);
+            zoom.leftMargin = dp * 21;
+            zoom.bottomMargin = dp * (portrait ? 209 : 80);
+            binding.zoomSliderBox.setLayoutParams(zoom);
+        }
+        if (wheelParams instanceof android.widget.FrameLayout.LayoutParams wheel) {
+            boolean portrait = DisplayUtil.isPortrait(requireContext());
+            wheel.gravity = android.view.Gravity.START | android.view.Gravity.BOTTOM;
+            wheel.width = dp * 80;
+            wheel.height = dp * 80;
+            wheel.leftMargin = dp * (portrait ? 11 : 73);
+            wheel.bottomMargin = dp * (portrait ? 108 : 88);
+            binding.steeringWheelBox.setLayoutParams(wheel);
+        }
+    }
     private void applyEditToolsVisible(boolean searching) {
         int visible = showEditTools ? View.VISIBLE : View.GONE;
-        binding.edgeTopBox.setVisibility(!showEditTools || searching ? View.GONE : View.VISIBLE);
-        binding.edgeBottomBox.setVisibility(visible);
-        binding.edgeLeftBox.setVisibility(visible);
-        binding.edgeRightBox.setVisibility(visible);
         binding.zoomSliderBox.setVisibility(visible);
         binding.steeringWheelBox.setVisibility(visible);
         if (showEditTools) {
@@ -235,7 +252,8 @@ public class BlueprintView extends Fragment {
         menuBinding.editToolsRow.setOnClickListener(v -> menuBinding.editToolsSwitch.toggle());
         menuBinding.editToolsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             showEditTools = isChecked;
-            applyEditToolsVisible(binding.searchButton.isChecked());
+            applyControlLayout();
+        applyEditToolsVisible(binding.searchButton.isChecked());
         });
 
         // 贴住更多按钮下方、右边缘对齐，位置和原生弹出菜单一致
