@@ -16,12 +16,14 @@ import top.bogey.touch_tool.utils.DisplayUtil;
 
 // 在图标右上角绘制数量角标的 Drawable（不占按钮宽度，也不受父容器裁剪影响）
 public class BadgeIconDrawable extends Drawable {
+    private final Context context;
     private final Drawable base;
     private final Paint bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private int count;
 
     public BadgeIconDrawable(Context context, @NonNull Drawable base) {
+        this.context = context;
         this.base = base;
         bgPaint.setColor(DisplayUtil.getAttrColor(context, com.google.android.material.R.attr.colorTertiary));
         textPaint.setColor(Color.WHITE);
@@ -43,27 +45,15 @@ public class BadgeIconDrawable extends Drawable {
         base.draw(canvas);
         if (count <= 0) return;
 
-        float radius = Math.max(DisplayUtil.dp2px(getContextHack(), 7), bounds.width() * 0.28f);
+        float radius = Math.max(DisplayUtil.dp2px(context, 7), bounds.width() * 0.28f);
         float cx = bounds.right - radius * 0.65f;
         float cy = bounds.top + radius * 0.65f;
         canvas.drawCircle(cx, cy, radius, bgPaint);
 
         String text = count > 99 ? "99+" : String.valueOf(count);
-        float size = textPaint.getTextSize() * (text.length() > 1 ? 0.78f : 1f);
-        textPaint.setTextSize(size);
+        textPaint.setTextSize(DisplayUtil.dp2px(context, 9) * (text.length() > 1 ? 0.78f : 1f));
         float baseline = cy - (textPaint.descent() + textPaint.ascent()) / 2f;
         canvas.drawText(text, cx, baseline, textPaint);
-    }
-
-    // 拿不到 context 时的兜底尺寸（1dp≈2px，仅用于圆半径下限）
-    private Context hackContext;
-    private Context getContextHack() {
-        return hackContext;
-    }
-
-    public void setContext(Context context) {
-        hackContext = context;
-        textPaint.setTextSize(DisplayUtil.dp2px(context, 9));
     }
 
     @Override
