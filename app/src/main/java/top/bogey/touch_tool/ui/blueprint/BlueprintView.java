@@ -117,14 +117,28 @@ public class BlueprintView extends Fragment {
     }
 
     // 控制栏位置：方向盘与缩放条按横竖屏摆放（与 mod 一致）
-    // 复制缓冲状态：控制粘贴按钮显隐与数量
+    // 复制缓冲状态：粘贴按钮用与暂存一致的图标角标显示数量
     private void updateCopyPasteState() {
         boolean empty = copyGroups.isEmpty();
         binding.pasteButton.setVisibility(empty ? View.GONE : View.VISIBLE);
-        binding.pasteButton.setText(empty ? "" : String.valueOf(copyGroups.size()));
-        binding.pasteButton.setTextSize(11);
-        binding.pasteButton.setInsetTop(0);
-        binding.pasteButton.setInsetBottom(0);
+        binding.pasteButton.setText("");
+        if (empty) {
+            if (binding.pasteButton.getIcon() instanceof BadgeIconDrawable badgeIcon) badgeIcon.setCount(0);
+            return;
+        }
+        if (binding.pasteButton.getIcon() instanceof BadgeIconDrawable badgeIcon) {
+            badgeIcon.setCount(copyGroups.size());
+            return;
+        }
+        android.graphics.drawable.Drawable icon = binding.pasteButton.getIcon();
+        if (icon == null) return;
+        if (binding.pasteButton.getIconTint() != null) {
+            androidx.core.graphics.drawable.DrawableCompat.setTintList(icon, binding.pasteButton.getIconTint());
+        }
+        binding.pasteButton.setIconTint(null);
+        BadgeIconDrawable badgeIcon = new BadgeIconDrawable(binding.pasteButton.getContext(), icon);
+        badgeIcon.setCount(copyGroups.size());
+        binding.pasteButton.setIcon(badgeIcon);
     }
     private void applyControlLayout() {
         int dp = (int) DisplayUtil.dp2px(requireContext(), 1);
