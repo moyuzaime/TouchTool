@@ -1181,6 +1181,7 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
                     savedGroupPanelOpen = false;
                     refreshSavedGroupViews();
                 }
+                if (onCanvasTouchListener != null) onCanvasTouchListener.run();
                 startX = x;
                 startY = y;
                 realStartX = realX;

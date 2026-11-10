@@ -660,7 +660,10 @@ public class BlueprintView extends Fragment {
         initEditTools();
         binding.cardLayout.setJumpBackButton(binding.jumpBackButton);
         binding.jumpBackButton.setOnClickListener(v -> binding.cardLayout.jumpBack());
-        binding.cardLayout.initSavedGroupViews(binding.savedGroupPanel, binding.savedGroupListBox, binding.savedGroupButton);
+        // 点画布收起复制面板（与暂存面板一致）
+        binding.cardLayout.setOnCanvasTouchListener(() -> {
+            if (copyPanel != null) copyPanel.setVisibility(View.GONE);
+        });        binding.cardLayout.initSavedGroupViews(binding.savedGroupPanel, binding.savedGroupListBox, binding.savedGroupButton);
         binding.cardLayout.setSavedGroupBarButton(binding.savedGroupBarButton);
         binding.cardLayout.addSavedGroupBadge(binding.savedGroupButton);
         binding.cardLayout.addSavedGroupBadge(binding.savedGroupBarButton);
