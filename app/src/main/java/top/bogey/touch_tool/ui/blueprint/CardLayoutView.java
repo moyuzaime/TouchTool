@@ -298,7 +298,7 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
             animateOffsetTo(offsetX, -pos.y * grid + (getHeight() - target.getHeight() * scale) / 3f);
         }
 
-        if (selectedCards.isEmpty()) {
+        if (forceSelect || selectedCards.isEmpty()) {
             cleanSelectedCards();
             addSelectedCard(target);
         }
