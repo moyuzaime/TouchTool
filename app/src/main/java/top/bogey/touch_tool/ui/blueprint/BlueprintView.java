@@ -132,9 +132,8 @@ public class BlueprintView extends Fragment {
         }
         android.graphics.drawable.Drawable icon = binding.pasteButton.getIcon();
         if (icon == null) return;
-        if (binding.pasteButton.getIconTint() != null) {
-            androidx.core.graphics.drawable.DrawableCompat.setTintList(icon, binding.pasteButton.getIconTint());
-        }
+        androidx.core.graphics.drawable.DrawableCompat.setTint(icon,
+                DisplayUtil.getAttrColor(binding.pasteButton.getContext(), com.google.android.material.R.attr.colorOnSurfaceVariant));
         binding.pasteButton.setIconTint(null);
         BadgeIconDrawable badgeIcon = new BadgeIconDrawable(binding.pasteButton.getContext(), icon);
         badgeIcon.setCount(copyGroups.size());
