@@ -154,7 +154,6 @@ public class ActionMap {
             case NODE -> list.addAll(Arrays.asList(
                     ActionType.FIND_NODE,
                     ActionType.IS_NODE_EXIST,
-                    ActionType.TEST_NODE_INFO,
                     ActionType.GET_NODE_INFO,
                     ActionType.GET_NODE_CHILDREN,
                     ActionType.GET_NODE_PARENT,

@@ -5,7 +5,6 @@ import android.view.accessibility.AccessibilityNodeInfo;
 
 import com.google.gson.JsonObject;
 
-import java.util.Collections;
 import java.util.List;
 
 import top.bogey.touch_tool.R;
@@ -13,120 +12,100 @@ import top.bogey.touch_tool.bean.action.ActionType;
 import top.bogey.touch_tool.bean.action.parent.CalculateAction;
 import top.bogey.touch_tool.bean.other.NodeInfo;
 import top.bogey.touch_tool.bean.pin.Pin;
-import top.bogey.touch_tool.bean.pin.pin_objects.PinAdd;
+import top.bogey.touch_tool.bean.pin.pin_objects.PinBoolean;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinNode;
-import top.bogey.touch_tool.bean.pin.pin_objects.pin_list.PinList;
-import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinSingleSelect;
-import top.bogey.touch_tool.bean.pin.special_pin.NodeInfoSelectPin;
+import top.bogey.touch_tool.bean.pin.pin_objects.pin_number.PinInteger;
+import top.bogey.touch_tool.bean.pin.pin_objects.pin_scale_able.PinArea;
+import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinNodePathString;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinString;
 import top.bogey.touch_tool.service.TaskRunnable;
 
-// 获取控件信息：可添加「输出项」下拉选择要读取的内容，结果以文本列表输出
 public class GetNodeInfoAction extends CalculateAction {
     private final transient Pin nodePin = new Pin(new PinNode(), R.string.pin_node);
-    private final transient Pin addPin = new Pin(new PinAdd(new NodeInfoSelectPin()));
-    private final transient Pin resultPin = new Pin(new PinList(new PinString()), R.string.get_node_info_action_result, true);
+    private final transient Pin clazzPin = new Pin(new PinString(), R.string.get_node_info_action_clazz, true);
+    private final transient Pin idPin = new Pin(new PinString(), R.string.get_node_info_action_id, true, false, true);
+    private final transient Pin textPin = new Pin(new PinString(), R.string.pin_string, true);
+    private final transient Pin descPin = new Pin(new PinString(), R.string.get_node_info_action_node_desc, true, false, true);
+    private final transient Pin areaPin = new Pin(new PinArea(), R.string.pin_area, true);
+    private final transient Pin usablePin = new Pin(new PinBoolean(), R.string.get_node_info_action_usable, true, false, true);
+    private final transient Pin visiblePin = new Pin(new PinBoolean(), R.string.get_node_info_action_visible, true, false, true);
+    private final transient Pin pathPin = new Pin(new PinNodePathString(), R.string.pin_string_node_path, true, false, true);
+    // 更完整的控件属性，取自 AccessibilityNodeInfo
+    private final transient Pin packagePin = new Pin(new PinString(), R.string.get_node_info_action_package, true);
+    private final transient Pin longClickablePin = new Pin(new PinBoolean(), R.string.get_node_info_action_long_clickable, true);
+    private final transient Pin scrollablePin = new Pin(new PinBoolean(), R.string.get_node_info_action_scrollable, true);
+    private final transient Pin focusablePin = new Pin(new PinBoolean(), R.string.get_node_info_action_focusable, true);
+    private final transient Pin editablePin = new Pin(new PinBoolean(), R.string.get_node_info_action_editable, true);
+    private final transient Pin selectedPin = new Pin(new PinBoolean(), R.string.get_node_info_action_selected, true);
+    private final transient Pin checkedPin = new Pin(new PinBoolean(), R.string.get_node_info_action_checked, true);
+    private final transient Pin focusedPin = new Pin(new PinBoolean(), R.string.get_node_info_action_focused, true);
+    private final transient Pin enabledPin = new Pin(new PinBoolean(), R.string.get_node_info_action_enabled, true);
+    private final transient Pin hintPin = new Pin(new PinString(), R.string.get_node_info_action_hint, true);
+    private final transient Pin depthPin = new Pin(new PinInteger(), R.string.get_node_info_action_depth, true);
+    private final transient Pin actionCountPin = new Pin(new PinInteger(), R.string.get_node_info_action_action_count, true);
+    private final transient Pin windowIdPin = new Pin(new PinInteger(), R.string.get_node_info_action_window_id, true);
+    private final transient Pin inputTypePin = new Pin(new PinInteger(), R.string.get_node_info_action_input_type, true);
+    private final transient Pin indexPin = new Pin(new PinInteger(), R.string.get_node_info_action_index, true);
+    private final transient Pin childCountPin = new Pin(new PinInteger(), R.string.get_node_info_action_child_count, true);
 
     public GetNodeInfoAction() {
         super(ActionType.GET_NODE_INFO);
-        addPins(nodePin, addPin, resultPin);
+        addPins(nodePin, clazzPin, idPin, textPin, descPin, areaPin, usablePin, visiblePin, pathPin,
+                packagePin, longClickablePin, scrollablePin, focusablePin, editablePin, selectedPin, checkedPin,
+                focusedPin, enabledPin, hintPin, depthPin, actionCountPin, windowIdPin, inputTypePin, indexPin, childCountPin);
     }
 
     public GetNodeInfoAction(JsonObject jsonObject) {
         super(jsonObject);
-        reAddPins(nodePin, addPin, resultPin);
+        reAddPins(nodePin, clazzPin, idPin, textPin, descPin, areaPin, usablePin, visiblePin, pathPin,
+                packagePin, longClickablePin, scrollablePin, focusablePin, editablePin, selectedPin, checkedPin,
+                focusedPin, enabledPin, hintPin, depthPin, actionCountPin, windowIdPin, inputTypePin, indexPin, childCountPin);
     }
 
     @Override
     public void calculate(TaskRunnable runnable, Pin pin) {
-        PinList result = resultPin.getValue(PinList.class);
-        result.clear();
-
         PinNode node = getPinValue(runnable, nodePin);
         if (node == null) return;
         NodeInfo nodeInfo = node.getNodeInfo();
         if (nodeInfo == null) return;
+        clazzPin.getValue(PinString.class).setValue(nodeInfo.clazz);
+        idPin.getValue(PinString.class).setValue(nodeInfo.id);
+        textPin.getValue(PinString.class).setValue(nodeInfo.text);
+        descPin.getValue(PinString.class).setValue(nodeInfo.desc);
+        areaPin.getValue(PinArea.class).setValue(nodeInfo.area);
+        usablePin.getValue(PinBoolean.class).setValue(nodeInfo.usable);
+        visiblePin.getValue(PinBoolean.class).setValue(nodeInfo.visible);
+        pathPin.getValue(PinNodePathString.class).setValue(nodeInfo);
 
-        for (Pin dynamicPin : getDynamicPins()) {
-            PinSingleSelect select = dynamicPin.getValue(PinSingleSelect.class);
-            if (select == null) continue;
-            result.add(new PinString(readNodeInfo(nodeInfo, select.getIndex())));
-        }
-    }
-
-    // 添加针脚之后的所有输出项
-    public List<Pin> getDynamicPins() {
-        PinAdd pinAdd = addPin.getValue(PinAdd.class);
-        return pinAdd == null ? Collections.emptyList() : pinAdd.getPins();
-    }
-
-    private String readNodeInfo(NodeInfo nodeInfo, int index) {
         AccessibilityNodeInfo info = nodeInfo.node;
-        switch (index) {
-            case 0:
-                return safe(nodeInfo.clazz);
-            case 1:
-                return safe(nodeInfo.id);
-            case 2:
-                return String.valueOf(nodeInfo.index);
-            case 3:
-                return safe(nodeInfo.text);
-            case 4:
-                return safe(nodeInfo.desc);
-            case 5:
-                return String.valueOf(nodeInfo.index);
-            case 6:
-                return String.valueOf(nodeInfo.usable);
-            case 7:
-                return String.valueOf(nodeInfo.visible);
-            case 8:
-                return nodeInfo.area == null ? "" : nodeInfo.area.toShortString();
-            case 9:
-                return nodeInfo.area == null ? "" : nodeInfo.area.width() + "x" + nodeInfo.area.height();
-            case 10:
-                return nodeInfo.getParent() == null ? "" : safe(nodeInfo.getParent().clazz);
-            case 11:
-                return String.valueOf(nodeInfo.getChildCount() > 0);
-            case 12:
-                return info == null || info.getPackageName() == null ? "" : info.getPackageName().toString();
-            case 13:
-                return String.valueOf(info != null && info.isLongClickable());
-            case 14:
-                return String.valueOf(info != null && info.isScrollable());
-            case 15:
-                return String.valueOf(info != null && info.isFocusable());
-            case 16:
-                return String.valueOf(info != null && info.isEditable());
-            case 17:
-                return String.valueOf(info != null && info.isSelected());
-            case 18:
-                return String.valueOf(info != null && info.isChecked());
-            case 19:
-                return String.valueOf(info != null && info.isFocused());
-            case 20:
-                return String.valueOf(info != null && info.isEnabled());
-            case 21:
-                return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && info != null && info.getHintText() != null
-                        ? info.getHintText().toString() : "";
-            case 22:
-                return String.valueOf(getNodeDepth(nodeInfo));
-            case 23:
-                if (info == null) return "0";
-                List<AccessibilityNodeInfo.AccessibilityAction> actions = info.getActionList();
-                return String.valueOf(actions == null ? 0 : actions.size());
-            case 24:
-                return info == null ? "0" : String.valueOf(info.getWindowId());
-            case 25:
-                return info == null ? "0" : String.valueOf(info.getInputType());
-            default:
-                return "";
+        packagePin.getValue(PinString.class).setValue(info == null || info.getPackageName() == null ? "" : info.getPackageName().toString());
+        longClickablePin.getValue(PinBoolean.class).setValue(info != null && info.isLongClickable());
+        scrollablePin.getValue(PinBoolean.class).setValue(info != null && info.isScrollable());
+        focusablePin.getValue(PinBoolean.class).setValue(info != null && info.isFocusable());
+        editablePin.getValue(PinBoolean.class).setValue(info != null && info.isEditable());
+        selectedPin.getValue(PinBoolean.class).setValue(info != null && info.isSelected());
+        checkedPin.getValue(PinBoolean.class).setValue(info != null && info.isChecked());
+        focusedPin.getValue(PinBoolean.class).setValue(info != null && info.isFocused());
+        enabledPin.getValue(PinBoolean.class).setValue(info != null && info.isEnabled());
+        // 提示文本需要 API 26
+        hintPin.getValue(PinString.class).setValue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && info != null && info.getHintText() != null
+                ? info.getHintText().toString() : "");
+        depthPin.getValue(PinInteger.class).setValue(getNodeDepth(nodeInfo));
+        if (info == null) {
+            actionCountPin.getValue(PinInteger.class).setValue(0);
+            windowIdPin.getValue(PinInteger.class).setValue(0);
+            inputTypePin.getValue(PinInteger.class).setValue(0);
+        } else {
+            List<AccessibilityNodeInfo.AccessibilityAction> actions = info.getActionList();
+            actionCountPin.getValue(PinInteger.class).setValue(actions == null ? 0 : actions.size());
+            windowIdPin.getValue(PinInteger.class).setValue(info.getWindowId());
+            inputTypePin.getValue(PinInteger.class).setValue(info.getInputType());
         }
+        indexPin.getValue(PinInteger.class).setValue(nodeInfo.index);
+        childCountPin.getValue(PinInteger.class).setValue(nodeInfo.getChildCount());
     }
 
-    private String safe(String value) {
-        return value == null ? "" : value;
-    }
-
+    // 层级深度：沿父节点链计数
     private int getNodeDepth(NodeInfo nodeInfo) {
         int depth = 0;
         NodeInfo parent = nodeInfo.getParent();

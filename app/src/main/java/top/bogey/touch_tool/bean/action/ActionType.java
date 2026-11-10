@@ -229,7 +229,6 @@ public enum ActionType {
     READ_FILE,
     WRITE_FILE,
     FILE_EXISTS,
-    TEST_NODE_INFO,
     DELETE_FILE,
     LIST_DIR,
     COPY_FILE,

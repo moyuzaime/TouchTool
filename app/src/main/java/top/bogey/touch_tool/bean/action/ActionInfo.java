@@ -87,7 +87,6 @@ import top.bogey.touch_tool.bean.action.node.EditTextInputAction;
 import top.bogey.touch_tool.bean.action.node.EditTextPasteAction;
 import top.bogey.touch_tool.bean.action.node.FindNodeAction;
 import top.bogey.touch_tool.bean.action.node.GetNodeChildrenAction;
-import top.bogey.touch_tool.bean.action.node.TestNodeInfoAction;
 import top.bogey.touch_tool.bean.action.node.GetNodeInfoAction;
 import top.bogey.touch_tool.bean.action.node.GetNodeParentAction;
 import top.bogey.touch_tool.bean.action.node.GetWindowsAction;
@@ -339,8 +338,6 @@ public class ActionInfo {
     // 控件操作
     private final static ActionInfo FIND_NODE_BY_PATH_INFO = new ActionInfo(ActionType.FIND_NODE, FindNodeAction.class, R.drawable.icon_widgets, R.string.find_node_action, R.string.find_node_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo IS_NODE_EXIST_BY_PATH_INFO = new ActionInfo(ActionType.IS_NODE_EXIST, IsNodeExistAction.class, R.drawable.icon_check, R.string.is_node_exist_action, R.string.is_node_exist_action_desc, 0, NormalActionCard.class);
-
-    private final static ActionInfo TEST_NODE_INFO_INFO = new ActionInfo(ActionType.TEST_NODE_INFO, TestNodeInfoAction.class, R.drawable.icon_widgets, R.string.node_info_test_action, R.string.node_info_test_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo GET_NODE_INFO_INFO = new ActionInfo(ActionType.GET_NODE_INFO, GetNodeInfoAction.class, R.drawable.icon_info, R.string.get_node_info_action, R.string.get_node_info_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo GET_NODE_CHILDREN_INFO = new ActionInfo(ActionType.GET_NODE_CHILDREN, GetNodeChildrenAction.class, R.drawable.icon_widgets, R.string.get_node_children_action, R.string.get_node_children_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo GET_NODE_PARENT_INFO = new ActionInfo(ActionType.GET_NODE_PARENT, GetNodeParentAction.class, R.drawable.icon_widgets, R.string.get_node_parent_action, R.string.get_node_parent_action_desc, 0, NormalActionCard.class);
@@ -572,7 +569,6 @@ public class ActionInfo {
 
             case FIND_NODE -> FIND_NODE_BY_PATH_INFO;
             case IS_NODE_EXIST -> IS_NODE_EXIST_BY_PATH_INFO;
-            case TEST_NODE_INFO -> TEST_NODE_INFO_INFO;
             case GET_NODE_INFO -> GET_NODE_INFO_INFO;
             case GET_NODE_CHILDREN -> GET_NODE_CHILDREN_INFO;
             case GET_NODE_PARENT -> GET_NODE_PARENT_INFO;

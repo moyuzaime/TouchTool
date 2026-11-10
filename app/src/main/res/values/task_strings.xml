@@ -862,10 +862,4 @@
             <string name="file_action_write_mode">写入方式</string>
     <string name="file_action_create_mode">类型</string>
     <string name="file_action_line_mode">操作</string>
-    <string name="node_info_test_action">测试控件信息</string>
-    <string name="node_info_test_action_desc">可添加输出项，每个下拉选择要读取的控件信息，结果以文本列表输出</string>
-    <string name="node_info_test_item">输出项</string>
-    <string name="node_info_test_result">结果</string>
-    <string name="get_node_info_action_result">结果</string>
-    <string name="node_info_select">输出内容</string>
-</resources>
+                        </resources>
