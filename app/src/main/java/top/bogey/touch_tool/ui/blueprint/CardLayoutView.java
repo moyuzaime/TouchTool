@@ -353,7 +353,7 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
     }
 
     // 顶栏常驻入口：只要存在暂存组就显示，没有选中卡片时也能打开面板
-    // 暂存组数量角标：直接显示在按钮文字上，避免浮层被卡片圆角裁切
+    // 暂存组数量角标：画进按钮图标右上角，不占宽度也不会被裁切
     public void addSavedGroupBadge(android.view.View anchor) {
         if (anchor == null) return;
         savedGroupBadges.put(anchor, null);
@@ -361,13 +361,21 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
     }
 
     private void updateSavedGroupBadges(boolean empty) {
-        String count = empty ? "" : String.valueOf(savedCardGroups.size());
-        for (android.view.View anchor : savedGroupBadges.keySet()) {
-            if (anchor instanceof com.google.android.material.button.MaterialButton button) {
-                button.setText(count);
-                button.setTextSize(11);
-                button.setInsetTop(0);
-                button.setInsetBottom(0);
+        for (java.util.Map.Entry<android.view.View, com.google.android.material.badge.BadgeDrawable> entry : savedGroupBadges.entrySet()) {
+            android.view.View anchor = entry.getKey();
+            if (!(anchor instanceof com.google.android.material.button.MaterialButton button)) continue;
+            if (!(button.getIcon() instanceof BadgeIconDrawable)) {
+                android.graphics.drawable.Drawable icon = button.getIcon();
+                if (icon == null) continue;
+                if (button.getIconTint() != null) {
+                    androidx.core.graphics.drawable.DrawableCompat.setTintList(icon, button.getIconTint());
+                }
+                button.setIconTint(null);
+                BadgeIconDrawable badgeIcon = new BadgeIconDrawable(button.getContext(), icon);
+                badgeIcon.setCount(empty ? 0 : savedCardGroups.size());
+                button.setIcon(badgeIcon);
+            } else {
+                ((BadgeIconDrawable) button.getIcon()).setCount(empty ? 0 : savedCardGroups.size());
             }
         }
     }
