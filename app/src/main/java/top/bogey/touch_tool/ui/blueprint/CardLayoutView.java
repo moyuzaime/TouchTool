@@ -270,6 +270,11 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
         panBy(dx, dy);
     }
     public void jumpToEdge(int direction) {
+        jumpToEdge(direction, false);
+    }
+
+    // forceSelect=true 时无论当前有无选中，都把目标卡片设为唯一选中（方向盘切换卡片用）
+    public void jumpToEdge(int direction, boolean forceSelect) {
         if (cards.isEmpty()) return;
 
         ActionCard target = null;

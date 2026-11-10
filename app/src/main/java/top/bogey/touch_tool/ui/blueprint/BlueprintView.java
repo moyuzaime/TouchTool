@@ -109,7 +109,7 @@ public class BlueprintView extends Fragment {
 
             @Override
             public void onDirection(int direction) {
-                if (steeringWheel.isJumpEnabled()) binding.cardLayout.jumpToEdge(direction);
+                if (steeringWheel.isJumpEnabled()) binding.cardLayout.jumpToEdge(direction, true);
                 else binding.cardLayout.panToEdge(direction);
             }
         });        applyControlLayout();
