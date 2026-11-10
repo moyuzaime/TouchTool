@@ -863,4 +863,6 @@
     <string name="file_action_create_mode">类型</string>
     <string name="file_action_line_mode">操作</string>
                             <string name="picker_test_paste_area">粘贴区域</string>
+    <string name="blueprint_steering_wheel_on">方向盘：一键到边界已开启，四向跳到边界并选中边界卡片</string>
+    <string name="blueprint_steering_wheel_off">方向盘：一键到边界已关闭，四向按屏幕中心平移画布</string>
 </resources>

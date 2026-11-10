@@ -350,6 +350,15 @@
 
     </com.google.android.material.card.MaterialCardView>
 
+    <FrameLayout
+        android:id="@+id/steeringWheelBox"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_gravity="start|bottom"
+        android:layout_marginBottom="108dp"
+        android:layout_marginStart="11dp"
+        android:visibility="gone" />
+
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/zoomSliderBox"
         style="?attr/materialCardViewFilledStyle"

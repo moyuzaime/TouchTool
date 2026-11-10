@@ -69,6 +69,7 @@ import top.bogey.touch_tool.utils.listener.TextChangedListener;
 
 public class BlueprintView extends Fragment {
     private ZoomBarView zoomBar;
+    private SteeringWheelView steeringWheel;
 
     private final static List<Action> copyActions = new ArrayList<>();
 
@@ -100,6 +101,21 @@ public class BlueprintView extends Fragment {
         zoomBar.setListener(percent -> binding.cardLayout.setScaleValue(0.2f + percent * 1.8f));
         binding.cardLayout.setOnScaleChangedListener(scaleValue ->
                 zoomBar.setPercent((scaleValue - 0.2f) / 1.8f));
+        // 方向盘：一键到边界 / 平移画布
+        steeringWheel = new SteeringWheelView(requireContext());
+        binding.steeringWheelBox.addView(steeringWheel, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        steeringWheel.setListener((direction, jumpToEdge) -> {
+            if (jumpToEdge) {
+                binding.cardLayout.jumpToEdge(direction);
+                return;
+            }
+            float halfWidth = binding.cardLayout.getWidth() / 2f;
+            float halfHeight = binding.cardLayout.getHeight() / 2f;
+            float dx = direction == 0 ? halfWidth : direction == 2 ? -halfWidth : 0;
+            float dy = direction == 1 ? halfHeight : direction == 3 ? -halfHeight : 0;
+            binding.cardLayout.panBy(dx, dy);
+        });
         applyEditToolsVisible(binding.searchButton.isChecked());
     }
 
@@ -110,6 +126,7 @@ public class BlueprintView extends Fragment {
         binding.edgeLeftBox.setVisibility(visible);
         binding.edgeRightBox.setVisibility(visible);
         binding.zoomSliderBox.setVisibility(visible);
+        binding.steeringWheelBox.setVisibility(visible);
         if (showEditTools) {
             zoomBar.setPercent((binding.cardLayout.getScaleValue() - 0.2f) / 1.8f);
         }

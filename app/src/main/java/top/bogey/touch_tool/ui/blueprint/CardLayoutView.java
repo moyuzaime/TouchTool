@@ -256,6 +256,10 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
     }
 
     // 跳到指定方向上最远的卡片：0 左、1 上、2 右、3 下
+    // 按屏幕比例平移画布
+    public void panBy(float dx, float dy) {
+        animateOffsetTo(offsetX + dx, offsetY + dy);
+    }
     public void jumpToEdge(int direction) {
         if (cards.isEmpty()) return;
 
