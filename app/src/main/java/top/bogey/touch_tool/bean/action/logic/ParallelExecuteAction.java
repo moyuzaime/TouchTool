@@ -86,7 +86,12 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
 
                 @Override
                 public void onFinish(TaskRunnable run) {
-                    List<LogInfo> logList = run.getCacheLogList();
+                    // 去掉分支里再次记录的本动作日志，避免「并行执行」套娃
+                    List<LogInfo> logList = new ArrayList<>();
+                    for (LogInfo info : run.getCacheLogList()) {
+                        if (info.getLogObject() instanceof ActionLog actionLog && getId().equals(actionLog.getActionId())) continue;
+                        logList.add(info);
+                    }
                     List<String> logs = saveLogs(runnable, logList);
                     allChildLogs.addAll(logs);
 
