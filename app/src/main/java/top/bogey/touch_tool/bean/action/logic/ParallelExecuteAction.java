@@ -141,11 +141,9 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         }
         if (selfLog != null) {
             selfLog.setChildren(children);
-        } else {
-            LogInfo logInfo = new LogInfo(new ActionLog(runnable.getProgress() + 1, currTask, this, true));
-            logInfo.setChildren(children);
-            runnable.addLog(logInfo, 0);
         }
+        // 找不到本动作的日志时就放弃挂子节点：此时 logStack 里还压着本动作，
+        // 再 addLog 会被当成它的子节点，出现「并行执行」下面套一条自己
 
         executeNext(runnable, completePin);
     }
