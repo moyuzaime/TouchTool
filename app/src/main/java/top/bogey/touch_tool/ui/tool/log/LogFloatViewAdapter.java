@@ -116,6 +116,16 @@ public class LogFloatViewAdapter extends TreeAdapter {
         for (int i = children.size(); i < flags.size(); i++) {
             Object flag = flags.get(i);
             LazyTreeNode child = new LazyTreeNode(logSave, flag);
+            // 跳过与本节点同一个动作的子日志，避免「并行执行」下面再套一条自己
+            Object childData = child.getData();
+            if (childData instanceof LogInfo childInfo
+                    && info.getLogObject() instanceof ActionLog parentLog
+                    && childInfo.getLogObject() instanceof ActionLog childLog
+                    && parentLog.isExecute() && childLog.isExecute()
+                    && parentLog.getActionId() != null
+                    && parentLog.getActionId().equals(childLog.getActionId())) {
+                continue;
+            }
             child.setDepth(node.getDepth() + 1);
             node.addChild(child);
             added.add(child);
