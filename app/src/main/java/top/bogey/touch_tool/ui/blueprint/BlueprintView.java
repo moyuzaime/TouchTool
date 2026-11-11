@@ -611,13 +611,18 @@ public class BlueprintView extends Fragment {
         });
 
         // 复制：多次复制会累积成多组，粘贴按钮角标显示组数
+        // 单击复制：直接在原地复制一份并选中（不进粘贴板）
         binding.copyButton.setOnClickListener(v -> {
             List<Action> selectedActions = binding.cardLayout.getSelectedActionsCopy();
-            if (!selectedActions.isEmpty()) copyGroups.add(new CopyGroup(selectedActions));
-            updateCopyPasteState();
+            if (selectedActions.isEmpty()) return;
             binding.cardLayout.cleanSelectedCards();
+            selectedActions.forEach(action -> {
+                binding.cardLayout.addCard(action);
+                binding.cardLayout.addSelectedCard(action);
+            });
         });
 
+        // 长按复制：放进复制面板，供多次粘贴使用
         binding.copyButton.setOnLongClickListener(v -> {
             List<Action> selectedActions = binding.cardLayout.getSelectedActionsCopy();
             if (!selectedActions.isEmpty()) copyGroups.add(new CopyGroup(selectedActions));
@@ -625,7 +630,6 @@ public class BlueprintView extends Fragment {
             binding.cardLayout.cleanSelectedCards();
             return true;
         });
-
         binding.deleteButton.setOnClickListener(v -> {
             if (needDelete) {
                 for (ActionCard card : new HashSet<>(binding.cardLayout.selectedCards)) {
@@ -905,11 +909,9 @@ public class BlueprintView extends Fragment {
             int buttonSize = (int) DisplayUtil.dp2px(requireContext(), 32);
             android.view.View paste = binding.cardLayout.makeSavedGroupActionButton(buttonSize,
                     R.drawable.icon_content_paste, R.string.blueprint_copy_group_title, v -> {
-                        CopyGroup target = copyGroups.remove(index);
+                        CopyGroup target = copyGroups.get(index);
                         binding.cardLayout.pasteActionsAtViewCenter(target.actions);
-                        updateCopyPasteState();
-                        if (copyGroups.isEmpty()) copyPanel.setVisibility(View.GONE);
-                        else refreshCopyPanel();
+                        refreshCopyPanel();
                     });
             row.addView(paste);
 
