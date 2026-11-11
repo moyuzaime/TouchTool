@@ -88,9 +88,7 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
                 public void onFinish(TaskRunnable run) {
                     List<LogInfo> logList = run.getCacheLogList();
                     List<String> logs = saveLogs(runnable, logList);
-                    LogInfo logInfo = new LogInfo(new ActionLog(runnable.getProgress() + 1, currTask, ParallelExecuteAction.this, true));
-                    logInfo.setChildren(logs);
-                    runnable.addLog(logInfo, 0);
+                    allChildLogs.addAll(logs);
 
                     latch.countDown();
                     if (countValue <= latch.getCount()) {
@@ -124,6 +122,25 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
             resultPin.getValue(PinBoolean.class).setValue(false);
         }
         runnable.removeListener(listener);
+
+        // 分支日志挂到本动作原有的那条日志下，不再重复新增
+        List<String> children = new ArrayList<>(allChildLogs);
+        LogInfo selfLog = null;
+        List<LogInfo> cacheLogs = runnable.getCacheLogList();
+        for (int i = cacheLogs.size() - 1; i >= 0; i--) {
+            LogInfo info = cacheLogs.get(i);
+            if (info.getLogObject() instanceof ActionLog actionLog && getId().equals(actionLog.getActionId())) {
+                selfLog = info;
+                break;
+            }
+        }
+        if (selfLog != null) {
+            selfLog.setChildren(children);
+        } else {
+            LogInfo logInfo = new LogInfo(new ActionLog(runnable.getProgress() + 1, currTask, this, true));
+            logInfo.setChildren(children);
+            runnable.addLog(logInfo, 0);
+        }
 
         executeNext(runnable, completePin);
     }
