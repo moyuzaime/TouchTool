@@ -71,6 +71,8 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         CountDownLatch latch = new CountDownLatch(validPins.size());
         int countValue = count.intValue();
         List<TaskRunnable> runnableList = new ArrayList<>();
+        // 所有分支的日志统一挂到一条「并行执行」日志下
+        List<String> allChildLogs = java.util.Collections.synchronizedList(new ArrayList<>());
 
         Task currTask = runnable.getTask();
         if (runnable.isDebug()) currTask.addFlag(Task.FLAG_DEBUG);
