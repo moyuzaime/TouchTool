@@ -46,6 +46,8 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
     public ParallelExecuteAction() {
         super(ActionType.PARALLEL_LOGIC);
         addPins(countPin, timeoutPin, addPin, resultPin, completePin);
+        // 本动作只用「完成」收尾，隐藏继承来的「执行」出口
+        outPin.setHide(true);
     }
 
     public ParallelExecuteAction(JsonObject jsonObject) {
@@ -53,6 +55,7 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         reAddPins(countPin, timeoutPin);
         reAddPins(morePin);
         reAddPins(addPin, resultPin, completePin);
+        outPin.setHide(true);
 
         // 兼容旧数据：普通执行针脚就地换成带名字的字符串执行针脚，链接不受影响
         for (Pin dynamicPin : getDynamicPins()) {
@@ -196,7 +199,6 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
     @Override
     public List<Pin> getDynamicPins() {
         List<Pin> pins = new ArrayList<>();
-        pins.add(outPin);
         boolean start = false;
         for (Pin pin : getPins()) {
             if (pin == addPin) start = false;
