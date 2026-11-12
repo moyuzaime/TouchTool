@@ -130,6 +130,8 @@ public class LogFloatViewAdapter extends TreeAdapter {
         List<TreeNode> added = new ArrayList<>();
         for (int i = children.size(); i < flags.size(); i++) {
             Object flag = flags.get(i);
+            // children 里可能残留已删除日志的 uid，直接跳过，避免出现「日志加载失败」行
+            if (logSave.getLog(String.valueOf(flag)) == null) continue;
             LazyTreeNode child = new LazyTreeNode(logSave, flag);
             child.setDepth(node.getDepth() + 1);
             node.addChild(child);
