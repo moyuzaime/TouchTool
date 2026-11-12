@@ -117,6 +117,25 @@ public class LogFloatViewAdapter extends TreeAdapter {
                     child.setDepth(parent.getDepth() + 1);
                     if (nodeMap.putIfAbsent(uid, child) != null) return;
                     parent.addChild(child);
+                    // 把子节点也写进父日志的 children，重开窗口/刷新时才能重新算层级和箭头
+                    LogInfo parentInfo = logSave.getLog(parentUid);
+                    if (parentInfo != null) {
+                        boolean exists = false;
+                        for (Object flag : parentInfo.getChildrenFlags()) {
+                            if (String.valueOf(flag).equals(uid)) {
+                                exists = true;
+                                break;
+                            }
+                        }
+                        if (!exists) {
+                            parentInfo.addChild(uid);
+                            try {
+                                top.bogey.touch_tool.bean.save.log.LogSaver.getInstance()
+                                        .updateLog(logSave.getKey(), parentInfo);
+                            } catch (Throwable ignored) {
+                            }
+                        }
+                    }
                     int parentIndex = treeNodes.indexOf(parent);
                     // 父节点折叠时不插入行，展开时会从 children 里补出来
                     if (parentIndex >= 0) notifyItemChanged(parentIndex);
