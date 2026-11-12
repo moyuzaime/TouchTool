@@ -155,6 +155,7 @@ public class TaskRunnable implements Runnable {
     }
 
     public void setLogParentUid(String uid) {
+        top.bogey.touch_tool.utils.AppLog.e("DIAGP", "setLogParentUid called " + uid);
         this.logParentUid = uid;
     }
 
@@ -206,10 +207,25 @@ public class TaskRunnable implements Runnable {
                     if (logParentUid != null && !logParentUid.isEmpty()) {
                         try {
                             LogSave logSave = LogSaver.getInstance().getLogSave(task.getId());
-                            LogInfo parentLog = logSave == null ? null : logSave.getLog(logParentUid);
-                            if (parentLog != null) {
-                                parentLog.addChild(logInfo.getUid());
-                                LogSaver.getInstance().updateLog(task.getId(), parentLog);
+                            if (logSave != null) {
+                                // 多个分支会并发写同一个父日志，读改写必须串行，否则会互相覆盖
+                                synchronized (logSave) {
+                                    LogInfo parentLog = logSave.getLog(logParentUid);
+                                    if (parentLog != null) {
+                                        boolean exists = false;
+                                        for (Object flag : parentLog.getChildrenFlags()) {
+                                            if (String.valueOf(flag).equals(logInfo.getUid())) {
+                                                exists = true;
+                                                break;
+                                            }
+                                        }
+                                        if (!exists) {
+                                            parentLog.addChild(logInfo.getUid());
+                                            LogSaver.getInstance().updateLog(task.getId(), parentLog);
+                                        }
+                                        top.bogey.touch_tool.utils.AppLog.e("DIAGP", "parent=" + logParentUid + " child=" + logInfo.getUid() + " children=" + parentLog.getChildrenFlags().size());
+                                    }
+                                }
                             }
                         } catch (Throwable ignored) {
                         }
