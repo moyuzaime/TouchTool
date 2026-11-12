@@ -101,6 +101,12 @@ public class LogFloatViewAdapter extends TreeAdapter {
             if (info.getLogObject() instanceof ActionLog branchLog
                     && branchLog.getParentLogUid() != null
                     && !branchLog.getParentLogUid().isEmpty()) {
+                // 分支日志本身不成根，但要顺带补出父节点的 children（重开窗口靠这一步）
+                LazyTreeNode parentNode = nodeMap.get(branchLog.getParentLogUid());
+                if (parentNode != null) {
+                    LogInfo parentInfo = logSave.getLog(branchLog.getParentLogUid());
+                    if (parentInfo != null) syncChildren(logSave, parentNode, parentInfo);
+                }
                 return;
             }
             // 分支日志：父节点存在时直接挂到它下面，不单独成根
