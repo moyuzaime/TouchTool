@@ -133,7 +133,10 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
 
         binding.exportButton.setOnClickListener(v -> {
             StringBuilder builder = new StringBuilder();
-            for (LogInfo log : adapter.getLogs()) {
+            // 并行分支的日志是各自独立的根节点，按时间排序导出才不会把分支块堆在最后
+            java.util.List<LogInfo> exportLogs = new java.util.ArrayList<>(adapter.getLogs());
+            exportLogs.sort((a, b) -> Long.compare(a.getTime(), b.getTime()));
+            for (LogInfo log : exportLogs) {
                 builder.append("[").append(AppUtil.formatDateTime(context, log.getTime(), false, false)).append("] ");
                 if (log.getLogObject() instanceof ActionLog actionLog) {
                     builder.append("[").append(actionLog.isExecute() ? "->" : "<-").append("] ");
