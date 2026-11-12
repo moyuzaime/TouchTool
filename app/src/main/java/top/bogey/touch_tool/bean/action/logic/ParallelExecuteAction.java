@@ -32,7 +32,8 @@ import top.bogey.touch_tool.utils.AppLog;
 import top.bogey.touch_tool.utils.tree.ITreeNodeData;
 
 public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsAction {
-    private final static Pin morePin = new Pin(new PinExecute(), R.string.pin_execute, true);
+    // 分支针脚用「图标执行/字符串执行」同款：自带一个可编辑的名字
+    private final static Pin morePin = new Pin(new top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute(), R.string.pin_execute, true);
 
     private final transient Pin countPin = new Pin(new PinInteger(1), R.string.parallel_action_count);
     private final transient Pin timeoutPin = new Pin(new PinInteger(5000), R.string.parallel_action_timeout);
@@ -44,7 +45,7 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
 
     public ParallelExecuteAction() {
         super(ActionType.PARALLEL_LOGIC);
-        Pin secondPin = new Pin(new PinExecute(), R.string.pin_execute, true, true);
+        Pin secondPin = new Pin(new top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute(), R.string.pin_execute, true, true);
         addPins(countPin, timeoutPin, secondPin, addPin, resultPin, completePin);
     }
 
