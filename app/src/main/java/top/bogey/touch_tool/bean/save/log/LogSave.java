@@ -32,12 +32,7 @@ public class LogSave implements ITreeNodeDataLoader {
             for (int i = 1; i <= count; i++) order.add(String.valueOf(i));
             return order;
         }
-        for (String s : raw.split(",")) {
-            if (s.isEmpty()) continue;
-            // 丢弃已被删除/覆盖的旧 key，避免出现「日志加载失败」空行
-            if (!mmkv.containsKey(s)) continue;
-            order.add(s);
-        }
+        for (String s : raw.split(",")) if (!s.isEmpty()) order.add(s);
         return order;
     }
 
