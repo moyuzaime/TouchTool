@@ -94,6 +94,7 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         java.util.Set<TaskRunnable> finished = java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
         int rejectedCount = 0;
 
+        AppLog.e("DIAG", "并行执行 分支数=" + validPins.size() + " 超时=" + timeout.intValue() + " count=" + countValue + " debug=" + runnable.isDebug());
         Task currTask = runnable.getTask();
         if (runnable.isDebug()) currTask.addFlag(Task.FLAG_DEBUG);
 
@@ -110,6 +111,7 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
                 @Override
                 public void onFinish(TaskRunnable run) {
                     finished.add(run);
+                    AppLog.e("DIAG", "分支结束 cacheLogs=" + run.getCacheLogList().size());
                     // 分支日志已实时写入日志库，这里只放行计数
                     latch.countDown();
 
@@ -122,7 +124,12 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
                     }
                 }
             });
-            if (taskRunnable != null) taskRunnable.setCacheLog(false);
+            if (taskRunnable != null) {
+                taskRunnable.setCacheLog(false);
+                AppLog.e("DIAG", "分支启动 name=" + branchName + " runnable=" + taskRunnable);
+            } else {
+                AppLog.e("DIAG", "分支未启动 name=" + branchName);
+            }
             runnableList.add(taskRunnable);
             if (taskRunnable == null) {
                 // 线程池已满，分支没能启动，必须让计数器前进，避免一直等到超时
