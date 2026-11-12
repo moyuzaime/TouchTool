@@ -318,11 +318,6 @@ public class MainAccessibilityService extends AccessibilityService {
     }
 
     public TaskRunnable runTask(Task task, StartAction startAction, ITaskListener listener) {
-        return runTask(task, startAction, listener, null);
-    }
-
-    // logParentUid 非空时，本次运行的日志会挂到该父日志下面（并行分支实时嵌套用）
-    public TaskRunnable runTask(Task task, StartAction startAction, ITaskListener listener, String logParentUid) {
         cleanInterruptTask();
 
         if (task == null || startAction == null) return null;
