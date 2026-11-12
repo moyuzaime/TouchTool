@@ -119,15 +119,6 @@ public class LogFloatViewAdapter extends TreeAdapter {
             node.addChild(child);
             added.add(child);
             nodeMap.put(String.valueOf(flag), child);
-            // 该日志此前作为根节点出现过就移除，避免同一日志既在顶层又挂在父节点下
-            String flagUid = String.valueOf(flag);
-            for (int j = treeNodes.size() - 1; j >= 0; j--) {
-                Object data = treeNodes.get(j).getData();
-                if (data instanceof LogInfo rootInfo && flagUid.equals(rootInfo.getUid())) {
-                    treeNodes.remove(j);
-                    notifyItemRemoved(j);
-                }
-            }
         }
 
         int index = treeNodes.indexOf(node);
