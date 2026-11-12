@@ -54,6 +54,7 @@ public class PinWidgetExecute extends PinWidget<PinExecute> {
                     public void afterTextChanged(Editable s) {
                         stringExecute.setValue(s.toString());
                         pinView.getPin().notifyValueUpdated(card.getTask());
+                        scheduleSave();
                     }
                 });
             }
@@ -74,11 +75,25 @@ public class PinWidgetExecute extends PinWidget<PinExecute> {
                     public void afterTextChanged(Editable s) {
                         iconExecute.setValue(s.toString());
                         pinView.getPin().notifyValueUpdated(card.getTask());
+                        scheduleSave();
                     }
                 });
             }
         }
     }
+
+    // 名字类针脚编辑后防抖保存，避免只改了内存、运行时读存档拿不到
+    private void scheduleSave() {
+        removeCallbacks(saveRunnable);
+        postDelayed(saveRunnable, 600);
+    }
+
+    private final Runnable saveRunnable = () -> {
+        try {
+            if (card != null && card.getTask() != null) card.getTask().save();
+        } catch (Throwable ignored) {
+        }
+    };
 
     @Override
     protected void initCustom() {
