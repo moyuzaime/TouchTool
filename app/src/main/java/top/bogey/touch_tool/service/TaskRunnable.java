@@ -196,7 +196,6 @@ public class TaskRunnable implements Runnable {
 
     public void addDebugLog(Action action, int stackOption) {
         if (action instanceof InnerStartAction) return;
-        if (!debug) top.bogey.touch_tool.utils.AppLog.e("DIAG", "debug=false 跳过日志 action=" + action.getTitle());
         if (debug) {
             String tag = startAction instanceof top.bogey.touch_tool.bean.action.start.InnerStartAction inner
                     ? inner.getBranchTag() : null;

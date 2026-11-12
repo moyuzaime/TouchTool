@@ -93,8 +93,6 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         // 已正常结束的分支，用于超时后只停还活着的
         java.util.Set<TaskRunnable> finished = java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
         int rejectedCount = 0;
-
-        AppLog.e("DIAG", "并行执行 分支数=" + validPins.size() + " 超时=" + timeout.intValue() + " count=" + countValue + " debug=" + runnable.isDebug());
         Task currTask = runnable.getTask();
         if (runnable.isDebug()) currTask.addFlag(Task.FLAG_DEBUG);
 
@@ -111,7 +109,6 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
                 @Override
                 public void onFinish(TaskRunnable run) {
                     finished.add(run);
-                    AppLog.e("DIAG", "分支结束 cacheLogs=" + run.getCacheLogList().size());
                     // 分支日志已实时写入日志库，这里只放行计数
                     latch.countDown();
 
@@ -125,9 +122,7 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
                 }
             });
             if (taskRunnable != null) {
-                AppLog.e("DIAG", "分支启动 name=" + branchName + " runnable=" + taskRunnable);
             } else {
-                AppLog.e("DIAG", "分支未启动 name=" + branchName);
             }
             runnableList.add(taskRunnable);
             if (taskRunnable == null) {
