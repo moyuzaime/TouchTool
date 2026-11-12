@@ -132,8 +132,19 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
         binding.closeButton.setOnClickListener(v -> dismiss());
 
         binding.exportButton.setOnClickListener(v -> {
-            // 按树导出：子日志缩进显示，并行分支折叠在父动作下面
-            AppUtil.shareText(getContext(), adapter.exportText(getContext()));
+            StringBuilder builder = new StringBuilder();
+            for (LogInfo log : adapter.getLogs()) {
+                builder.append("[").append(AppUtil.formatDateTime(context, log.getTime(), false, false)).append("] ");
+                if (log.getLogObject() instanceof ActionLog actionLog) {
+                    builder.append("[").append(actionLog.isExecute() ? "->" : "<-").append("] ");
+                }
+                builder.append(log.getLog());
+                if (log.getLogObject() instanceof ActionLog actionLog) {
+                    builder.append(" ").append(actionLog.getValues().values());
+                }
+                builder.append("\n");
+            }
+            AppUtil.shareText(context, builder.toString());
         });
 
         binding.expandButton.setOnClickListener(v -> {

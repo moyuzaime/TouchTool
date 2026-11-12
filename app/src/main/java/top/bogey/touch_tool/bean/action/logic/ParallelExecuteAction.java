@@ -71,8 +71,6 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         CountDownLatch latch = new CountDownLatch(validPins.size());
         int countValue = count.intValue();
         List<TaskRunnable> runnableList = new ArrayList<>();
-        // 所有分支的日志统一挂到一条「并行执行」日志下
-        List<String> allChildLogs = java.util.Collections.synchronizedList(new ArrayList<>());
 
         Task currTask = runnable.getTask();
         if (runnable.isDebug()) currTask.addFlag(Task.FLAG_DEBUG);
@@ -86,14 +84,11 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
 
                 @Override
                 public void onFinish(TaskRunnable run) {
-                    // 去掉分支里再次记录的本动作日志，避免「并行执行」套娃
-                    List<LogInfo> logList = new ArrayList<>();
-                    for (LogInfo info : run.getCacheLogList()) {
-                        if (info.getLogObject() instanceof ActionLog actionLog && getId().equals(actionLog.getActionId())) continue;
-                        logList.add(info);
-                    }
+                    List<LogInfo> logList = run.getCacheLogList();
                     List<String> logs = saveLogs(runnable, logList);
-                    allChildLogs.addAll(logs);
+                    LogInfo logInfo = new LogInfo(new ActionLog(runnable.getProgress() + 1, currTask, ParallelExecuteAction.this, true));
+                    logInfo.setChildren(logs);
+                    runnable.addLog(logInfo, 0);
 
                     latch.countDown();
                     if (countValue <= latch.getCount()) {
@@ -127,23 +122,6 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
             resultPin.getValue(PinBoolean.class).setValue(false);
         }
         runnable.removeListener(listener);
-
-        // 分支日志挂到本动作原有的那条日志下，不再重复新增
-        List<String> children = new ArrayList<>(allChildLogs);
-        LogInfo selfLog = null;
-        List<LogInfo> cacheLogs = runnable.getCacheLogList();
-        for (int i = cacheLogs.size() - 1; i >= 0; i--) {
-            LogInfo info = cacheLogs.get(i);
-            if (info.getLogObject() instanceof ActionLog actionLog && getId().equals(actionLog.getActionId())) {
-                selfLog = info;
-                break;
-            }
-        }
-        if (selfLog != null) {
-            selfLog.setChildren(children);
-        }
-        // 找不到本动作的日志时就放弃挂子节点：此时 logStack 里还压着本动作，
-        // 再 addLog 会被当成它的子节点，出现「并行执行」下面套一条自己
 
         executeNext(runnable, completePin);
     }
