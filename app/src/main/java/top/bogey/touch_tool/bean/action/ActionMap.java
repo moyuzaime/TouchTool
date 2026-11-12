@@ -48,6 +48,10 @@ public class ActionMap {
                     ActionType.STICK,
                     ActionType.CLOSE_STICK,
 
+                    ActionType.MUTEX_LOCK,
+                    ActionType.MUTEX_UNLOCK,
+                    ActionType.ATOMIC_ADD,
+
                     ActionType.INPUT_CONFIG,
                     ActionType.STOP_TASK,
                     ActionType.SWITCH_TASK,

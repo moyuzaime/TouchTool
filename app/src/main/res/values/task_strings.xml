@@ -868,4 +868,17 @@
     <string name="blueprint_copy_group_title">选择复制组</string>
     <string name="blueprint_copy_group_item">第 %1$d 组（%2$d 张）</string>
     <string name="blueprint_copy_group_name">复制组名称</string>
-</resources>
+    <!-- 线程 -->
+    <string name="mutex_lock_action">加锁</string>
+    <string name="mutex_lock_action_desc">按名字互斥，防止多个并行分支同时执行同一段</string>
+    <string name="mutex_lock_name">锁名</string>
+    <string name="mutex_lock_timeout">超时(ms)</string>
+    <string name="mutex_lock_result">是否拿到锁</string>
+    <string name="mutex_lock_fail">失败</string>
+    <string name="mutex_unlock_action">解锁</string>
+    <string name="mutex_unlock_action_desc">释放同名的锁，与「加锁」配对使用</string>
+    <string name="atomic_add_action">原子累加</string>
+    <string name="atomic_add_action_desc">跨分支安全累加计数，输出累加后的值</string>
+    <string name="atomic_add_name">计数器名</string>
+    <string name="atomic_add_delta">增量</string>
+    <string name="atomic_add_result">结果</string></resources>
