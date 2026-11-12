@@ -194,21 +194,12 @@ public class TaskRunnable implements Runnable {
         }
     }
 
-    // 最近一条动作日志的 uid，供动作在结束时往自己的日志里挂子节点
-    private String lastLogUid;
-
-    public String getLastLogUid() {
-        return lastLogUid;
-    }
-
     public void addDebugLog(Action action, int stackOption) {
         if (action instanceof InnerStartAction) return;
         if (debug) {
             String tag = startAction instanceof top.bogey.touch_tool.bean.action.start.InnerStartAction inner
                     ? inner.getBranchTag() : null;
-            LogInfo logInfo = new LogInfo(new ActionLog(progress + 1, getTask(), action, stackOption != 0, tag));
-            addLog(logInfo, stackOption);
-            lastLogUid = logInfo.getUid();
+            addLog(new LogInfo(new ActionLog(progress + 1, getTask(), action, stackOption != 0, tag)), stackOption);
         }
     }
 

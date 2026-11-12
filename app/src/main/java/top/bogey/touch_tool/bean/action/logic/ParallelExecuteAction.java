@@ -90,9 +90,6 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         CountDownLatch latch = new CountDownLatch(validPins.size());
         int countValue = count.intValue();
         List<TaskRunnable> runnableList = new ArrayList<>();
-        // 本动作自己的日志 uid 与分支日志，结束时统一挂到一起
-        String selfLogUid = runnable.getLastLogUid();
-        List<String> branchLogs = java.util.Collections.synchronizedList(new ArrayList<>());
         // 已正常结束的分支，用于超时后只停还活着的
         java.util.Set<TaskRunnable> finished = java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
         int rejectedCount = 0;
@@ -116,8 +113,9 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
                     try {
                         List<LogInfo> logList = run.getCacheLogList();
                         List<String> logs = saveLogs(runnable, logList);
-                        // 不再逐分支写日志，统一挂到本动作自己的日志下面
-                        branchLogs.addAll(logs);
+                        LogInfo logInfo = new LogInfo(new ActionLog(runnable.getProgress() + 1, currTask, ParallelExecuteAction.this, true));
+                        logInfo.setChildren(logs);
+                        runnable.addLog(logInfo, 0);
                     } catch (Throwable e) {
                         AppLog.e("并行执行", "保存分支日志失败");
                     } finally {
@@ -175,21 +173,6 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
             stoppedCount++;
         }
         if (stoppedCount > 0) AppLog.e("并行执行", "已停止 " + stoppedCount + " 个仍在运行的分支");
-
-        // 分支日志挂到本动作开始时那条日志的 children 上（不加新日志）
-        if (selfLogUid != null && !branchLogs.isEmpty()) {
-            try {
-                String taskId = runnable.getStartTask().getId();
-                top.bogey.touch_tool.bean.save.log.LogSave save = LogSaver.getInstance().getLogSave(taskId);
-                LogInfo selfLog = save == null ? null : save.getLog(selfLogUid);
-                if (selfLog != null) {
-                    selfLog.setChildren(new ArrayList<>(branchLogs));
-                    LogSaver.getInstance().updateLog(taskId, selfLog);
-                }
-            } catch (Throwable e) {
-                AppLog.e("并行执行", "挂载分支日志失败");
-            }
-        }
         if (rejectedCount > 0) AppLog.e("并行执行", "有 " + rejectedCount + " 个分支因线程池已满未能启动");
 
         executeNext(runnable, completePin);
