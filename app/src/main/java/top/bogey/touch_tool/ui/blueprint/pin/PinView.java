@@ -148,6 +148,60 @@ public abstract class PinView extends FrameLayout implements PinListener {
         return null;
     }
 
+    // 就地改分支名：标题位置换成输入框，回车/失焦保存
+    private void beginInlineTitleEdit(TextView textView) {
+        ViewGroup parent = (ViewGroup) textView.getParent();
+        if (parent == null) return;
+
+        String def = getContext().getString(R.string.pin_execute);
+        String current = pin.getTitle();
+        if (def.equals(current)) current = "";
+
+        int index = parent.indexOfChild(textView);
+        ViewGroup.LayoutParams params = textView.getLayoutParams();
+
+        android.widget.EditText edit = new android.widget.EditText(getContext());
+        edit.setSingleLine(true);
+        edit.setText(current);
+        edit.setTextSize(12);
+        edit.setGravity(android.view.Gravity.CENTER);
+        edit.setPadding(0, 0, 0, 0);
+        edit.setLayoutParams(params);
+        edit.setBackground(null);
+        edit.setSelectAllOnFocus(true);
+
+        textView.setVisibility(INVISIBLE);
+        parent.addView(edit, index);
+        edit.requestFocus();
+        edit.post(() -> {
+            android.view.inputmethod.InputMethodManager imm =
+                    (android.view.inputmethod.InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null) imm.showSoftInput(edit, 0);
+        });
+
+        Runnable commit = new Runnable() {
+            private boolean done = false;
+
+            @Override
+            public void run() {
+                if (done) return;
+                done = true;
+                pin.setTitle(edit.getText().toString().trim());
+                parent.removeView(edit);
+                textView.setVisibility(VISIBLE);
+                refreshPin();
+                if (card != null && card.getTask() != null) card.getTask().save();
+            }
+        };
+
+        edit.setOnEditorActionListener((v1, actionId, event) -> {
+            commit.run();
+            return true;
+        });
+        edit.setOnFocusChangeListener((v12, hasFocus) -> {
+            if (!hasFocus) commit.run();
+        });
+    }
     public abstract ViewGroup getSlotBox();
 
     public abstract TextView getTitleView();
@@ -182,15 +236,8 @@ public abstract class PinView extends FrameLayout implements PinListener {
                     }
                     lastClickTime = 0;
 
-                    String current = pin.getTitle();
-                    String def = getContext().getString(R.string.pin_execute);
-                    if (def.equals(current)) current = "";
-                    top.bogey.touch_tool.utils.AppUtil.showEditDialog(getContext(),
-                            R.string.parallel_branch_name, current, name -> {
-                                pin.setTitle(name == null ? "" : name.trim());
-                                refreshPin();
-                                if (card.getTask() != null) card.getTask().save();
-                            });
+                    // 就地编辑：把标题换成输入框，回车或失焦即保存
+                    beginInlineTitleEdit(textView);
                 }
             });
             if (pin.getTitle() == null || pin.getTitle().isEmpty()) {
