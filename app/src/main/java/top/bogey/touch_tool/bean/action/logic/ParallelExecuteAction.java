@@ -164,6 +164,20 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         return logs;
     }
 
+    // 给某个执行分支命名：写进针脚标题，随动作一起序列化
+    public void setBranchName(Pin pin, String name) {
+        if (pin == null) return;
+        pin.setTitle(name == null ? "" : name.trim());
+    }
+
+    // 分支当前名字；未命名时返回空串，界面上回落到默认「执行」
+    public String getBranchName(Pin pin) {
+        if (pin == null) return "";
+        String title = pin.getTitle();
+        if (title == null) return "";
+        String def = MainApplication.getInstance().getString(R.string.pin_execute);
+        return def.equals(title) ? "" : title;
+    }
     @Override
     public List<Pin> getDynamicPins() {
         List<Pin> pins = new ArrayList<>();

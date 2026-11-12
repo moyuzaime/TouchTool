@@ -891,4 +891,5 @@
     <string name="await_async_timeout_result">是否超时</string>
     <string name="cancel_async_action">取消子任务</string>
     <string name="cancel_async_action_desc">结束异步分支，句柄留空则结束本次运行的全部异步分支</string>
-    <string name="cancel_async_result">是否取消成功</string></resources>
+    <string name="cancel_async_result">是否取消成功</string>    <string name="parallel_branch_name">分支名称</string>
+</resources>

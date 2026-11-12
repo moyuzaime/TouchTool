@@ -163,6 +163,20 @@ public abstract class PinView extends FrameLayout implements PinListener {
         if (textView != null) {
             textView.setVisibility(VISIBLE);
             textView.setText(pin.getTitle());
+            // 并行执行的分支针脚：长按标题可改名
+            textView.setOnLongClickListener(v -> {
+                Action owner = card == null ? null : card.getAction();
+                if (owner instanceof top.bogey.touch_tool.bean.action.logic.ParallelExecuteAction parallel && pin.isDynamic()) {
+                    top.bogey.touch_tool.utils.AppUtil.showEditDialog(getContext(),
+                            R.string.parallel_branch_name, parallel.getBranchName(pin), name -> {
+                                parallel.setBranchName(pin, name);
+                                refreshPin();
+                                if (card.getTask() != null) card.getTask().save();
+                            });
+                    return true;
+                }
+                return false;
+            });
             if (pin.getTitle() == null || pin.getTitle().isEmpty()) {
                 if (pin.isVertical()) {
                     textView.setText(R.string.pin_execute);
