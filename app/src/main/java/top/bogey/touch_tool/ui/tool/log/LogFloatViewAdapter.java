@@ -76,18 +76,45 @@ public class LogFloatViewAdapter extends TreeAdapter {
     }
 
     private LogSave debugLogSave;
+
     public void setLogSave(LogSave logSave) {
         debugLogSave = logSave;
         task = TaskSaver.getInstance().getTask(logSave.getKey());
         nodeMap.clear();
 
+        // 按 order 遍历，按 children（日志 uid）还原层级
+        java.util.Map<String, LogInfo> byUid = new java.util.LinkedHashMap<>();
+        for (int i = 0; i < logSave.getLogCount(); i++) {
+            String uid = logSave.getUidAt(i);
+            if (uid == null) continue;
+            LogInfo info = logSave.getLog(uid);
+            if (info == null) continue;
+            byUid.put(uid, info);
+        }
+        java.util.Set<String> childUids = new java.util.HashSet<>();
+        for (LogInfo info : byUid.values()) {
+            for (Object flag : info.getChildrenFlags()) childUids.add(String.valueOf(flag));
+        }
         List<TreeNode> nodeList = new ArrayList<>();
-        for (int i = 1; i < logSave.getLogCount() + 1; i++) {
-            LazyTreeNode node = new LazyTreeNode(logSave, i);
-            nodeMap.put(String.valueOf(i), node);
-            nodeList.add(node);
+        for (String uid : byUid.keySet()) {
+            if (childUids.contains(uid)) continue;
+            nodeList.add(buildNode(logSave, uid, byUid, 0));
         }
         setTreeNodes(nodeList);
+    }
+
+    private LazyTreeNode buildNode(LogSave logSave, String uid, java.util.Map<String, LogInfo> byUid, int depth) {
+        LazyTreeNode node = new LazyTreeNode(logSave, uid);
+        node.setDepth(depth);
+        nodeMap.put(uid, node);
+        LogInfo info = byUid.get(uid);
+        if (info == null) return node;
+        for (Object flag : info.getChildrenFlags()) {
+            String childUid = String.valueOf(flag);
+            if (!byUid.containsKey(childUid)) continue;
+            node.addChild(buildNode(logSave, childUid, byUid, depth + 1));
+        }
+        return node;
     }
 
     // 增量同步：只补新出现的节点，不重建整棵树，已展开的节点不会被打回原状
@@ -99,7 +126,7 @@ public class LogFloatViewAdapter extends TreeAdapter {
         if (node == null) {
             // 没见过的根节点，追加到末尾
             if (!isRootIndex(uid, logSave)) return;
-            LazyTreeNode root = new LazyTreeNode(logSave, Integer.parseInt(uid));
+            LazyTreeNode root = new LazyTreeNode(logSave, uid);
             nodeMap.put(uid, root);
             Object rootData = root.getData();
             long rootTime = rootData instanceof LogInfo rootInfo ? rootInfo.getTime() : 0L;
