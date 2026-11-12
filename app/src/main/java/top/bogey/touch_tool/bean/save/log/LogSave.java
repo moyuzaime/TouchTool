@@ -76,19 +76,38 @@ public class LogSave implements ITreeNodeDataLoader {
     public List<String> getOrder() {
         List<String> order = new ArrayList<>();
         String raw = mmkv.decodeString(ORDER, "");
-        if (raw == null || raw.isEmpty()) return order;
-        for (String s : raw.split(",")) {
-            if (s.isEmpty()) continue;
-            if (mmkv.decodeString(s) == null) continue;
-            order.add(s);
+        if (raw != null && !raw.isEmpty()) {
+            for (String s : raw.split(",")) {
+                if (s.isEmpty()) continue;
+                if (mmkv.decodeString(s) == null) continue;
+                order.add(s);
+            }
         }
+        // 顺序表缺失或全部失效时，扫描存储里的日志按时间重建，避免出现「暂无日志」
+        if (order.isEmpty()) return repairOrder();
+        return order;
+    }
+
+    private synchronized List<String> repairOrder() {
+        List<String> order = new ArrayList<>();
+        String[] keys = mmkv.allKeys();
+        if (keys == null) return order;
+        Map<String, LogInfo> map = new LinkedHashMap<>();
+        for (String k : keys) {
+            if (ORDER.equals(k) || COUNT.equals(k)) continue;
+            LogInfo info = getLog(k);
+            if (info != null) map.put(k, info);
+        }
+        map.entrySet().stream()
+                .sorted((a, b) -> Long.compare(a.getValue().getTime(), b.getValue().getTime()))
+                .forEach(e -> order.add(e.getKey()));
+        if (!order.isEmpty()) saveOrder(order);
         return order;
     }
 
     private void saveOrder(List<String> order) {
         mmkv.encode(ORDER, String.join(",", order));
     }
-
     public String getUidAt(int index) {
         List<String> order = getOrder();
         if (index < 0 || index >= order.size()) return null;
