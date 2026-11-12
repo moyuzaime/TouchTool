@@ -53,9 +53,6 @@ public class TaskRunnable implements Runnable {
 
     @Override
     public void run() {
-        if (startAction instanceof InnerStartAction) {
-            cacheLog = true;
-        }
         try {
             // 只有主任务运行才清空旧日志；并行的内部分支会并发启动，
             // 若它们也清空，就会把父任务和彼此刚写入的日志一起抹掉

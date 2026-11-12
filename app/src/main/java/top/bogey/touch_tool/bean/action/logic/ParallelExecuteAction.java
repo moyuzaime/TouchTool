@@ -125,7 +125,6 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
                 }
             });
             if (taskRunnable != null) {
-                taskRunnable.setCacheLog(false);
                 AppLog.e("DIAG", "分支启动 name=" + branchName + " runnable=" + taskRunnable);
             } else {
                 AppLog.e("DIAG", "分支未启动 name=" + branchName);
