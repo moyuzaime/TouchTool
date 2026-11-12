@@ -80,6 +80,13 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         PinNumber<?> timeout = getPinValue(runnable, timeoutPin);
 
         MainAccessibilityService service = MainApplication.getInstance().getService();
+        if (service == null) {
+            // 无障碍服务不可用时直接收尾，避免 NPE
+            AppLog.e("并行执行", "无障碍服务不可用，跳过并行分支");
+            resultPin.getValue(PinBoolean.class).setValue(false);
+            executeNext(runnable, completePin);
+            return;
+        }
 
         List<Pin> validPins = new ArrayList<>();
         for (Pin dynamicPin : getDynamicPins()) {
@@ -117,7 +124,8 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
                     runnable.addLog(logInfo, 0);
 
                     latch.countDown();
-                    if (countValue <= latch.getCount()) {
+                    // 完成数 <= 0 视为「全部完成才结束」，不做提前停止
+                    if (countValue > 0 && countValue <= latch.getCount()) {
                         runnableList.forEach(r -> {
                             if (r != null) r.stop();
                         });
