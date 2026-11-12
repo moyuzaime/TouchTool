@@ -57,7 +57,10 @@ public class TaskRunnable implements Runnable {
             cacheLog = true;
         }
         try {
-            if (SettingSaver.TASK_RESET_DETAIL_LOG.get()) {
+            // 只有主任务运行才清空旧日志；并行的内部分支会并发启动，
+            // 若它们也清空，就会把父任务和彼此刚写入的日志一起抹掉
+            boolean innerRun = startAction instanceof InnerStartAction;
+            if (!innerRun && SettingSaver.TASK_RESET_DETAIL_LOG.get()) {
                 LogSaver.getInstance().clearLog(task.getId());
             }
 
