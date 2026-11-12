@@ -102,16 +102,24 @@ public class LogFloatViewAdapter extends TreeAdapter {
             if (parentUid != null && !parentUid.isEmpty()) {
                 LazyTreeNode parent = nodeMap.get(parentUid);
                 if (parent != null) {
-                    // 同一条分支日志可能被通知多次，已在父节点下就不重复挂
+                    // 同一条分支日志可能被写入两次（uid 不同、内容相同），按「时间+文本」去重
+                    LogInfo currentInfo = logSave.getLog(uid);
                     for (TreeNode existNode : parent.getChildren()) {
                         Object existData = existNode.getData();
-                        if (existData instanceof LogInfo existInfo && uid.equals(existInfo.getUid())) return;
+                        if (!(existData instanceof LogInfo existInfo)) continue;
+                        if (uid.equals(existInfo.getUid())) return;
+                        if (currentInfo != null && existInfo.getTime() == currentInfo.getTime()
+                                && existInfo.getLog().equals(currentInfo.getLog())) {
+                            return;
+                        }
                     }
                     LazyTreeNode child = new LazyTreeNode(logSave, Integer.parseInt(uid));
                     child.setDepth(parent.getDepth() + 1);
                     if (nodeMap.putIfAbsent(uid, child) != null) return;
                     parent.addChild(child);
                     int parentIndex = treeNodes.indexOf(parent);
+                    // 父节点折叠时不插入行，展开时会从 children 里补出来
+                    if (!parent.isExpanded()) return;
                     if (parentIndex >= 0) {
                         int insertAt = Math.min(treeNodes.size(), parentIndex + parent.getChildren().size());
                         treeNodes.add(insertAt, child);
