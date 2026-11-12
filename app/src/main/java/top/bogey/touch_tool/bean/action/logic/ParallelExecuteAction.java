@@ -71,6 +71,9 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         CountDownLatch latch = new CountDownLatch(validPins.size());
         int countValue = count.intValue();
         List<TaskRunnable> runnableList = new ArrayList<>();
+        // 已正常结束的分支，用于超时后只停还活着的
+        java.util.Set<TaskRunnable> finished = java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
+        int rejectedCount = 0;
 
         Task currTask = runnable.getTask();
         if (runnable.isDebug()) currTask.addFlag(Task.FLAG_DEBUG);
@@ -84,6 +87,7 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
 
                 @Override
                 public void onFinish(TaskRunnable run) {
+                    finished.add(run);
                     List<LogInfo> logList = run.getCacheLogList();
                     List<String> logs = saveLogs(runnable, logList);
                     LogInfo logInfo = new LogInfo(new ActionLog(runnable.getProgress() + 1, currTask, ParallelExecuteAction.this, true));
@@ -92,18 +96,27 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
 
                     latch.countDown();
                     if (countValue <= latch.getCount()) {
-                        runnableList.forEach(TaskRunnable::stop);
+                        runnableList.forEach(r -> {
+                            if (r != null) r.stop();
+                        });
                         resultPin.getValue(PinBoolean.class).setValue(true);
                     }
                 }
             });
             runnableList.add(taskRunnable);
+            if (taskRunnable == null) {
+                // 线程池已满，分支没能启动，必须让计数器前进，避免一直等到超时
+                rejectedCount++;
+                latch.countDown();
+                AppLog.e("并行执行", "线程池已满，分支未启动");
+            }
         }
 
         ITaskListener listener = new ITaskListener() {
             @Override
             public void onPauseChanged(TaskRunnable runnable, boolean paused) {
                 for (TaskRunnable taskRunnable : runnableList) {
+                    if (taskRunnable == null) continue;
                     if (paused) taskRunnable.forcePause();
                     else taskRunnable.forceResume();
                 }
@@ -122,6 +135,16 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
             resultPin.getValue(PinBoolean.class).setValue(false);
         }
         runnable.removeListener(listener);
+
+        // 超时或提前完成后，停掉仍在运行的分支，避免它们继续在后台跑
+        int stoppedCount = 0;
+        for (TaskRunnable taskRunnable : runnableList) {
+            if (taskRunnable == null || finished.contains(taskRunnable)) continue;
+            taskRunnable.stop();
+            stoppedCount++;
+        }
+        if (stoppedCount > 0) AppLog.e("并行执行", "已停止 " + stoppedCount + " 个仍在运行的分支");
+        if (rejectedCount > 0) AppLog.e("并行执行", "有 " + rejectedCount + " 个分支因线程池已满未能启动");
 
         executeNext(runnable, completePin);
     }
