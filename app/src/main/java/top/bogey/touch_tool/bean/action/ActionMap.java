@@ -51,6 +51,9 @@ public class ActionMap {
                     ActionType.MUTEX_LOCK,
                     ActionType.MUTEX_UNLOCK,
                     ActionType.ATOMIC_ADD,
+                    ActionType.ASYNC,
+                    ActionType.AWAIT_ASYNC,
+                    ActionType.CANCEL_ASYNC,
 
                     ActionType.INPUT_CONFIG,
                     ActionType.STOP_TASK,

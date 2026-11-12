@@ -881,4 +881,14 @@
     <string name="atomic_add_action_desc">跨分支安全累加计数，输出累加后的值</string>
     <string name="atomic_add_name">计数器名</string>
     <string name="atomic_add_delta">增量</string>
-    <string name="atomic_add_result">结果</string></resources>
+    <string name="atomic_add_result">结果</string>    <string name="async_action">异步执行</string>
+    <string name="async_action_desc">把分支放到另一条线程执行，主流程立刻继续</string>
+    <string name="async_action_branch">异步</string>
+    <string name="async_action_handle">句柄</string>
+    <string name="await_async_action">等待完成</string>
+    <string name="await_async_action_desc">等待异步分支结束，句柄留空则等待本次运行的全部异步分支</string>
+    <string name="await_async_timeout">超时(ms)</string>
+    <string name="await_async_timeout_result">是否超时</string>
+    <string name="cancel_async_action">取消子任务</string>
+    <string name="cancel_async_action_desc">结束异步分支，句柄留空则结束本次运行的全部异步分支</string>
+    <string name="cancel_async_result">是否取消成功</string></resources>
