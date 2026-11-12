@@ -79,35 +79,48 @@ public class LogFloatViewAdapter extends TreeAdapter {
         task = TaskSaver.getInstance().getTask(logSave.getKey());
         nodeMap.clear();
 
-        // 按存储里的 children 关系重建树：否则重开窗口时所有日志都会平铺成根节点
-        java.util.Map<String, LogInfo> infos = new java.util.LinkedHashMap<>();
+        // 存档里的日志 key 是序号，而 children 里记的是日志自身 uid（GUID），两边都要建索引
+        java.util.Map<String, LogInfo> byKey = new java.util.LinkedHashMap<>();
+        java.util.Map<LogInfo, String> keyOf = new java.util.IdentityHashMap<>();
+        java.util.Map<String, LogInfo> byUid = new java.util.HashMap<>();
         for (int i = 1; i < logSave.getLogCount() + 1; i++) {
-            LogInfo info = logSave.getLog(String.valueOf(i));
-            if (info != null && info.getUid() != null) infos.put(info.getUid(), info);
+            String key = String.valueOf(i);
+            LogInfo info = logSave.getLog(key);
+            if (info == null) continue;
+            byKey.put(key, info);
+            keyOf.put(info, key);
+            if (info.getUid() != null) byUid.put(info.getUid(), info);
         }
-        java.util.Set<String> childUids = new java.util.HashSet<>();
-        for (LogInfo info : infos.values()) {
-            for (Object flag : info.getChildrenFlags()) childUids.add(String.valueOf(flag));
+        java.util.Set<String> childFlags = new java.util.HashSet<>();
+        for (LogInfo info : byKey.values()) {
+            for (Object flag : info.getChildrenFlags()) childFlags.add(String.valueOf(flag));
         }
         List<TreeNode> nodeList = new ArrayList<>();
-        for (String uid : infos.keySet()) {
-            if (childUids.contains(uid)) continue;
-            nodeList.add(buildNode(logSave, uid, infos, 0));
+        for (String key : byKey.keySet()) {
+            LogInfo info = byKey.get(key);
+            String uid = info.getUid();
+            boolean isChild = childFlags.contains(key) || (uid != null && childFlags.contains(uid));
+            if (isChild) continue;
+            nodeList.add(buildNode(logSave, key, byKey, keyOf, byUid, 0));
         }
         setTreeNodes(nodeList);
     }
 
-    // 递归按 children 建节点，深度按层级递增
-    private LazyTreeNode buildNode(LogSave logSave, String uid, java.util.Map<String, LogInfo> infos, int depth) {
-        LazyTreeNode node = new LazyTreeNode(logSave, Integer.parseInt(uid));
+    private LazyTreeNode buildNode(LogSave logSave, String key,
+                                   java.util.Map<String, LogInfo> byKey,
+                                   java.util.Map<LogInfo, String> keyOf,
+                                   java.util.Map<String, LogInfo> byUid, int depth) {
+        LazyTreeNode node = new LazyTreeNode(logSave, Integer.parseInt(key));
         node.setDepth(depth);
-        nodeMap.put(uid, node);
-        LogInfo info = infos.get(uid);
+        nodeMap.put(key, node);
+        LogInfo info = byKey.get(key);
         if (info == null) return node;
         for (Object flag : info.getChildrenFlags()) {
-            String childUid = String.valueOf(flag);
-            if (!infos.containsKey(childUid)) continue;
-            node.addChild(buildNode(logSave, childUid, infos, depth + 1));
+            String flagUid = String.valueOf(flag);
+            LogInfo childInfo = byUid.get(flagUid);
+            String childKey = childInfo == null ? flagUid : keyOf.get(childInfo);
+            if (childKey == null || !byKey.containsKey(childKey)) continue;
+            node.addChild(buildNode(logSave, childKey, byKey, keyOf, byUid, depth + 1));
         }
         return node;
     }
