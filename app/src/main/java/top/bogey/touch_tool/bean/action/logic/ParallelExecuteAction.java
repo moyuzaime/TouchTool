@@ -117,13 +117,19 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
                 @Override
                 public void onFinish(TaskRunnable run) {
                     finished.add(run);
-                    List<LogInfo> logList = run.getCacheLogList();
-                    List<String> logs = saveLogs(runnable, logList);
-                    LogInfo logInfo = new LogInfo(new ActionLog(runnable.getProgress() + 1, currTask, ParallelExecuteAction.this, true));
-                    logInfo.setChildren(logs);
-                    runnable.addLog(logInfo, 0);
+                    try {
+                        List<LogInfo> logList = run.getCacheLogList();
+                        List<String> logs = saveLogs(runnable, logList);
+                        LogInfo logInfo = new LogInfo(new ActionLog(runnable.getProgress() + 1, currTask, ParallelExecuteAction.this, true));
+                        logInfo.setChildren(logs);
+                        runnable.addLog(logInfo, 0);
+                    } catch (Throwable e) {
+                        AppLog.e("并行执行", "保存分支日志失败");
+                    } finally {
+                        // 日志出错也必须放行计数，否则只能干等到超时
+                        latch.countDown();
+                    }
 
-                    latch.countDown();
                     // 完成数 <= 0 视为「全部完成才结束」，不做提前停止
                     if (countValue > 0 && countValue <= latch.getCount()) {
                         runnableList.forEach(r -> {
