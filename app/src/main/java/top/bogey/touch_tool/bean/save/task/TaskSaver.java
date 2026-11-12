@@ -52,7 +52,8 @@ public class TaskSaver {
         return tags.contains(tag);
     }
 
-    private final Map<String, TaskSave> saves = new HashMap<>();
+    // 定时回收线程会遍历，任务线程会增删，必须用并发容器，否则会 ConcurrentModificationException
+    private final Map<String, TaskSave> saves = new java.util.concurrent.ConcurrentHashMap<>();
     private final MMKV mmkv = MMKV.mmkvWithID("TASK_DB", MMKV.SINGLE_PROCESS_MODE);
     private final Set<TaskSaveListener> listeners = new HashSet<>();
 
