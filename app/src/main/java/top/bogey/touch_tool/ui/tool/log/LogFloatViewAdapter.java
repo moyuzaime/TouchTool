@@ -97,6 +97,25 @@ public class LogFloatViewAdapter extends TreeAdapter {
         if (node == null) {
             // 没见过的根节点，追加到末尾
             if (!isRootIndex(uid, logSave)) return;
+            // 分支日志：父节点存在时直接挂到它下面，不单独成根
+            String parentUid = info.getLogObject() instanceof ActionLog actionLog ? actionLog.getParentLogUid() : null;
+            if (parentUid != null && !parentUid.isEmpty()) {
+                LazyTreeNode parent = nodeMap.get(parentUid);
+                if (parent != null) {
+                    LazyTreeNode child = new LazyTreeNode(logSave, Integer.parseInt(uid));
+                    child.setDepth(parent.getDepth() + 1);
+                    parent.addChild(child);
+                    nodeMap.put(uid, child);
+                    int parentIndex = treeNodes.indexOf(parent);
+                    if (parentIndex >= 0) {
+                        int insertAt = Math.min(treeNodes.size(), parentIndex + parent.getChildren().size());
+                        treeNodes.add(insertAt, child);
+                        notifyItemInserted(insertAt);
+                        notifyItemChanged(parentIndex);
+                    }
+                    return;
+                }
+            }
             LazyTreeNode root = new LazyTreeNode(logSave, Integer.parseInt(uid));
             nodeMap.put(uid, root);
             Object rootData = root.getData();

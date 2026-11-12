@@ -145,6 +145,18 @@ public class TaskRunnable implements Runnable {
         checkStatus();
     }
 
+    // 分支日志要挂到的父动作日志 uid
+    private String logParentUid;
+    private String lastLogUid;
+
+    public String getLastLogUid() {
+        return lastLogUid;
+    }
+
+    public void setLogParentUid(String uid) {
+        this.logParentUid = uid;
+    }
+
     public void addLog(String log) {
         addLog(new LogInfo(new NormalLog(log)), 0);
     }
@@ -199,7 +211,11 @@ public class TaskRunnable implements Runnable {
         if (debug) {
             String tag = startAction instanceof top.bogey.touch_tool.bean.action.start.InnerStartAction inner
                     ? inner.getBranchTag() : null;
-            addLog(new LogInfo(new ActionLog(progress + 1, getTask(), action, stackOption != 0, tag)), stackOption);
+            ActionLog actionLog = new ActionLog(progress + 1, getTask(), action, stackOption != 0, tag);
+            actionLog.setParentLogUid(logParentUid);
+            LogInfo logInfo = new LogInfo(actionLog);
+            addLog(logInfo, stackOption);
+            lastLogUid = logInfo.getUid();
         }
     }
 
