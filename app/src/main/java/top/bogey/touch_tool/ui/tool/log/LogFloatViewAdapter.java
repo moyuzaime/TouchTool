@@ -97,6 +97,12 @@ public class LogFloatViewAdapter extends TreeAdapter {
         if (node == null) {
             // 没见过的根节点，追加到末尾
             if (!isRootIndex(uid, logSave)) return;
+            // 带父日志的分支日志只在父节点 children 里显示，不再单独成根（否则会出现两份）
+            if (info.getLogObject() instanceof ActionLog branchLog
+                    && branchLog.getParentLogUid() != null
+                    && !branchLog.getParentLogUid().isEmpty()) {
+                return;
+            }
             // 分支日志：父节点存在时直接挂到它下面，不单独成根
             LazyTreeNode root = new LazyTreeNode(logSave, Integer.parseInt(uid));
             nodeMap.put(uid, root);
