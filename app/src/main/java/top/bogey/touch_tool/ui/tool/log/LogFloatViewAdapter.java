@@ -80,12 +80,9 @@ public class LogFloatViewAdapter extends TreeAdapter {
         nodeMap.clear();
 
         List<TreeNode> nodeList = new ArrayList<>();
-        // key 现在是 GUID，按顺序表遍历
-        for (int i = 0; i < logSave.getLogCount(); i++) {
-            String uid = logSave.getUidAt(i);
-            if (uid == null) continue;
-            LazyTreeNode node = new LazyTreeNode(logSave, uid);
-            nodeMap.put(uid, node);
+        for (int i = 1; i < logSave.getLogCount() + 1; i++) {
+            LazyTreeNode node = new LazyTreeNode(logSave, i);
+            nodeMap.put(String.valueOf(i), node);
             nodeList.add(node);
         }
         setTreeNodes(nodeList);
@@ -100,7 +97,7 @@ public class LogFloatViewAdapter extends TreeAdapter {
         if (node == null) {
             // 没见过的根节点，追加到末尾
             if (!isRootIndex(uid, logSave)) return;
-            LazyTreeNode root = new LazyTreeNode(logSave, uid);
+            LazyTreeNode root = new LazyTreeNode(logSave, Integer.parseInt(uid));
             nodeMap.put(uid, root);
             Object rootData = root.getData();
             long rootTime = rootData instanceof LogInfo rootInfo ? rootInfo.getTime() : 0L;
@@ -207,8 +204,12 @@ public class LogFloatViewAdapter extends TreeAdapter {
     }
 
     private boolean isRootIndex(String uid, LogSave logSave) {
-        // key 已改为 GUID，只需要确认这条日志确实存在
-        return uid != null && logSave.getLog(uid) != null;
+        try {
+            int index = Integer.parseInt(uid);
+            return index >= 1 && index <= logSave.getLogCount();
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     public List<LogInfo> getLogs() {
