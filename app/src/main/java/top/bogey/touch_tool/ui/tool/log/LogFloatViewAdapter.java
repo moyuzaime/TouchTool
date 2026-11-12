@@ -83,7 +83,7 @@ public class LogFloatViewAdapter extends TreeAdapter {
         // key 现在是 GUID，按顺序表遍历
         for (int i = 0; i < logSave.getLogCount(); i++) {
             String uid = logSave.getUidAt(i);
-            if (uid == null) continue;
+            if (uid == null || logSave.getLog(uid) == null) continue;
             LazyTreeNode node = new LazyTreeNode(logSave, uid);
             nodeMap.put(uid, node);
             nodeList.add(node);
