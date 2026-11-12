@@ -48,26 +48,22 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
     public ParallelExecuteAction() {
         super(ActionType.PARALLEL_LOGIC);
         addPins(countPin, timeoutPin, addPin, resultPin, completePin);
-        // 继承来的出口针脚在这里只当第一个并行分支用，流程收尾统一走「完成」
-        outPin.setValue(new top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute());
-        outPin.setTitle(MainApplication.getInstance().getString(R.string.parallel_branch_pin));
-        outPin.setHide(false);
+        // 继承来的出口针脚不参与执行：流程收尾统一走「完成」，分支由「添加执行」生成
+        outPin.setHide(true);
     }
 
     public ParallelExecuteAction(JsonObject jsonObject) {
         super(jsonObject);
+        // 旧数据里 outPin 曾被存成字符串执行针脚，和基类字段类型对不上，会残留一个未消费的针脚，
+        // 复制/加载时就表现为凭空多出一个执行针脚；这里把它丢掉
+        if (!tmpPins.isEmpty() && tmpPins.get(0).getValue() instanceof top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute) {
+            tmpPins.remove(0);
+        }
         reAddPins(countPin, timeoutPin);
         reAddPins(morePin);
         reAddPins(addPin, resultPin, completePin);
-
-        hydrateBranchNames();
-
-        // 第一个出口针脚固定当分支用：标题「分支」，值保留
-        if (!(outPin.getValue() instanceof top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute)) {
-            outPin.setValue(new top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute());
-        }
-        outPin.setTitle(MainApplication.getInstance().getString(R.string.parallel_branch_pin));
-        outPin.setHide(false);
+        // outPin 保持普通执行针脚并隐藏，避免它被当成一个额外的分支复制出来
+        outPin.setHide(true);
         hydrateBranchNames();
     }
 
@@ -263,7 +259,6 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
     @Override
     public List<Pin> getDynamicPins() {
         List<Pin> pins = new ArrayList<>();
-        pins.add(outPin);
         boolean start = false;
         for (Pin pin : getPins()) {
             if (pin == addPin) start = false;
