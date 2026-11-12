@@ -57,19 +57,32 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         reAddPins(countPin, timeoutPin);
         reAddPins(morePin);
         reAddPins(addPin, resultPin, completePin);
-        if (!(outPin.getValue() instanceof top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute)) {
-            outPin.setValue(new top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute());
+
+        // outPin 之前把名字存在标题里，切换成针脚值前先把旧标题搬过去，避免名字丢失
+        String oldTitle = outPin.getTitle();
+        String defTitle = MainApplication.getInstance().getString(R.string.pin_execute);
+        String branchTitle = MainApplication.getInstance().getString(R.string.parallel_branch_pin);
+        if (outPin.getValue() instanceof top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute old) {
+            String value = old.getValue();
+            if (value == null || value.trim().isEmpty()) {
+                if (oldTitle != null && !defTitle.equals(oldTitle) && !branchTitle.equals(oldTitle)) old.setValue(oldTitle);
+            }
+        } else {
+            top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute value =
+                    new top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute();
+            if (oldTitle != null && !defTitle.equals(oldTitle) && !branchTitle.equals(oldTitle)) value.setValue(oldTitle);
+            outPin.setValue(value);
         }
-        outPin.setTitle(MainApplication.getInstance().getString(R.string.parallel_branch_pin));
+        outPin.setTitle(branchTitle);
         outPin.setHide(false);
         for (Pin dynamicPin : getDynamicPins()) {
             if (dynamicPin == outPin || dynamicPin == completePin) continue;
             if (dynamicPin.getValue() instanceof top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute) continue;
             String title = dynamicPin.getTitle();
-            String def = MainApplication.getInstance().getString(R.string.pin_execute);
+            String def = defTitle;
             top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute value =
                     new top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute();
-            if (title != null && !def.equals(title)) value.setValue(title);
+            if (title != null && !def.equals(title) && !branchTitle.equals(title)) value.setValue(title);
             dynamicPin.setValue(value);
         }
     }
