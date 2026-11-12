@@ -75,7 +75,9 @@ public class LogFloatViewAdapter extends TreeAdapter {
         return 0;
     }
 
+    private LogSave debugLogSave;
     public void setLogSave(LogSave logSave) {
+        debugLogSave = logSave;
         task = TaskSaver.getInstance().getTask(logSave.getKey());
         nodeMap.clear();
 
@@ -461,6 +463,15 @@ public class LogFloatViewAdapter extends TreeAdapter {
 
             LogInfo logInfo = (LogInfo) node.getData();
             if (logInfo == null) {
+                // 排查：为什么这条日志加载失败（key / 原始长度 / 头部内容）
+                try {
+                    String dbgUid = node instanceof LazyTreeNode lazyNode ? String.valueOf(lazyNode.getFlag()) : "?";
+                    String raw = debugLogSave == null ? null : debugLogSave.debugRaw(dbgUid);
+                    top.bogey.touch_tool.utils.AppLog.e("DIAGM", "uid=" + dbgUid
+                            + " rawLen=" + (raw == null ? -1 : raw.length())
+                            + " head=" + (raw == null ? "null" : raw.substring(0, Math.min(60, raw.length()))));
+                } catch (Throwable ignored) {
+                }
                 String error = context.getString(R.string.task_running_log_load_error);
 
                 if (normalBinding != null) {

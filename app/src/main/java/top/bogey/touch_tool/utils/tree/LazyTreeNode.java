@@ -13,6 +13,11 @@ public class LazyTreeNode extends TreeNode {
         this.flag = flag;
     }
 
+    // 排查用：拿到该节点的存储 flag（日志 uid / 序号）
+    public Object getFlag() {
+        return flag;
+    }
+
     @Nullable
     @Override
     public ILazyTreeNodeData getData() {
