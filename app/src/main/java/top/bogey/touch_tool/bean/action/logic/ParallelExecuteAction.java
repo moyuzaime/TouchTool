@@ -58,33 +58,32 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         reAddPins(morePin);
         reAddPins(addPin, resultPin, completePin);
 
-        // outPin 之前把名字存在标题里，切换成针脚值前先把旧标题搬过去，避免名字丢失
-        String oldTitle = outPin.getTitle();
-        String defTitle = MainApplication.getInstance().getString(R.string.pin_execute);
-        String branchTitle = MainApplication.getInstance().getString(R.string.parallel_branch_pin);
-        if (outPin.getValue() instanceof top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute old) {
-            String value = old.getValue();
-            if (value == null || value.trim().isEmpty()) {
-                if (oldTitle != null && !defTitle.equals(oldTitle) && !branchTitle.equals(oldTitle)) old.setValue(oldTitle);
+        // reAddPins 会用模板重建分支针脚（值不会带过来），这里按位置从原始 json 把名字搬回来
+        java.util.List<Pin> savedPins = top.bogey.touch_tool.utils.GsonUtil.getAsObject(jsonObject, "pins",
+                com.google.gson.reflect.TypeToken.getParameterized(java.util.ArrayList.class, Pin.class).getType(),
+                new ArrayList<>());
+        java.util.List<Pin> currentPins = getPins();
+        int restoreSize = Math.min(savedPins.size(), currentPins.size());
+        for (int i = 0; i < restoreSize; i++) {
+            Pin saved = savedPins.get(i);
+            Pin current = currentPins.get(i);
+            if (!(saved.getValue() instanceof top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute savedValue)) continue;
+            if (current.getValue() instanceof top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute currentValue) {
+                currentValue.setValue(savedValue.getValue());
+            } else {
+                top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute value =
+                        new top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute();
+                value.setValue(savedValue.getValue());
+                current.setValue(value);
             }
-        } else {
-            top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute value =
-                    new top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute();
-            if (oldTitle != null && !defTitle.equals(oldTitle) && !branchTitle.equals(oldTitle)) value.setValue(oldTitle);
-            outPin.setValue(value);
         }
-        outPin.setTitle(branchTitle);
+
+        // 第一个出口针脚固定当分支用：标题「分支」，值保留
+        if (!(outPin.getValue() instanceof top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute)) {
+            outPin.setValue(new top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute());
+        }
+        outPin.setTitle(MainApplication.getInstance().getString(R.string.parallel_branch_pin));
         outPin.setHide(false);
-        for (Pin dynamicPin : getDynamicPins()) {
-            if (dynamicPin == outPin || dynamicPin == completePin) continue;
-            if (dynamicPin.getValue() instanceof top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute) continue;
-            String title = dynamicPin.getTitle();
-            String def = defTitle;
-            top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute value =
-                    new top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute();
-            if (title != null && !def.equals(title) && !branchTitle.equals(title)) value.setValue(title);
-            dynamicPin.setValue(value);
-        }
     }
 
     @Override
