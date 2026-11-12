@@ -110,18 +110,8 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
                 @Override
                 public void onFinish(TaskRunnable run) {
                     finished.add(run);
-                    try {
-                        List<LogInfo> logList = run.getCacheLogList();
-                        List<String> logs = saveLogs(runnable, logList);
-                        LogInfo logInfo = new LogInfo(new ActionLog(runnable.getProgress() + 1, currTask, ParallelExecuteAction.this, true));
-                        logInfo.setChildren(logs);
-                        runnable.addLog(logInfo, 0);
-                    } catch (Throwable e) {
-                        AppLog.e("并行执行", "保存分支日志失败");
-                    } finally {
-                        // 日志出错也必须放行计数，否则只能干等到超时
-                        latch.countDown();
-                    }
+                    // 分支日志已实时写入日志库，这里只放行计数
+                    latch.countDown();
 
                     // 完成数 <= 0 视为「全部完成才结束」，不做提前停止
                     if (countValue > 0 && countValue <= latch.getCount()) {
@@ -132,6 +122,7 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
                     }
                 }
             });
+            if (taskRunnable != null) taskRunnable.setCacheLog(false);
             runnableList.add(taskRunnable);
             if (taskRunnable == null) {
                 // 线程池已满，分支没能启动，必须让计数器前进，避免一直等到超时

@@ -203,6 +203,11 @@ public class TaskRunnable implements Runnable {
         }
     }
 
+    // 关掉缓存后，日志会直接写进日志库，可实时看到
+    public void setCacheLog(boolean cache) {
+        this.cacheLog = cache;
+    }
+
     public List<LogInfo> getCacheLogList() {
         return cacheLogList;
     }
