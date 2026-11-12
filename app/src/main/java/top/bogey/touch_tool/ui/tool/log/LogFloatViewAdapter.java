@@ -79,13 +79,37 @@ public class LogFloatViewAdapter extends TreeAdapter {
         task = TaskSaver.getInstance().getTask(logSave.getKey());
         nodeMap.clear();
 
-        List<TreeNode> nodeList = new ArrayList<>();
+        // 按存储里的 children 关系重建树：否则重开窗口时所有日志都会平铺成根节点
+        java.util.Map<String, LogInfo> infos = new java.util.LinkedHashMap<>();
         for (int i = 1; i < logSave.getLogCount() + 1; i++) {
-            LazyTreeNode node = new LazyTreeNode(logSave, i);
-            nodeMap.put(String.valueOf(i), node);
-            nodeList.add(node);
+            LogInfo info = logSave.getLog(String.valueOf(i));
+            if (info != null && info.getUid() != null) infos.put(info.getUid(), info);
+        }
+        java.util.Set<String> childUids = new java.util.HashSet<>();
+        for (LogInfo info : infos.values()) {
+            for (Object flag : info.getChildrenFlags()) childUids.add(String.valueOf(flag));
+        }
+        List<TreeNode> nodeList = new ArrayList<>();
+        for (String uid : infos.keySet()) {
+            if (childUids.contains(uid)) continue;
+            nodeList.add(buildNode(logSave, uid, infos, 0));
         }
         setTreeNodes(nodeList);
+    }
+
+    // 递归按 children 建节点，深度按层级递增
+    private LazyTreeNode buildNode(LogSave logSave, String uid, java.util.Map<String, LogInfo> infos, int depth) {
+        LazyTreeNode node = new LazyTreeNode(logSave, Integer.parseInt(uid));
+        node.setDepth(depth);
+        nodeMap.put(uid, node);
+        LogInfo info = infos.get(uid);
+        if (info == null) return node;
+        for (Object flag : info.getChildrenFlags()) {
+            String childUid = String.valueOf(flag);
+            if (!infos.containsKey(childUid)) continue;
+            node.addChild(buildNode(logSave, childUid, infos, depth + 1));
+        }
+        return node;
     }
 
     // 增量同步：只补新出现的节点，不重建整棵树，已展开的节点不会被打回原状
