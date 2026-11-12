@@ -46,8 +46,9 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
     public ParallelExecuteAction() {
         super(ActionType.PARALLEL_LOGIC);
         addPins(countPin, timeoutPin, addPin, resultPin, completePin);
-        // 第一个「执行」针脚同样可命名（与其它分支一致）
+        // 继承来的出口针脚在这里只当第一个并行分支用，流程收尾统一走「完成」
         outPin.setValue(new top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute());
+        outPin.setTitle(MainApplication.getInstance().getString(R.string.parallel_branch_pin));
         outPin.setHide(false);
     }
 
@@ -59,9 +60,8 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         if (!(outPin.getValue() instanceof top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute)) {
             outPin.setValue(new top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute());
         }
+        outPin.setTitle(MainApplication.getInstance().getString(R.string.parallel_branch_pin));
         outPin.setHide(false);
-
-        // 兼容旧数据：普通执行针脚就地换成带名字的字符串执行针脚，链接不受影响
         for (Pin dynamicPin : getDynamicPins()) {
             if (dynamicPin == outPin || dynamicPin == completePin) continue;
             if (dynamicPin.getValue() instanceof top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute) continue;
