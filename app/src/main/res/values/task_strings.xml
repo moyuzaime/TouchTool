@@ -893,4 +893,6 @@
     <string name="cancel_async_action_desc">结束异步分支，句柄留空则结束本次运行的全部异步分支</string>
     <string name="cancel_async_result">是否取消成功</string>    <string name="parallel_branch_name">分支名称</string>
     <string name="parallel_branch_pin">分支</string>
+    <string name="blueprint_run_task">运行任务</string>
+    <string name="blueprint_run_hint">无障碍服务未开启，无法运行</string>
 </resources>

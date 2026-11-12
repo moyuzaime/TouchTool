@@ -69,6 +69,12 @@
                 app:iconTint="@color/button_container_check" />
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/runButton"
+                style="?attr/iconButton"
+                android:contentDescription="@string/blueprint_run_task"
+                app:icon="@drawable/icon_play_arrow" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/saveButton"
                 style="?attr/iconButton"
                 app:icon="@drawable/icon_save" />

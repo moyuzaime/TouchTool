@@ -430,6 +430,24 @@ public class BlueprintView extends Fragment {
             }
         });
 
+        // 顶部「运行」：直接跑当前任务的手动开始动作
+        binding.runButton.setOnClickListener(v -> {
+            top.bogey.touch_tool.service.MainAccessibilityService service =
+                    top.bogey.touch_tool.MainApplication.getInstance().getService();
+            if (service == null || !service.isEnabled()) {
+                android.widget.Toast.makeText(requireContext(), R.string.blueprint_run_hint, android.widget.Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Task current = taskStack.peek();
+            if (current == null) return;
+            for (top.bogey.touch_tool.bean.action.Action action : current.getActions()) {
+                if (action instanceof top.bogey.touch_tool.bean.action.start.ManualStartAction manual) {
+                    service.runTask(current, manual);
+                    return;
+                }
+            }
+            android.widget.Toast.makeText(requireContext(), R.string.blueprint_run_hint, android.widget.Toast.LENGTH_SHORT).show();
+        });
         binding.saveButton.setOnClickListener(v -> {
             Task currTask = taskStack.peek();
             currTask.save();
