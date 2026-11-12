@@ -18,6 +18,7 @@ import top.bogey.touch_tool.bean.other.log.DateTimeLog;
 import top.bogey.touch_tool.bean.other.log.LogInfo;
 import top.bogey.touch_tool.bean.other.log.NormalLog;
 import top.bogey.touch_tool.bean.save.setting.SettingSaver;
+import top.bogey.touch_tool.bean.save.log.LogSave;
 import top.bogey.touch_tool.bean.save.log.LogSaver;
 import top.bogey.touch_tool.bean.task.Task;
 import top.bogey.touch_tool.utils.AppLog;
@@ -145,6 +146,19 @@ public class TaskRunnable implements Runnable {
         checkStatus();
     }
 
+    // 分支日志要挂到的父动作日志 uid
+    private String logParentUid;
+    private String lastLogUid;
+
+    public String getLastLogUid() {
+        return lastLogUid;
+    }
+
+    public void setLogParentUid(String uid) {
+        top.bogey.touch_tool.utils.AppLog.e("DIAGP", "setLogParentUid called " + uid);
+        this.logParentUid = uid;
+    }
+
     public void addLog(String log) {
         addLog(new LogInfo(new NormalLog(log)), 0);
     }
@@ -189,6 +203,33 @@ public class TaskRunnable implements Runnable {
                     LogSaver.getInstance().addLog(task.getId(), logInfo, true);
                     logInfo.setSaved(true);
                     logged = true;
+                    // 分支日志：把自己写进父日志的 children，界面重开/重建时才能正确嵌套
+                    if (logParentUid != null && !logParentUid.isEmpty()) {
+                        try {
+                            LogSave logSave = LogSaver.getInstance().getLogSave(task.getId());
+                            if (logSave != null) {
+                                // 多个分支会并发写同一个父日志，读改写必须串行，否则会互相覆盖
+                                synchronized (logSave) {
+                                    LogInfo parentLog = logSave.getLog(logParentUid);
+                                    if (parentLog != null) {
+                                        boolean exists = false;
+                                        for (Object flag : parentLog.getChildrenFlags()) {
+                                            if (String.valueOf(flag).equals(logInfo.getUid())) {
+                                                exists = true;
+                                                break;
+                                            }
+                                        }
+                                        if (!exists) {
+                                            parentLog.addChild(logInfo.getUid());
+                                            LogSaver.getInstance().updateLog(task.getId(), parentLog);
+                                        }
+                                        top.bogey.touch_tool.utils.AppLog.e("DIAGP", "parent=" + logParentUid + " child=" + logInfo.getUid() + " children=" + parentLog.getChildrenFlags().size());
+                                    }
+                                }
+                            }
+                        } catch (Throwable ignored) {
+                        }
+                    }
                 }
             }
         }
@@ -199,7 +240,11 @@ public class TaskRunnable implements Runnable {
         if (debug) {
             String tag = startAction instanceof top.bogey.touch_tool.bean.action.start.InnerStartAction inner
                     ? inner.getBranchTag() : null;
-            addLog(new LogInfo(new ActionLog(progress + 1, getTask(), action, stackOption != 0, tag)), stackOption);
+            ActionLog actionLog = new ActionLog(progress + 1, getTask(), action, stackOption != 0, tag);
+            actionLog.setParentLogUid(logParentUid);
+            LogInfo logInfo = new LogInfo(actionLog);
+            addLog(logInfo, stackOption);
+            lastLogUid = logInfo.getUid();
         }
     }
 
