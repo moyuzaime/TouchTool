@@ -41,6 +41,8 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
     private final transient Pin addPin = new AlwaysShowPin(new PinAdd(morePin), R.string.pin_add_execute, true);
     private final transient Pin resultPin = new Pin(new PinBoolean(), R.string.pin_boolean_result, true);
     private final transient Pin completePin = new Pin(new PinExecute(), R.string.random_action_complete, true);
+    // 分支名按顺序保存：动态针脚重建时值会丢，靠它恢复
+    private java.util.List<String> branchNames = new ArrayList<>();
 
 
     public ParallelExecuteAction() {
@@ -58,25 +60,7 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         reAddPins(morePin);
         reAddPins(addPin, resultPin, completePin);
 
-        // reAddPins 会用模板重建分支针脚（值不会带过来），这里按位置从原始 json 把名字搬回来
-        java.util.List<Pin> savedPins = top.bogey.touch_tool.utils.GsonUtil.getAsObject(jsonObject, "pins",
-                com.google.gson.reflect.TypeToken.getParameterized(java.util.ArrayList.class, Pin.class).getType(),
-                new ArrayList<>());
-        java.util.List<Pin> currentPins = getPins();
-        int restoreSize = Math.min(savedPins.size(), currentPins.size());
-        for (int i = 0; i < restoreSize; i++) {
-            Pin saved = savedPins.get(i);
-            Pin current = currentPins.get(i);
-            if (!(saved.getValue() instanceof top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute savedValue)) continue;
-            if (current.getValue() instanceof top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute currentValue) {
-                currentValue.setValue(savedValue.getValue());
-            } else {
-                top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute value =
-                        new top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute();
-                value.setValue(savedValue.getValue());
-                current.setValue(value);
-            }
-        }
+        hydrateBranchNames();
 
         // 第一个出口针脚固定当分支用：标题「分支」，值保留
         if (!(outPin.getValue() instanceof top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute)) {
@@ -84,6 +68,7 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         }
         outPin.setTitle(MainApplication.getInstance().getString(R.string.parallel_branch_pin));
         outPin.setHide(false);
+        hydrateBranchNames();
     }
 
     @Override
@@ -212,20 +197,54 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         return logs;
     }
 
-    // 给某个执行分支命名：写进针脚标题，随动作一起序列化
+    // 给某个执行分支命名：同时写针脚值和持久化列表，重建针脚时也能恢复
     public void setBranchName(Pin pin, String name) {
         if (pin == null) return;
-        pin.setTitle(name == null ? "" : name.trim());
+        String value = name == null ? "" : name.trim();
+        int index = getDynamicPins().indexOf(pin);
+        if (index >= 0) {
+            while (branchNames.size() <= index) branchNames.add("");
+            branchNames.set(index, value);
+        }
+        if (pin.getValue() instanceof top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute stringExecute) {
+            stringExecute.setValue(value);
+        } else {
+            pin.setTitle(value);
+        }
     }
 
-    // 分支当前名字；未命名时返回空串，界面上回落到默认「执行」
+    // 分支当前名字：优先取针脚值，其次按序号取持久化列表，最后回落到标题
     public String getBranchName(Pin pin) {
         if (pin == null) return "";
+        if (pin.getValue() instanceof top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute stringExecute) {
+            String value = stringExecute.getValue();
+            if (value != null && !value.trim().isEmpty()) return value.trim();
+        }
+        int index = getDynamicPins().indexOf(pin);
+        if (index >= 0 && index < branchNames.size()) {
+            String name = branchNames.get(index);
+            if (name != null && !name.trim().isEmpty()) return name.trim();
+        }
         String title = pin.getTitle();
-        if (title == null) return "";
         String def = MainApplication.getInstance().getString(R.string.pin_execute);
-        return def.equals(title) ? "" : title;
+        String branch = MainApplication.getInstance().getString(R.string.parallel_branch_pin);
+        if (title == null || def.equals(title) || branch.equals(title)) return "";
+        return title;
     }
+
+    // 针脚重建后把名字写回针脚值（界面才能显示）
+    private void hydrateBranchNames() {
+        List<Pin> dynamicPins = getDynamicPins();
+        for (int i = 0; i < dynamicPins.size(); i++) {
+            Pin pin = dynamicPins.get(i);
+            String name = i < branchNames.size() ? branchNames.get(i) : null;
+            if (name == null || name.trim().isEmpty()) continue;
+            if (pin.getValue() instanceof top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute stringExecute) {
+                stringExecute.setValue(name);
+            }
+        }
+    }
+
     @Override
     public List<Pin> getDynamicPins() {
         List<Pin> pins = new ArrayList<>();

@@ -53,6 +53,10 @@ public class PinWidgetExecute extends PinWidget<PinExecute> {
                     @Override
                     public void afterTextChanged(Editable s) {
                         stringExecute.setValue(s.toString());
+                        // 并行执行的分支名同时写进动作的持久化列表，针脚重建后还能恢复
+                        if (card != null && card.getAction() instanceof top.bogey.touch_tool.bean.action.logic.ParallelExecuteAction parallel) {
+                            parallel.setBranchName(pinView.getPin(), s.toString());
+                        }
                         pinView.getPin().notifyValueUpdated(card.getTask());
                         saveNow();
                     }
