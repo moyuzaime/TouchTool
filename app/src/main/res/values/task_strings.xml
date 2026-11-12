@@ -895,4 +895,5 @@
     <string name="parallel_branch_pin">分支</string>
     <string name="blueprint_run_task">运行任务</string>
     <string name="blueprint_run_hint">无障碍服务未开启，无法运行</string>
+    <string name="blueprint_open_log">打开任务日志</string>
 </resources>

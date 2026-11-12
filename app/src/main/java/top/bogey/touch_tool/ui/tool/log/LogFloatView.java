@@ -55,6 +55,13 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
         view.show();
     }
 
+    // 直接打开某个任务的日志（蓝图顶栏用）
+    public static void showTool(android.content.Context context, Task task) {
+        LogFloatView view = new LogFloatView(context, task);
+        cached = new java.lang.ref.WeakReference<>(view);
+        view.show();
+    }
+
     private final FloatLogBinding binding;
     private final LogFloatViewAdapter adapter;
     private final String tag = LogFloatView.class.getName();

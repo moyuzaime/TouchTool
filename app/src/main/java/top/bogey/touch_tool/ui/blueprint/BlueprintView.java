@@ -430,6 +430,12 @@ public class BlueprintView extends Fragment {
             }
         });
 
+        // 顶部「日志」：打开当前任务的日志窗口
+        binding.logButton.setOnClickListener(v -> {
+            Task current = taskStack.peek();
+            if (current == null) return;
+            top.bogey.touch_tool.ui.tool.log.LogFloatView.showTool(requireContext(), current);
+        });
         // 顶部「运行」：直接跑当前任务的手动开始动作
         binding.runButton.setOnClickListener(v -> {
             top.bogey.touch_tool.service.MainAccessibilityService service =
