@@ -79,50 +79,13 @@ public class LogFloatViewAdapter extends TreeAdapter {
         task = TaskSaver.getInstance().getTask(logSave.getKey());
         nodeMap.clear();
 
-        // 存档里的日志 key 是序号，而 children 里记的是日志自身 uid（GUID），两边都要建索引
-        java.util.Map<String, LogInfo> byKey = new java.util.LinkedHashMap<>();
-        java.util.Map<LogInfo, String> keyOf = new java.util.IdentityHashMap<>();
-        java.util.Map<String, LogInfo> byUid = new java.util.HashMap<>();
-        for (int i = 1; i < logSave.getLogCount() + 1; i++) {
-            String key = String.valueOf(i);
-            LogInfo info = logSave.getLog(key);
-            if (info == null) continue;
-            byKey.put(key, info);
-            keyOf.put(info, key);
-            if (info.getUid() != null) byUid.put(info.getUid(), info);
-        }
-        java.util.Set<String> childFlags = new java.util.HashSet<>();
-        for (LogInfo info : byKey.values()) {
-            for (Object flag : info.getChildrenFlags()) childFlags.add(String.valueOf(flag));
-        }
         List<TreeNode> nodeList = new ArrayList<>();
-        for (String key : byKey.keySet()) {
-            LogInfo info = byKey.get(key);
-            String uid = info.getUid();
-            boolean isChild = childFlags.contains(key) || (uid != null && childFlags.contains(uid));
-            if (isChild) continue;
-            nodeList.add(buildNode(logSave, key, byKey, keyOf, byUid, 0));
+        for (int i = 1; i < logSave.getLogCount() + 1; i++) {
+            LazyTreeNode node = new LazyTreeNode(logSave, i);
+            nodeMap.put(String.valueOf(i), node);
+            nodeList.add(node);
         }
         setTreeNodes(nodeList);
-    }
-
-    private LazyTreeNode buildNode(LogSave logSave, String key,
-                                   java.util.Map<String, LogInfo> byKey,
-                                   java.util.Map<LogInfo, String> keyOf,
-                                   java.util.Map<String, LogInfo> byUid, int depth) {
-        LazyTreeNode node = new LazyTreeNode(logSave, Integer.parseInt(key));
-        node.setDepth(depth);
-        nodeMap.put(key, node);
-        LogInfo info = byKey.get(key);
-        if (info == null) return node;
-        for (Object flag : info.getChildrenFlags()) {
-            String flagUid = String.valueOf(flag);
-            LogInfo childInfo = byUid.get(flagUid);
-            String childKey = childInfo == null ? flagUid : keyOf.get(childInfo);
-            if (childKey == null || !byKey.containsKey(childKey)) continue;
-            node.addChild(buildNode(logSave, childKey, byKey, keyOf, byUid, depth + 1));
-        }
-        return node;
     }
 
     // 增量同步：只补新出现的节点，不重建整棵树，已展开的节点不会被打回原状
@@ -134,19 +97,6 @@ public class LogFloatViewAdapter extends TreeAdapter {
         if (node == null) {
             // 没见过的根节点，追加到末尾
             if (!isRootIndex(uid, logSave)) return;
-            // 带父日志的分支日志只在父节点 children 里显示，不再单独成根（否则会出现两份）
-            if (info.getLogObject() instanceof ActionLog branchLog
-                    && branchLog.getParentLogUid() != null
-                    && !branchLog.getParentLogUid().isEmpty()) {
-                // 分支日志本身不成根，但要顺带补出父节点的 children（重开窗口靠这一步）
-                LazyTreeNode parentNode = nodeMap.get(branchLog.getParentLogUid());
-                if (parentNode != null) {
-                    LogInfo parentInfo = logSave.getLog(branchLog.getParentLogUid());
-                    if (parentInfo != null) syncChildren(logSave, parentNode, parentInfo);
-                }
-                return;
-            }
-            // 分支日志：父节点存在时直接挂到它下面，不单独成根
             LazyTreeNode root = new LazyTreeNode(logSave, Integer.parseInt(uid));
             nodeMap.put(uid, root);
             Object rootData = root.getData();
