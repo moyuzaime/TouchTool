@@ -98,57 +98,6 @@ public class LogFloatViewAdapter extends TreeAdapter {
             // 没见过的根节点，追加到末尾
             if (!isRootIndex(uid, logSave)) return;
             // 分支日志：父节点存在时直接挂到它下面，不单独成根
-            String parentUid = info.getLogObject() instanceof ActionLog actionLog ? actionLog.getParentLogUid() : null;
-            if (parentUid != null && !parentUid.isEmpty()) {
-                LazyTreeNode parent = nodeMap.get(parentUid);
-                if (parent != null) {
-                    // 同一条分支日志可能被写入两次（uid 不同、内容相同），按「时间+文本」去重
-                    LogInfo currentInfo = logSave.getLog(uid);
-                    for (TreeNode existNode : parent.getChildren()) {
-                        Object existData = existNode.getData();
-                        if (!(existData instanceof LogInfo existInfo)) continue;
-                        if (uid.equals(existInfo.getUid())) return;
-                        if (currentInfo != null && existInfo.getTime() == currentInfo.getTime()
-                                && existInfo.getLog().equals(currentInfo.getLog())) {
-                            return;
-                        }
-                    }
-                    LazyTreeNode child = new LazyTreeNode(logSave, Integer.parseInt(uid));
-                    child.setDepth(parent.getDepth() + 1);
-                    if (nodeMap.putIfAbsent(uid, child) != null) return;
-                    parent.addChild(child);
-                    // 把子节点也写进父日志的 children，重开窗口/刷新时才能重新算层级和箭头
-                    LogInfo parentInfo = logSave.getLog(parentUid);
-                    if (parentInfo != null) {
-                        boolean exists = false;
-                        for (Object flag : parentInfo.getChildrenFlags()) {
-                            if (String.valueOf(flag).equals(uid)) {
-                                exists = true;
-                                break;
-                            }
-                        }
-                        if (!exists) {
-                            parentInfo.addChild(uid);
-                            try {
-                                top.bogey.touch_tool.bean.save.log.LogSaver.getInstance()
-                                        .updateLog(logSave.getKey(), parentInfo);
-                            } catch (Throwable ignored) {
-                            }
-                        }
-                    }
-                    int parentIndex = treeNodes.indexOf(parent);
-                    // 父节点折叠时不插入行，展开时会从 children 里补出来
-                    if (parentIndex >= 0) notifyItemChanged(parentIndex);
-                    if (!parent.isExpanded()) return;
-                    if (parentIndex >= 0) {
-                        int insertAt = Math.min(treeNodes.size(), parentIndex + parent.getChildren().size());
-                        treeNodes.add(insertAt, child);
-                        notifyItemInserted(insertAt);
-                        notifyItemChanged(parentIndex);
-                    }
-                    return;
-                }
-            }
             LazyTreeNode root = new LazyTreeNode(logSave, Integer.parseInt(uid));
             nodeMap.put(uid, root);
             Object rootData = root.getData();

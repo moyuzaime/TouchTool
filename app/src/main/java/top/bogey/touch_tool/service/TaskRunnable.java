@@ -18,6 +18,7 @@ import top.bogey.touch_tool.bean.other.log.DateTimeLog;
 import top.bogey.touch_tool.bean.other.log.LogInfo;
 import top.bogey.touch_tool.bean.other.log.NormalLog;
 import top.bogey.touch_tool.bean.save.setting.SettingSaver;
+import top.bogey.touch_tool.bean.save.log.LogSave;
 import top.bogey.touch_tool.bean.save.log.LogSaver;
 import top.bogey.touch_tool.bean.task.Task;
 import top.bogey.touch_tool.utils.AppLog;
@@ -201,6 +202,18 @@ public class TaskRunnable implements Runnable {
                     LogSaver.getInstance().addLog(task.getId(), logInfo, true);
                     logInfo.setSaved(true);
                     logged = true;
+                    // 分支日志：把自己写进父日志的 children，界面重开/重建时才能正确嵌套
+                    if (logParentUid != null && !logParentUid.isEmpty()) {
+                        try {
+                            LogSave logSave = LogSaver.getInstance().getLogSave(task.getId());
+                            LogInfo parentLog = logSave == null ? null : logSave.getLog(logParentUid);
+                            if (parentLog != null) {
+                                parentLog.addChild(logInfo.getUid());
+                                LogSaver.getInstance().updateLog(task.getId(), parentLog);
+                            }
+                        } catch (Throwable ignored) {
+                        }
+                    }
                 }
             }
         }
