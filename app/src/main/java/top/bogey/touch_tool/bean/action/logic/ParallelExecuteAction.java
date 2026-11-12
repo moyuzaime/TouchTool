@@ -96,7 +96,6 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         Task currTask = runnable.getTask();
         // 本动作自己的日志 uid：分支日志挂到它下面
         String selfLogUid = runnable.getLastLogUid();
-        top.bogey.touch_tool.utils.AppLog.e("DIAGP", "parallel selfLogUid=" + selfLogUid + " debug=" + runnable.isDebug());
         if (runnable.isDebug()) currTask.addFlag(Task.FLAG_DEBUG);
 
         for (Pin dynamicPin : validPins) {

@@ -28,6 +28,15 @@ public class LogSave implements ITreeNodeDataLoader {
         }
     }
 
+    // 仅用于排查：返回某条日志的原始 JSON（可能为 null）
+    public String debugRaw(String key) {
+        try {
+            return mmkv.decodeString(key);
+        } catch (Throwable e) {
+            return null;
+        }
+    }
+
     public int getLogCount() {
         return mmkv.decodeInt(COUNT, 0);
     }

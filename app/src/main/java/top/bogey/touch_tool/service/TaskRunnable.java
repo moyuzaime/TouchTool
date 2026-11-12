@@ -155,7 +155,6 @@ public class TaskRunnable implements Runnable {
     }
 
     public void setLogParentUid(String uid) {
-        top.bogey.touch_tool.utils.AppLog.e("DIAGP", "setLogParentUid called " + uid);
         this.logParentUid = uid;
     }
 
@@ -223,7 +222,6 @@ public class TaskRunnable implements Runnable {
                                             parentLog.addChild(logInfo.getUid());
                                             LogSaver.getInstance().updateLog(task.getId(), parentLog);
                                         }
-                                        top.bogey.touch_tool.utils.AppLog.e("DIAGP", "parent=" + logParentUid + " child=" + logInfo.getUid() + " children=" + parentLog.getChildrenFlags().size());
                                     }
                                 }
                             }
