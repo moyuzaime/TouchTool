@@ -196,7 +196,11 @@ public class TaskRunnable implements Runnable {
 
     public void addDebugLog(Action action, int stackOption) {
         if (action instanceof InnerStartAction) return;
-        if (debug) addLog(new LogInfo(new ActionLog(progress + 1, getTask(), action, stackOption != 0)), stackOption);
+        if (debug) {
+            String tag = startAction instanceof top.bogey.touch_tool.bean.action.start.InnerStartAction inner
+                    ? inner.getBranchTag() : null;
+            addLog(new LogInfo(new ActionLog(progress + 1, getTask(), action, stackOption != 0, tag)), stackOption);
+        }
     }
 
     public List<LogInfo> getCacheLogList() {

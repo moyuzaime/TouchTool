@@ -79,7 +79,10 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         if (runnable.isDebug()) currTask.addFlag(Task.FLAG_DEBUG);
 
         for (Pin dynamicPin : validPins) {
-            TaskRunnable taskRunnable = service.runTask(currTask, new InnerStartAction(dynamicPin), new ITaskListener() {
+            int branchIndex = validPins.indexOf(dynamicPin) + 1;
+            String branchName = getBranchName(dynamicPin);
+            if (branchName.isEmpty()) branchName = "分支" + branchIndex;
+            TaskRunnable taskRunnable = service.runTask(currTask, new InnerStartAction(dynamicPin, branchName), new ITaskListener() {
                 @Override
                 public void onExecute(TaskRunnable run, Action action, int progress) {
                     if (runnable.isCurrentInterrupt()) run.stop();
