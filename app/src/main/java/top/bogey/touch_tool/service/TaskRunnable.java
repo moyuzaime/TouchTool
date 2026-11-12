@@ -18,6 +18,7 @@ import top.bogey.touch_tool.bean.other.log.DateTimeLog;
 import top.bogey.touch_tool.bean.other.log.LogInfo;
 import top.bogey.touch_tool.bean.other.log.NormalLog;
 import top.bogey.touch_tool.bean.save.setting.SettingSaver;
+import top.bogey.touch_tool.bean.save.log.LogSave;
 import top.bogey.touch_tool.bean.save.log.LogSaver;
 import top.bogey.touch_tool.bean.task.Task;
 import top.bogey.touch_tool.utils.AppLog;
@@ -145,6 +146,18 @@ public class TaskRunnable implements Runnable {
         checkStatus();
     }
 
+    // 并行分支的日志要挂到父动作日志下时使用
+    private String logParentUid;
+    private String lastLogUid;
+
+    public void setLogParentUid(String uid) {
+        this.logParentUid = uid;
+    }
+
+    public String getLastLogUid() {
+        return lastLogUid;
+    }
+
     public void addLog(String log) {
         addLog(new LogInfo(new NormalLog(log)), 0);
     }
@@ -186,9 +199,25 @@ public class TaskRunnable implements Runnable {
                 // 顶层动作一开始就落盘成根节点：细节日志模式下所有日志都挂在它下面，
                 // 否则要等整个任务结束才出现，看起来就是一次性刷出来
                 if (!cacheLog && logStack.size() == 1) {
-                    LogSaver.getInstance().addLog(task.getId(), logInfo, true);
-                    logInfo.setSaved(true);
-                    logged = true;
+                    if (logParentUid != null && !logParentUid.isEmpty()) {
+                        // 并行分支：把首条日志挂到父动作（并行执行）下面，实时可见且层级正确
+                        LogSaver.getInstance().addLog(task.getId(), logInfo, true);
+                        logInfo.setSaved(true);
+                        logged = true;
+                        try {
+                            LogSave logSave = LogSaver.getInstance().getLogSave(task.getId());
+                            LogInfo parentLog = logSave == null ? null : logSave.getLog(logParentUid);
+                            if (parentLog != null) {
+                                parentLog.addChild(logInfo.getUid());
+                                LogSaver.getInstance().updateLog(task.getId(), parentLog);
+                            }
+                        } catch (Throwable ignored) {
+                        }
+                    } else {
+                        LogSaver.getInstance().addLog(task.getId(), logInfo, true);
+                        logInfo.setSaved(true);
+                        logged = true;
+                    }
                 }
             }
         }
@@ -199,7 +228,9 @@ public class TaskRunnable implements Runnable {
         if (debug) {
             String tag = startAction instanceof top.bogey.touch_tool.bean.action.start.InnerStartAction inner
                     ? inner.getBranchTag() : null;
-            addLog(new LogInfo(new ActionLog(progress + 1, getTask(), action, stackOption != 0, tag)), stackOption);
+            LogInfo logInfo = new LogInfo(new ActionLog(progress + 1, getTask(), action, stackOption != 0, tag));
+            addLog(logInfo, stackOption);
+            lastLogUid = logInfo.getUid();
         }
     }
 
