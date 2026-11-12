@@ -119,6 +119,7 @@ public class LogFloatViewAdapter extends TreeAdapter {
                     parent.addChild(child);
                     int parentIndex = treeNodes.indexOf(parent);
                     // 父节点折叠时不插入行，展开时会从 children 里补出来
+                    if (parentIndex >= 0) notifyItemChanged(parentIndex);
                     if (!parent.isExpanded()) return;
                     if (parentIndex >= 0) {
                         int insertAt = Math.min(treeNodes.size(), parentIndex + parent.getChildren().size());
