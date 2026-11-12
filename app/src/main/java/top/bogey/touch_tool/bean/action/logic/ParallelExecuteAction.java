@@ -94,6 +94,8 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         CountDownLatch latch = new CountDownLatch(validPins.size());
         int countValue = count.intValue();
         List<TaskRunnable> runnableList = new ArrayList<>();
+        // 分支日志先收集，结束后统一挂到一条日志下
+        List<String> branchLogs = java.util.Collections.synchronizedList(new ArrayList<>());
         // 已正常结束的分支，用于超时后只停还活着的
         java.util.Set<TaskRunnable> finished = java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
         int rejectedCount = 0;
@@ -117,9 +119,8 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
                     try {
                         List<LogInfo> logList = run.getCacheLogList();
                         List<String> logs = saveLogs(runnable, logList);
-                        LogInfo logInfo = new LogInfo(new ActionLog(runnable.getProgress() + 1, currTask, ParallelExecuteAction.this, true));
-                        logInfo.setChildren(logs);
-                        runnable.addLog(logInfo, 0);
+                        // 只收集分支日志，最后统一挂到一条「并行执行」下面，避免每个分支都刷一条
+                        branchLogs.addAll(logs);
                     } catch (Throwable e) {
                         AppLog.e("并行执行", "保存分支日志失败");
                     } finally {
@@ -177,6 +178,20 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
             stoppedCount++;
         }
         if (stoppedCount > 0) AppLog.e("并行执行", "已停止 " + stoppedCount + " 个仍在运行的分支");
+
+        // 只保留执行管线记的那一条「并行执行」，分支日志作为它的子节点
+        if (!branchLogs.isEmpty()) {
+            List<LogInfo> cacheLogs = runnable.getCacheLogList();
+            LogInfo selfLog = null;
+            for (int i = cacheLogs.size() - 1; i >= 0; i--) {
+                LogInfo info = cacheLogs.get(i);
+                if (info.getLogObject() instanceof ActionLog log && getId().equals(log.getActionId())) {
+                    selfLog = info;
+                    break;
+                }
+            }
+            if (selfLog != null) selfLog.setChildren(new ArrayList<>(branchLogs));
+        }
         if (rejectedCount > 0) AppLog.e("并行执行", "有 " + rejectedCount + " 个分支因线程池已满未能启动");
 
         executeNext(runnable, completePin);
