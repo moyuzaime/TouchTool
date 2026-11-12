@@ -45,8 +45,7 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
 
     public ParallelExecuteAction() {
         super(ActionType.PARALLEL_LOGIC);
-        Pin secondPin = new Pin(new top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute(), R.string.pin_execute, true, true);
-        addPins(countPin, timeoutPin, secondPin, addPin, resultPin, completePin);
+        addPins(countPin, timeoutPin, addPin, resultPin, completePin);
     }
 
     public ParallelExecuteAction(JsonObject jsonObject) {
@@ -65,13 +64,6 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
                     new top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute();
             if (title != null && !def.equals(title)) value.setValue(title);
             dynamicPin.setValue(value);
-        }
-        // 旧数据可能一个分支都不剩，补一个默认分支
-        if (getDynamicPins().size() <= 1) {
-            Pin branch = new Pin(new top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute(), R.string.pin_execute, true, true);
-            int index = getPins().indexOf(addPin);
-            if (index >= 0) addPin(index, branch);
-            else addPin(branch);
         }
     }
 
