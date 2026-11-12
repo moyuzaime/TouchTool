@@ -164,18 +164,34 @@ public abstract class PinView extends FrameLayout implements PinListener {
             textView.setVisibility(VISIBLE);
             textView.setText(pin.getTitle());
             // 并行执行的分支针脚：长按标题可改名
-            textView.setOnLongClickListener(v -> {
-                Action owner = card == null ? null : card.getAction();
-                if (owner instanceof top.bogey.touch_tool.bean.action.logic.ParallelExecuteAction parallel && pin.isDynamic()) {
+            // 动态针脚卡片的执行分支：双击标题改名（长按留给拖动排序）
+            textView.setLongClickable(false);
+            textView.setOnClickListener(new View.OnClickListener() {
+                private long lastClickTime = 0;
+
+                @Override
+                public void onClick(View view) {
+                    Action owner = card == null ? null : card.getAction();
+                    if (!(owner instanceof top.bogey.touch_tool.bean.action.parent.DynamicPinsAction)) return;
+                    if (!pin.isOut() || !(pin.getValue() instanceof top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinExecute))
+                        return;
+                    long now = System.currentTimeMillis();
+                    if (now - lastClickTime > 300) {
+                        lastClickTime = now;
+                        return;
+                    }
+                    lastClickTime = 0;
+
+                    String current = pin.getTitle();
+                    String def = getContext().getString(R.string.pin_execute);
+                    if (def.equals(current)) current = "";
                     top.bogey.touch_tool.utils.AppUtil.showEditDialog(getContext(),
-                            R.string.parallel_branch_name, parallel.getBranchName(pin), name -> {
-                                parallel.setBranchName(pin, name);
+                            R.string.parallel_branch_name, current, name -> {
+                                pin.setTitle(name == null ? "" : name.trim());
                                 refreshPin();
                                 if (card.getTask() != null) card.getTask().save();
                             });
-                    return true;
                 }
-                return false;
             });
             if (pin.getTitle() == null || pin.getTitle().isEmpty()) {
                 if (pin.isVertical()) {
