@@ -46,6 +46,12 @@ public enum ActionType {
     INPUT_CONFIG,
     MARK_AREA,
     SHOW_TEXT,
+    MUTEX_LOCK,
+    MUTEX_UNLOCK,
+    ATOMIC_ADD,
+    ASYNC,
+    AWAIT_ASYNC,
+    CANCEL_ASYNC,
 
     IS_TASK_RUNNING,
     GET_ALL_RUNNING_TASK,

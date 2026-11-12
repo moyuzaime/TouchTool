@@ -59,6 +59,11 @@ public class ActionLog extends Log {
         log = builder.toString();
     }
 
+    public ActionLog(int index, Task task, Action action, boolean execute, String tag) {
+        this(index, task, action, execute);
+        if (tag != null && !tag.isEmpty()) log = tag + " " + log;
+    }
+
     public ActionLog(JsonObject jsonObject) {
         super(jsonObject);
         index = GsonUtil.getAsInt(jsonObject, "index", -1);

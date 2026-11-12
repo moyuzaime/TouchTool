@@ -53,7 +53,12 @@ public class PinWidgetExecute extends PinWidget<PinExecute> {
                     @Override
                     public void afterTextChanged(Editable s) {
                         stringExecute.setValue(s.toString());
+                        // 并行执行的分支名同时写进动作的持久化列表，针脚重建后还能恢复
+                        if (card != null && card.getAction() instanceof top.bogey.touch_tool.bean.action.logic.ParallelExecuteAction parallel) {
+                            parallel.setBranchName(pinView.getPin(), s.toString());
+                        }
                         pinView.getPin().notifyValueUpdated(card.getTask());
+                        saveNow();
                     }
                 });
             }
@@ -74,9 +79,22 @@ public class PinWidgetExecute extends PinWidget<PinExecute> {
                     public void afterTextChanged(Editable s) {
                         iconExecute.setValue(s.toString());
                         pinView.getPin().notifyValueUpdated(card.getTask());
+                        saveNow();
                     }
                 });
             }
+        }
+    }
+
+    // 名字类针脚编辑后防抖保存，避免只改了内存、运行时读存档拿不到
+    private void saveNow() {
+        try {
+            if (card != null && card.getTask() != null) {
+                card.getTask().save();
+                top.bogey.touch_tool.utils.AppLog.e("分支命名", "saved");
+            }
+        } catch (Throwable e) {
+            top.bogey.touch_tool.utils.AppLog.e("分支命名", "save failed");
         }
     }
 

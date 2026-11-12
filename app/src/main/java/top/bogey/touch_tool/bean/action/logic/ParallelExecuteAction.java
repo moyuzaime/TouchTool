@@ -32,7 +32,8 @@ import top.bogey.touch_tool.utils.AppLog;
 import top.bogey.touch_tool.utils.tree.ITreeNodeData;
 
 public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsAction {
-    private final static Pin morePin = new Pin(new PinExecute(), R.string.pin_execute, true);
+    // 分支针脚用「图标执行/字符串执行」同款：自带一个可编辑的名字
+    private final static Pin morePin = new Pin(new top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute(), R.string.pin_execute, true);
 
     private final transient Pin countPin = new Pin(new PinInteger(1), R.string.parallel_action_count);
     private final transient Pin timeoutPin = new Pin(new PinInteger(5000), R.string.parallel_action_timeout);
@@ -40,19 +41,30 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
     private final transient Pin addPin = new AlwaysShowPin(new PinAdd(morePin), R.string.pin_add_execute, true);
     private final transient Pin resultPin = new Pin(new PinBoolean(), R.string.pin_boolean_result, true);
     private final transient Pin completePin = new Pin(new PinExecute(), R.string.random_action_complete, true);
+    // 分支名按顺序保存：动态针脚重建时值会丢，靠它恢复
+    private java.util.List<String> branchNames = new ArrayList<>();
 
 
     public ParallelExecuteAction() {
         super(ActionType.PARALLEL_LOGIC);
-        Pin secondPin = new Pin(new PinExecute(), R.string.pin_execute, true, true);
-        addPins(countPin, timeoutPin, secondPin, addPin, resultPin, completePin);
+        addPins(countPin, timeoutPin, addPin, resultPin, completePin);
+        // 继承来的出口针脚不参与执行：直接移除，流程收尾统一走「完成」
+        removePin(outPin);
     }
 
     public ParallelExecuteAction(JsonObject jsonObject) {
         super(jsonObject);
+        // 旧数据里 outPin 曾被存成字符串执行针脚，和基类字段类型对不上，会残留一个未消费的针脚，
+        // 复制/加载时就表现为凭空多出一个执行针脚；这里把它丢掉
+        if (!tmpPins.isEmpty() && tmpPins.get(0).getValue() instanceof top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute) {
+            tmpPins.remove(0);
+        }
         reAddPins(countPin, timeoutPin);
         reAddPins(morePin);
         reAddPins(addPin, resultPin, completePin);
+        // 移除继承来的出口针脚，避免它在卡面上多出一个「执行」
+        removePin(outPin);
+        hydrateBranchNames();
     }
 
     @Override
@@ -61,6 +73,13 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         PinNumber<?> timeout = getPinValue(runnable, timeoutPin);
 
         MainAccessibilityService service = MainApplication.getInstance().getService();
+        if (service == null) {
+            // 无障碍服务不可用时直接收尾，避免 NPE
+            AppLog.e("并行执行", "无障碍服务不可用，跳过并行分支");
+            resultPin.getValue(PinBoolean.class).setValue(false);
+            executeNext(runnable, completePin);
+            return;
+        }
 
         List<Pin> validPins = new ArrayList<>();
         for (Pin dynamicPin : getDynamicPins()) {
@@ -71,12 +90,17 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         CountDownLatch latch = new CountDownLatch(validPins.size());
         int countValue = count.intValue();
         List<TaskRunnable> runnableList = new ArrayList<>();
-
+        // 已正常结束的分支，用于超时后只停还活着的
+        java.util.Set<TaskRunnable> finished = java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
+        int rejectedCount = 0;
         Task currTask = runnable.getTask();
         if (runnable.isDebug()) currTask.addFlag(Task.FLAG_DEBUG);
 
         for (Pin dynamicPin : validPins) {
-            TaskRunnable taskRunnable = service.runTask(currTask, new InnerStartAction(dynamicPin), new ITaskListener() {
+            int branchIndex = validPins.indexOf(dynamicPin) + 1;
+            String branchName = getBranchName(dynamicPin);
+            if (branchName.isEmpty()) branchName = "分支" + branchIndex;
+            TaskRunnable taskRunnable = service.runTask(currTask, new InnerStartAction(dynamicPin, branchName), new ITaskListener() {
                 @Override
                 public void onExecute(TaskRunnable run, Action action, int progress) {
                     if (runnable.isCurrentInterrupt()) run.stop();
@@ -84,26 +108,36 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
 
                 @Override
                 public void onFinish(TaskRunnable run) {
-                    List<LogInfo> logList = run.getCacheLogList();
-                    List<String> logs = saveLogs(runnable, logList);
-                    LogInfo logInfo = new LogInfo(new ActionLog(runnable.getProgress() + 1, currTask, ParallelExecuteAction.this, true));
-                    logInfo.setChildren(logs);
-                    runnable.addLog(logInfo, 0);
-
+                    finished.add(run);
+                    // 分支日志已实时写入日志库，这里只放行计数
                     latch.countDown();
-                    if (countValue <= latch.getCount()) {
-                        runnableList.forEach(TaskRunnable::stop);
+
+                    // 完成数 <= 0 视为「全部完成才结束」，不做提前停止
+                    if (countValue > 0 && countValue <= latch.getCount()) {
+                        runnableList.forEach(r -> {
+                            if (r != null) r.stop();
+                        });
                         resultPin.getValue(PinBoolean.class).setValue(true);
                     }
                 }
             });
+            if (taskRunnable != null) {
+            } else {
+            }
             runnableList.add(taskRunnable);
+            if (taskRunnable == null) {
+                // 线程池已满，分支没能启动，必须让计数器前进，避免一直等到超时
+                rejectedCount++;
+                latch.countDown();
+                AppLog.e("并行执行", "线程池已满，分支未启动");
+            }
         }
 
         ITaskListener listener = new ITaskListener() {
             @Override
             public void onPauseChanged(TaskRunnable runnable, boolean paused) {
                 for (TaskRunnable taskRunnable : runnableList) {
+                    if (taskRunnable == null) continue;
                     if (paused) taskRunnable.forcePause();
                     else taskRunnable.forceResume();
                 }
@@ -123,6 +157,16 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         }
         runnable.removeListener(listener);
 
+        // 超时或提前完成后，停掉仍在运行的分支，避免它们继续在后台跑
+        int stoppedCount = 0;
+        for (TaskRunnable taskRunnable : runnableList) {
+            if (taskRunnable == null || finished.contains(taskRunnable)) continue;
+            taskRunnable.stop();
+            stoppedCount++;
+        }
+        if (stoppedCount > 0) AppLog.e("并行执行", "已停止 " + stoppedCount + " 个仍在运行的分支");
+        if (rejectedCount > 0) AppLog.e("并行执行", "有 " + rejectedCount + " 个分支因线程池已满未能启动");
+
         executeNext(runnable, completePin);
     }
 
@@ -141,10 +185,57 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         return logs;
     }
 
+    // 给某个执行分支命名：同时写针脚值和持久化列表，重建针脚时也能恢复
+    public void setBranchName(Pin pin, String name) {
+        if (pin == null) return;
+        String value = name == null ? "" : name.trim();
+        int index = getDynamicPins().indexOf(pin);
+        if (index >= 0) {
+            while (branchNames.size() <= index) branchNames.add("");
+            branchNames.set(index, value);
+        }
+        if (pin.getValue() instanceof top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute stringExecute) {
+            stringExecute.setValue(value);
+        } else {
+            pin.setTitle(value);
+        }
+    }
+
+    // 分支当前名字：优先取针脚值，其次按序号取持久化列表，最后回落到标题
+    public String getBranchName(Pin pin) {
+        if (pin == null) return "";
+        if (pin.getValue() instanceof top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute stringExecute) {
+            String value = stringExecute.getValue();
+            if (value != null && !value.trim().isEmpty()) return value.trim();
+        }
+        int index = getDynamicPins().indexOf(pin);
+        if (index >= 0 && index < branchNames.size()) {
+            String name = branchNames.get(index);
+            if (name != null && !name.trim().isEmpty()) return name.trim();
+        }
+        String title = pin.getTitle();
+        String def = MainApplication.getInstance().getString(R.string.pin_execute);
+        String branch = MainApplication.getInstance().getString(R.string.parallel_branch_pin);
+        if (title == null || def.equals(title) || branch.equals(title)) return "";
+        return title;
+    }
+
+    // 针脚重建后把名字写回针脚值（界面才能显示）
+    private void hydrateBranchNames() {
+        List<Pin> dynamicPins = getDynamicPins();
+        for (int i = 0; i < dynamicPins.size(); i++) {
+            Pin pin = dynamicPins.get(i);
+            String name = i < branchNames.size() ? branchNames.get(i) : null;
+            if (name == null || name.trim().isEmpty()) continue;
+            if (pin.getValue() instanceof top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinStringExecute stringExecute) {
+                stringExecute.setValue(name);
+            }
+        }
+    }
+
     @Override
     public List<Pin> getDynamicPins() {
         List<Pin> pins = new ArrayList<>();
-        pins.add(outPin);
         boolean start = false;
         for (Pin pin : getPins()) {
             if (pin == addPin) start = false;

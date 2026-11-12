@@ -53,11 +53,11 @@ public class TaskRunnable implements Runnable {
 
     @Override
     public void run() {
-        if (startAction instanceof InnerStartAction) {
-            cacheLog = true;
-        }
         try {
-            if (SettingSaver.TASK_RESET_DETAIL_LOG.get()) {
+            // 只有主任务运行才清空旧日志；并行的内部分支会并发启动，
+            // 若它们也清空，就会把父任务和彼此刚写入的日志一起抹掉
+            boolean innerRun = startAction instanceof InnerStartAction;
+            if (!innerRun && SettingSaver.TASK_RESET_DETAIL_LOG.get()) {
                 LogSaver.getInstance().clearLog(task.getId());
             }
 
@@ -196,7 +196,16 @@ public class TaskRunnable implements Runnable {
 
     public void addDebugLog(Action action, int stackOption) {
         if (action instanceof InnerStartAction) return;
-        if (debug) addLog(new LogInfo(new ActionLog(progress + 1, getTask(), action, stackOption != 0)), stackOption);
+        if (debug) {
+            String tag = startAction instanceof top.bogey.touch_tool.bean.action.start.InnerStartAction inner
+                    ? inner.getBranchTag() : null;
+            addLog(new LogInfo(new ActionLog(progress + 1, getTask(), action, stackOption != 0, tag)), stackOption);
+        }
+    }
+
+    // 关掉缓存后，日志会直接写进日志库，可实时看到
+    public void setCacheLog(boolean cache) {
+        this.cacheLog = cache;
     }
 
     public List<LogInfo> getCacheLogList() {

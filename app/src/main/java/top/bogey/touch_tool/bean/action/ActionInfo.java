@@ -172,6 +172,12 @@ import top.bogey.touch_tool.bean.action.system.TextToSpeechAction;
 import top.bogey.touch_tool.bean.action.system.VibrateAction;
 import top.bogey.touch_tool.bean.action.system.WriteToClipboardAction;
 import top.bogey.touch_tool.bean.action.task.CustomEndAction;
+import top.bogey.touch_tool.bean.action.thread.AsyncAction;
+import top.bogey.touch_tool.bean.action.thread.AwaitAsyncAction;
+import top.bogey.touch_tool.bean.action.thread.AtomicAddAction;
+import top.bogey.touch_tool.bean.action.thread.CancelAsyncAction;
+import top.bogey.touch_tool.bean.action.thread.MutexLockAction;
+import top.bogey.touch_tool.bean.action.thread.MutexUnlockAction;
 import top.bogey.touch_tool.bean.action.task.CustomStartAction;
 import top.bogey.touch_tool.bean.action.task.ExecuteTaskAction;
 import top.bogey.touch_tool.bean.action.task.GetAllRunningTaskAction;
@@ -247,6 +253,15 @@ public class ActionInfo {
     private final static ActionInfo LOG_INFO = new ActionInfo(ActionType.LOG, LoggerAction.class, R.drawable.icon_draw, R.string.log_action, R.string.log_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo STICK_INFO = new ActionInfo(ActionType.STICK, StickScreenAction.class, R.drawable.icon_note_stack, R.string.stick_screen_action, R.string.stick_screen_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo CLOSE_STICK_INFO = new ActionInfo(ActionType.CLOSE_STICK, StickCloseAction.class, R.drawable.icon_note_stack, R.string.stick_close_action, R.string.stick_close_action_desc, 0, NormalActionCard.class);
+    // 线程
+    private final static ActionInfo MUTEX_LOCK_INFO = new ActionInfo(ActionType.MUTEX_LOCK, MutexLockAction.class, R.drawable.icon_lock, R.string.mutex_lock_action, R.string.mutex_lock_action_desc, 0, NormalActionCard.class);
+    private final static ActionInfo MUTEX_UNLOCK_INFO = new ActionInfo(ActionType.MUTEX_UNLOCK, MutexUnlockAction.class, R.drawable.icon_lock_open, R.string.mutex_unlock_action, R.string.mutex_unlock_action_desc, 0, NormalActionCard.class);
+    private final static ActionInfo ATOMIC_ADD_INFO = new ActionInfo(ActionType.ATOMIC_ADD, AtomicAddAction.class, R.drawable.icon_add, R.string.atomic_add_action, R.string.atomic_add_action_desc, 0, NormalActionCard.class);
+
+    private final static ActionInfo ASYNC_INFO = new ActionInfo(ActionType.ASYNC, AsyncAction.class, R.drawable.icon_graph_2, R.string.async_action, R.string.async_action_desc, 0, NormalActionCard.class);
+    private final static ActionInfo AWAIT_ASYNC_INFO = new ActionInfo(ActionType.AWAIT_ASYNC, AwaitAsyncAction.class, R.drawable.icon_hourglass_bottom, R.string.await_async_action, R.string.await_async_action_desc, 0, NormalActionCard.class);
+    private final static ActionInfo CANCEL_ASYNC_INFO = new ActionInfo(ActionType.CANCEL_ASYNC, CancelAsyncAction.class, R.drawable.icon_cancel, R.string.cancel_async_action, R.string.cancel_async_action_desc, 0, NormalActionCard.class);
+
     private final static ActionInfo INPUT_CONFIG_INFO = new ActionInfo(ActionType.INPUT_CONFIG, InputConfigAction.class, R.drawable.icon_edit, R.string.input_config_action, R.string.input_config_action_desc, 0, InputConfigActionCard.class);
     private final static ActionInfo SHOW_TEXT_INFO = new ActionInfo(ActionType.SHOW_TEXT, ShowTextAction.class, R.drawable.icon_edit, R.string.show_text_action, R.string.show_text_action_desc, 0, ShowTextActionCard.class);
 
@@ -480,6 +495,12 @@ public class ActionInfo {
             case LOG -> LOG_INFO;
             case STICK -> STICK_INFO;
             case CLOSE_STICK -> CLOSE_STICK_INFO;
+            case MUTEX_LOCK -> MUTEX_LOCK_INFO;
+            case MUTEX_UNLOCK -> MUTEX_UNLOCK_INFO;
+            case ATOMIC_ADD -> ATOMIC_ADD_INFO;
+            case ASYNC -> ASYNC_INFO;
+            case AWAIT_ASYNC -> AWAIT_ASYNC_INFO;
+            case CANCEL_ASYNC -> CANCEL_ASYNC_INFO;
             case INPUT_CONFIG -> INPUT_CONFIG_INFO;
             case SHOW_TEXT -> SHOW_TEXT_INFO;
 

@@ -99,7 +99,20 @@ public class LogFloatViewAdapter extends TreeAdapter {
             if (!isRootIndex(uid, logSave)) return;
             LazyTreeNode root = new LazyTreeNode(logSave, Integer.parseInt(uid));
             nodeMap.put(uid, root);
-            addTreeNode(root);
+            Object rootData = root.getData();
+            long rootTime = rootData instanceof LogInfo rootInfo ? rootInfo.getTime() : 0L;
+            int insertIndex = treeNodes.size();
+            for (int i = treeNodes.size() - 1; i >= 0; i--) {
+                Object data = treeNodes.get(i).getData();
+                long time = data instanceof LogInfo info2 ? info2.getTime() : 0L;
+                if (time <= rootTime) break;
+                insertIndex = i;
+            }
+            treeNodes.add(insertIndex, root);
+            notifyItemInserted(insertIndex);
+            if (insertIndex + 1 < treeNodes.size()) {
+                notifyItemRangeChanged(insertIndex + 1, treeNodes.size() - insertIndex - 1);
+            }
             return;
         }
         syncChildren(logSave, node, info);
