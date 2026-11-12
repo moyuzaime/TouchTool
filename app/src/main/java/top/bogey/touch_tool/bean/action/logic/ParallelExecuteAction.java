@@ -48,8 +48,8 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
     public ParallelExecuteAction() {
         super(ActionType.PARALLEL_LOGIC);
         addPins(countPin, timeoutPin, addPin, resultPin, completePin);
-        // 继承来的出口针脚不参与执行：流程收尾统一走「完成」，分支由「添加执行」生成
-        outPin.setHide(true);
+        // 继承来的出口针脚不参与执行：直接移除，流程收尾统一走「完成」
+        removePin(outPin);
     }
 
     public ParallelExecuteAction(JsonObject jsonObject) {
@@ -62,8 +62,8 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         reAddPins(countPin, timeoutPin);
         reAddPins(morePin);
         reAddPins(addPin, resultPin, completePin);
-        // outPin 保持普通执行针脚并隐藏，避免它被当成一个额外的分支复制出来
-        outPin.setHide(true);
+        // 移除继承来的出口针脚，避免它在卡面上多出一个「执行」
+        removePin(outPin);
         hydrateBranchNames();
     }
 
