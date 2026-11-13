@@ -95,6 +95,23 @@ public class LogFloatViewAdapter extends TreeAdapter {
         for (LogInfo info : byUid.values()) {
             for (Object flag : info.getChildrenFlags()) childUids.add(String.valueOf(flag));
         }
+        // 兜底：带 parentLogUid 但没被写进父 children 的日志，按父 uid 补挂，避免脱层/根层副本
+        for (java.util.Map.Entry<String, LogInfo> e : byUid.entrySet()) {
+            String uid = e.getKey();
+            LogInfo info = e.getValue();
+            String parentUid = info.getParentLogUid();
+            if (parentUid == null || parentUid.isEmpty()) continue;
+            LogInfo parentInfo = byUid.get(parentUid);
+            if (parentInfo == null) continue;
+            boolean already = false;
+            for (Object flag : parentInfo.getChildrenFlags()) {
+                if (String.valueOf(flag).equals(uid)) { already = true; break; }
+            }
+            if (!already) {
+                parentInfo.addChild(uid);
+                childUids.add(uid);
+            }
+        }
         List<TreeNode> nodeList = new ArrayList<>();
         for (String uid : byUid.keySet()) {
             if (childUids.contains(uid)) continue;
