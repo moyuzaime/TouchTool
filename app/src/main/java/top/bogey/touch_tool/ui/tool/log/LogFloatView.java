@@ -367,7 +367,7 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
         if (logSave.getLogCount() != lastRootCount) {
             boolean follow = autoFollow && isNearBottom();
             lastRootCount = logSave.getLogCount();
-            adapter.syncRoots(logSave);
+            adapter.setLogSave(logSave);
             if (follow) scrollToBottom();
             updateEmptyTips();
         }
@@ -424,10 +424,11 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
     public void onNewLog(LogSave logSave, LogInfo log) {
         if (task == null) return;
         if (!logSave.getKey().equals(task.getId())) return;
-        // 逐条插入，不重建列表；只在本来就在底部时跟随滚动
+        // 整表重建：数据层是唯一真相（children 已确定），重建路径始终正确，
+        // 增量插入在 LazyTreeNode 自动建子节点的情况下会重复上屏
         post(() -> {
             boolean follow = autoFollow && isNearBottom();
-            adapter.syncLog(logSave, log);
+            adapter.setLogSave(logSave);
             lastRootCount = logSave.getLogCount();
             if (follow) scrollToBottom();
             updateEmptyTips();

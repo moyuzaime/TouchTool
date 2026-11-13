@@ -117,19 +117,8 @@ public class LogFloatViewAdapter extends TreeAdapter {
         LazyTreeNode node = new LazyTreeNode(logSave, uid);
         node.setDepth(depth);
         nodeMap.put(uid, node);
-        LogInfo info = byUid.get(uid);
-        if (info == null) return node;
-
-        for (Object flag : info.getChildrenFlags()) {
-            String childUid = String.valueOf(flag);
-            if (!byUid.containsKey(childUid)) continue;
-            LogInfo childInfo = byUid.get(childUid);
-            // 同一动作同一时刻的重复记录只保留一条（历史数据里可能存了两份）
-            String sig = childInfo.getTime() + "|" + (childInfo.getLogObject()
-                    instanceof top.bogey.touch_tool.bean.other.log.ActionLog a ? a.getActionId() : childUid);
-            if (!renderSigs.add(sig)) continue;   // 全局去重：同动作同毫秒只渲染一次
-            node.addChild(buildNode(logSave, childUid, byUid, depth + 1));
-        }
+        // 子节点交给 LazyTreeNode.getData() 按 children 自动加载，
+        // 这里再手工 addChild 会让同一个 uid 被注册两次、展开时出现重复行
         return node;
     }
 
@@ -160,6 +149,8 @@ public class LogFloatViewAdapter extends TreeAdapter {
             if (insertIndex + 1 < treeNodes.size()) {
                 notifyItemRangeChanged(insertIndex + 1, treeNodes.size() - insertIndex - 1);
             }
+            // 首次上屏的节点可能已经带 children（如并行执行容器先被写入），立即补齐
+            syncChildren(logSave, root, info);
             return;
         }
         syncChildren(logSave, node, info);

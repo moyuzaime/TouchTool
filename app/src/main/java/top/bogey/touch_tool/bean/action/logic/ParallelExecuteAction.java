@@ -97,7 +97,7 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         if (runnable.isDebug()) currTask.addFlag(Task.FLAG_DEBUG);
 
         // 并行执行节点自己的日志 uid：分支根日志挂到它下面，实时嵌套且不脱层
-        String containerUid = runnable.getLastLogUid();
+        top.bogey.touch_tool.bean.other.log.LogInfo container = runnable.getLastLogInfo();
         String logStoreKey = runnable.getStartTask().getId();
 
         for (Pin dynamicPin : validPins) {
@@ -124,7 +124,7 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
                         resultPin.getValue(PinBoolean.class).setValue(true);
                     }
                 }
-            }, logStoreKey, containerUid);
+            }, logStoreKey, container);
             runnableList.add(taskRunnable);
             if (taskRunnable == null) {
                 // 线程池已满，分支没能启动，必须让计数器前进，避免一直等到超时

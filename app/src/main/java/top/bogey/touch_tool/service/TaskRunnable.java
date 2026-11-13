@@ -45,21 +45,30 @@ public class TaskRunnable implements Runnable {
     private boolean logged = false;
     private final Stack<LogInfo> logStack = new Stack<>();
     private final Stack<Integer> logStackIndex = new Stack<>();
-    // 日志写入的存档 key（分支指向父任务 id）；分支根日志要挂到的父节点 uid；最近写入的根日志 uid
+    // 日志写入的存档 key（分支指向父任务 id）；分支根日志要挂到的容器节点；最近 push 的日志 uid
     private String logStoreKey;
-    private String logContainerUid;
+    private LogInfo logContainer;
     private String lastLogUid;
 
     public void setLogStoreKey(String logStoreKey) {
         this.logStoreKey = logStoreKey;
     }
 
-    public void setLogContainerUid(String logContainerUid) {
-        this.logContainerUid = logContainerUid;
+    // 直接传对象引用：容器节点此时可能还没落盘，查存档会拿到 null
+    public void setLogContainer(LogInfo logContainer) {
+        this.logContainer = logContainer;
     }
 
     public String getLastLogUid() {
         return lastLogUid;
+    }
+
+    public LogInfo getLastLogInfo() {
+        for (int i = logStack.size() - 1; i >= 0; i--) {
+            LogInfo info = logStack.get(i);
+            if (info != null && info.getUid().equals(lastLogUid)) return info;
+        }
+        return null;
     }
 
     private String logKey() {
@@ -205,6 +214,7 @@ public class TaskRunnable implements Runnable {
             }
             case 1 -> {
                 logStack.push(logInfo);
+                lastLogUid = logInfo.getUid();
                 // 顶层动作一开始就落盘成根节点：细节日志模式下所有日志都挂在它下面，
                 // 否则要等整个任务结束才出现，看起来就是一次性刷出来
                 if (!cacheLog && logStack.size() == 1) {
@@ -212,13 +222,9 @@ public class TaskRunnable implements Runnable {
                     logInfo.setSaved(true);
                     lastLogUid = logInfo.getUid();
                     // 分支根日志：挂到父任务里的「并行执行」节点下，保证实时嵌套且不脱层
-                    if (logContainerUid != null && !logContainerUid.isEmpty()) {
-                        LogSave logSave = LogSaver.getInstance().getLogSave(logKey());
-                        LogInfo container = logSave == null ? null : logSave.getLog(logContainerUid);
-                        if (container != null) {
-                            container.addChild(logInfo.getUid());
-                            LogSaver.getInstance().updateLog(logKey(), container);
-                        }
+                    if (logContainer != null) {
+                        logContainer.addChild(logInfo.getUid());
+                        LogSaver.getInstance().updateLog(logKey(), logContainer);
                     }
                     logged = true;
                 }
