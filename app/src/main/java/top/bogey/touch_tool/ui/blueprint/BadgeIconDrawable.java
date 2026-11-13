@@ -61,6 +61,18 @@ public class BadgeIconDrawable extends Drawable {
         base.setAlpha(alpha);
     }
 
+    // 让 MaterialButton 的 iconTint（动态主色）能透传到图标本体，
+    // 角标圆点和文字用自身 Paint 绘制，不受影响
+    @Override
+    public void setTintList(android.content.res.ColorStateList tint) {
+        if (tint != null) androidx.core.graphics.drawable.DrawableCompat.setTintList(base, tint);
+    }
+
+    @Override
+    public void setTint(int tintColor) {
+        androidx.core.graphics.drawable.DrawableCompat.setTint(base, tintColor);
+    }
+
     @Override
     public void setColorFilter(@Nullable ColorFilter colorFilter) {
         base.setColorFilter(colorFilter);
