@@ -5,7 +5,9 @@
     style="?attr/materialCardViewFilledStyle"
     android:layout_width="320dp"
     android:layout_height="400dp"
-    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Large">
+    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Large"
+    app:cardBackgroundColor="#F1F2F4"
+    app:cardElevation="6dp">
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/expandButton"
@@ -72,6 +74,9 @@
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recyclerView"
+        android:layout_margin="10dp"
+        android:background="@drawable/bg_log_panel"
+        android:clipToOutline="true"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:clipToPadding="false"
