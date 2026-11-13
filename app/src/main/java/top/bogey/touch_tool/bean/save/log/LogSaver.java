@@ -42,7 +42,6 @@ public class LogSaver {
                         if (exist == null || exist.getTime() != log.getTime()) continue;
                         if (exist.getLogObject() instanceof top.bogey.touch_tool.bean.other.log.ActionLog existAction
                                 && newAction.getActionId().equals(existAction.getActionId())) {
-                            top.bogey.touch_tool.utils.AppLog.e("DIAGW", "skip dup action=" + newAction.getActionId());
                             return;
                         }
                     }
@@ -50,10 +49,6 @@ public class LogSaver {
             }
         } catch (Throwable ignored) {
         }
-        top.bogey.touch_tool.utils.AppLog.e("DIAGW", "write uid=" + log.getUid()
-                + " act=" + (log.getLogObject() instanceof top.bogey.touch_tool.bean.other.log.ActionLog a1
-                        ? a1.getActionId() : "-")
-                + " t=" + log.getTime() + " auto=" + autoUid);
         logSave.addLog(log, autoUid);
         // 带 parentLogUid 的日志（分支）写入后统一挂到父日志 children，和调用路径无关
         try {
@@ -67,9 +62,6 @@ public class LogSaver {
                         logSave.addLog(parent, false);
                         notifyNewLog(logSave, parent);   // 让界面把父节点的 children 同步出来
                     }
-                    top.bogey.touch_tool.utils.AppLog.e("DIAGP2", "attach parent="
-                            + actionLog.getParentLogUid() + " child=" + log.getUid()
-                            + " found=" + (parent != null));
                 }
             }
         } catch (Throwable ignored) {

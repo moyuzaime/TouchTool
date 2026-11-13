@@ -155,7 +155,6 @@ public class TaskRunnable implements Runnable {
     }
 
     public void setLogParentUid(String uid) {
-        top.bogey.touch_tool.utils.AppLog.e("DIAGP2", "setParent=" + uid);
         this.logParentUid = uid;
     }
 

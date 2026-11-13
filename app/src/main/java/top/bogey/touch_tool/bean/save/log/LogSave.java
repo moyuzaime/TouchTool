@@ -61,13 +61,9 @@ public class LogSave implements ITreeNodeDataLoader {
             String raw = mmkv.decodeString(key);
             LogInfo info = GsonUtil.getAsObject(raw, LogInfo.class, null);
             if (info == null) {
-                top.bogey.touch_tool.utils.AppLog.e("DIAGM", "null key=" + key
-                        + " len=" + (raw == null ? -1 : raw.length())
-                        + " head=" + (raw == null ? "null" : raw.substring(0, Math.min(30, raw.length()))));
             }
             return info;
         } catch (Exception e) {
-            top.bogey.touch_tool.utils.AppLog.e("DIAGM", "ex key=" + key + " " + e);
             return null;
         }
     }

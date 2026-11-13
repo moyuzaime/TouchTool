@@ -117,9 +117,7 @@ public class LogFloatViewAdapter extends TreeAdapter {
             // 同一动作同一时刻的重复记录只保留一条（历史数据里可能存了两份）
             String sig = childInfo.getTime() + "|" + (childInfo.getLogObject()
                     instanceof top.bogey.touch_tool.bean.other.log.ActionLog a ? a.getActionId() : childUid);
-            if (!childSigs.add(sig)) { top.bogey.touch_tool.utils.AppLog.e("DIAGB", "dup child uid=" + childUid + " sig=" + sig); continue; }
-            top.bogey.touch_tool.utils.AppLog.e("DIAGB", "child uid=" + childUid + " sig=" + sig + " parent=" + uid);
-            top.bogey.touch_tool.utils.AppLog.e("DIAGI", "build child=" + childUid + " parent=" + uid);
+            if (!childSigs.add(sig)) continue;
             node.addChild(buildNode(logSave, childUid, byUid, depth + 1));
         }
         return node;
@@ -132,11 +130,6 @@ public class LogFloatViewAdapter extends TreeAdapter {
         String uid = info.getUid();
         String dbgParent = info.getLogObject() instanceof top.bogey.touch_tool.bean.other.log.ActionLog al0
                 ? al0.getParentLogUid() : null;
-        top.bogey.touch_tool.utils.AppLog.e("DIAGP2", "sync uid=" + uid
-                + " parent=" + dbgParent
-                + " nodeExists=" + nodeMap.containsKey(uid)
-                + " parentNodeExists=" + (dbgParent != null && nodeMap.containsKey(dbgParent))
-                + " flags=" + info.getChildrenFlags().size());
         LazyTreeNode node = nodeMap.get(uid);
         if (node == null) {
             // 增量：分支日志带父 uid 时直接挂到父节点下（实时嵌套）
@@ -189,7 +182,6 @@ public class LogFloatViewAdapter extends TreeAdapter {
             if (!isRootIndex(uid, logSave)) return;
             // 同一个 uid 只能上屏一次：已存在节点（无论根还是子）就不再建根
             if (nodeMap.containsKey(uid)) return;
-            top.bogey.touch_tool.utils.AppLog.e("DIAGI", "root uid=" + uid);
             LazyTreeNode root = new LazyTreeNode(logSave, uid);
             nodeMap.put(uid, root);
             Object rootData = root.getData();
@@ -215,14 +207,12 @@ public class LogFloatViewAdapter extends TreeAdapter {
     private void syncChildren(LogSave logSave, LazyTreeNode node, LogInfo info) {
         List<?> flags = info.getChildrenFlags();
         List<TreeNode> children = node.getChildren();
-        top.bogey.touch_tool.utils.AppLog.e("DIAGP2", "syncChildren flags=" + flags.size() + " children=" + children.size());
         if (flags.size() <= children.size()) return;
 
         List<TreeNode> added = new ArrayList<>();
         for (int i = children.size(); i < flags.size(); i++) {
             Object flag = flags.get(i);
             String childUid0 = String.valueOf(flag);
-            top.bogey.touch_tool.utils.AppLog.e("DIAGI", "syncChild parent=" + node.getData() + " child=" + childUid0);
             // 该子节点若已作为根行显示，先移出根层，再挂到父节点下（否则会内外各一条）
             LazyTreeNode existChild = nodeMap.get(childUid0);
             if (existChild != null) {
@@ -570,9 +560,6 @@ public class LogFloatViewAdapter extends TreeAdapter {
                 try {
                     String dbgUid = node instanceof LazyTreeNode lazyNode ? String.valueOf(lazyNode.getFlag()) : "?";
                     String raw = debugLogSave == null ? null : debugLogSave.debugRaw(dbgUid);
-                    top.bogey.touch_tool.utils.AppLog.e("DIAGM", "uid=" + dbgUid
-                            + " rawLen=" + (raw == null ? -1 : raw.length())
-                            + " head=" + (raw == null ? "null" : raw.substring(0, Math.min(60, raw.length()))));
                 } catch (Throwable ignored) {
                 }
                 String error = context.getString(R.string.task_running_log_load_error);

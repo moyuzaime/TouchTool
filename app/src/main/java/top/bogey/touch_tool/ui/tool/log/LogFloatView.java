@@ -422,7 +422,6 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
 
     @Override
     public void onNewLog(LogSave logSave, LogInfo log) {
-        top.bogey.touch_tool.utils.AppLog.e("DIAGP2", "onNewLog key=" + logSave.getKey() + " task=" + (task == null ? "null" : task.getId()));
         if (task == null) return;
         if (!logSave.getKey().equals(task.getId())) return;
         // 逐条插入，不重建列表；只在本来就在底部时跟随滚动
