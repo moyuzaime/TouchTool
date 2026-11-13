@@ -165,6 +165,7 @@ public class TaskRunnable implements Runnable {
     public void addLog(LogInfo logInfo, int stackOption) {
         switch (stackOption) {
             case -1 -> {
+                if (logStack.isEmpty()) return;
                 LogInfo info = logStack.pop();
                 info.syncLog(logInfo.getLogObject());
                 addLog(info, 0);
@@ -209,17 +210,7 @@ public class TaskRunnable implements Runnable {
         }
     }
 
-    // 同一动作短时间内被重复记录（执行 + 计算）时只保留一条
-    private final java.util.Map<String, Long> lastLogTimes = new java.util.HashMap<>();
-
-    public void addDebugLog(Action action, int stackOption) {
-        long now = System.currentTimeMillis();
-        Long last = lastLogTimes.get(action.getId());
-        if (last != null && now - last <= 20) {
-            return;
-        }
-        lastLogTimes.put(action.getId(), now);
-        // 只有普通动作的计算日志才可能与执行日志重复；分支首条日志必须写，否则父 children 会丢
+    public void addDebugLog(Action action, int stackOption) {        // 只有普通动作的计算日志才可能与执行日志重复；分支首条日志必须写，否则父 children 会丢
         if (stackOption == 0 && logParentUid == null && !logStack.isEmpty()) {
             LogInfo top = logStack.peek();
             if (top.getLogObject() instanceof ActionLog topLog
