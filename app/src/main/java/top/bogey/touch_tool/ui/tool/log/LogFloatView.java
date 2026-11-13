@@ -97,9 +97,8 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
         maxWidth = size.getWidth();
         maxHeight = (int) (size.getHeight() * 0.8f);
 
-        // 浮窗不在 Activity 里，必须自己套动态取色上下文，否则日志窗口不跟随系统动态颜色
-        Context themed = com.google.android.material.color.DynamicColors.wrapContextIfAvailable(context);
-        binding = FloatLogBinding.inflate(LayoutInflater.from(themed), this, true);
+        // 直接使用传入上下文：来自 Activity 时主题里已含动态色/自定义色，二次包裹会覆盖用户选色
+        binding = FloatLogBinding.inflate(LayoutInflater.from(context), this, true);
         adapter = new LogFloatViewAdapter();
         // 手动展开/折叠后暂停自动跟随，避免正在看的分支被新日志顶走
         adapter.setOnNodeToggled(() -> autoFollow = false);
