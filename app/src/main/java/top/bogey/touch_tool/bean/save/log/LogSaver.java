@@ -42,7 +42,9 @@ public class LogSaver {
                         if (exist == null || exist.getTime() != log.getTime()) continue;
                         if (exist.getLogObject() instanceof top.bogey.touch_tool.bean.other.log.ActionLog existAction
                                 && newAction.getActionId().equals(existAction.getActionId())) {
-                            return;
+                            // 复用已存在的 uid：既避免重复条目，又保证子日志的父引用不会悬空
+                            log.setUid(existUid);
+                            break;
                         }
                     }
                 }
