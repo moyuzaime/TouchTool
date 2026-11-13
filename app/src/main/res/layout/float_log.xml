@@ -6,7 +6,7 @@
     android:layout_width="320dp"
     android:layout_height="400dp"
     app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Large"
-    app:cardElevation="6dp">
+    app:cardElevation="0dp">
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/expandButton"
