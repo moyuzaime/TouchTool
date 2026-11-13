@@ -45,6 +45,35 @@ public class TaskRunnable implements Runnable {
     private boolean logged = false;
     private final Stack<LogInfo> logStack = new Stack<>();
     private final Stack<Integer> logStackIndex = new Stack<>();
+    // 日志写入的存档 key（分支指向父任务 id）；分支根日志要挂到的容器节点；最近 push 的日志 uid
+    private String logStoreKey;
+    private LogInfo logContainer;
+    private String lastLogUid;
+
+    public void setLogStoreKey(String logStoreKey) {
+        this.logStoreKey = logStoreKey;
+    }
+
+    // 直接传对象引用：容器节点此时可能还没落盘，查存档会拿到 null
+    public void setLogContainer(LogInfo logContainer) {
+        this.logContainer = logContainer;
+    }
+
+    public String getLastLogUid() {
+        return lastLogUid;
+    }
+
+    public LogInfo getLastLogInfo() {
+        for (int i = logStack.size() - 1; i >= 0; i--) {
+            LogInfo info = logStack.get(i);
+            if (info != null && info.getUid().equals(lastLogUid)) return info;
+        }
+        return null;
+    }
+
+    private String logKey() {
+        return logStoreKey != null ? logStoreKey : task.getId();
+    }
 
     public TaskRunnable(Task task, StartAction startAction) {
         this.task = task;
@@ -146,18 +175,6 @@ public class TaskRunnable implements Runnable {
         checkStatus();
     }
 
-    // 分支日志要挂到的父动作日志 uid
-    private String logParentUid;
-    private String lastLogUid;
-
-    public String getLastLogUid() {
-        return lastLogUid;
-    }
-
-    public void setLogParentUid(String uid) {
-        this.logParentUid = uid;
-    }
-
     public void addLog(String log) {
         addLog(new LogInfo(new NormalLog(log)), 0);
     }
@@ -175,9 +192,9 @@ public class TaskRunnable implements Runnable {
                     if (!cacheLog) {
                         // 顶层动作节点开始时已经落过盘，这里只更新，避免同一动作出现两条
                         if (logInfo.isSaved()) {
-                            LogSaver.getInstance().updateLog(task.getId(), logInfo);
+                            LogSaver.getInstance().updateLog(logKey(), logInfo);
                         } else {
-                            LogSaver.getInstance().addLog(task.getId(), logInfo, true);
+                            LogSaver.getInstance().addLog(logKey(), logInfo, true);
                             logInfo.setSaved(true);
                         }
                         logged = true;
@@ -185,13 +202,11 @@ public class TaskRunnable implements Runnable {
                     cacheLogList.add(logInfo);
                 } else {
                     logStack.peek().addChild(logInfo);
-                    // 给普通子日志补上父 uid，实时链路才能挂到父节点而不是当根插入
-                    logInfo.setParentLogUid(logStack.peek().getUid());
                     if (!cacheLog) {
-                        LogSaver.getInstance().addLog(task.getId(), logInfo, false);
+                        LogSaver.getInstance().addLog(logKey(), logInfo, false);
                         // 子节点写入后整条祖链的 children 都变了，逐个重写，日志窗口才能实时看到
                         for (LogInfo ancestor : logStack) {
-                            LogSaver.getInstance().updateLog(task.getId(), ancestor);
+                            LogSaver.getInstance().updateLog(logKey(), ancestor);
                         }
                         logged = true;
                     }
@@ -199,35 +214,32 @@ public class TaskRunnable implements Runnable {
             }
             case 1 -> {
                 logStack.push(logInfo);
+                lastLogUid = logInfo.getUid();
                 // 顶层动作一开始就落盘成根节点：细节日志模式下所有日志都挂在它下面，
                 // 否则要等整个任务结束才出现，看起来就是一次性刷出来
                 if (!cacheLog && logStack.size() == 1) {
-                    LogSaver.getInstance().addLog(task.getId(), logInfo, true);
+                    LogSaver.getInstance().addLog(logKey(), logInfo, true);
                     logInfo.setSaved(true);
+                    lastLogUid = logInfo.getUid();
+                    // 分支根日志：挂到父任务里的「并行执行」节点下，保证实时嵌套且不脱层
+                    if (logContainer != null) {
+                        logContainer.addChild(logInfo.getUid());
+                        LogSaver.getInstance().updateLog(logKey(), logContainer);
+                    }
                     logged = true;
                 }
             }
         }
     }
 
-    public void addDebugLog(Action action, int stackOption) {        // 只有普通动作的计算日志才可能与执行日志重复；分支首条日志必须写，否则父 children 会丢
-        if (stackOption == 0 && logParentUid == null && !logStack.isEmpty()) {
-            LogInfo top = logStack.peek();
-            if (top.getLogObject() instanceof ActionLog topLog
-                    && topLog.getActionId().equals(action.getId())
-                    && System.currentTimeMillis() - top.getTime() <= 10) {
-                return;
-            }
-        }
+    public void addDebugLog(Action action, int stackOption) {
         if (action instanceof InnerStartAction) return;
         if (debug) {
             String tag = startAction instanceof top.bogey.touch_tool.bean.action.start.InnerStartAction inner
                     ? inner.getBranchTag() : null;
             ActionLog actionLog = new ActionLog(progress + 1, getTask(), action, stackOption != 0, tag);
-            actionLog.setParentLogUid(logParentUid);
             LogInfo logInfo = new LogInfo(actionLog);
             addLog(logInfo, stackOption);
-            lastLogUid = logInfo.getUid();
         }
     }
 

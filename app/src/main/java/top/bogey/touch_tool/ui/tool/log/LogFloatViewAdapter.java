@@ -98,23 +98,6 @@ public class LogFloatViewAdapter extends TreeAdapter {
         for (LogInfo info : byUid.values()) {
             for (Object flag : info.getChildrenFlags()) childUids.add(String.valueOf(flag));
         }
-        // 兜底：带 parentLogUid 但没被写进父 children 的日志，按父 uid 补挂，避免脱层/根层副本
-        for (java.util.Map.Entry<String, LogInfo> e : byUid.entrySet()) {
-            String uid = e.getKey();
-            LogInfo info = e.getValue();
-            String parentUid = info.getParentLogUid();
-            if (parentUid == null || parentUid.isEmpty()) continue;
-            LogInfo parentInfo = byUid.get(parentUid);
-            if (parentInfo == null) continue;
-            boolean already = false;
-            for (Object flag : parentInfo.getChildrenFlags()) {
-                if (String.valueOf(flag).equals(uid)) { already = true; break; }
-            }
-            if (!already) {
-                parentInfo.addChild(uid);
-                childUids.add(uid);
-            }
-        }
         List<TreeNode> nodeList = new ArrayList<>();
         for (String uid : byUid.keySet()) {
             if (childUids.contains(uid)) continue;
@@ -134,19 +117,8 @@ public class LogFloatViewAdapter extends TreeAdapter {
         LazyTreeNode node = new LazyTreeNode(logSave, uid);
         node.setDepth(depth);
         nodeMap.put(uid, node);
-        LogInfo info = byUid.get(uid);
-        if (info == null) return node;
-
-        for (Object flag : info.getChildrenFlags()) {
-            String childUid = String.valueOf(flag);
-            if (!byUid.containsKey(childUid)) continue;
-            LogInfo childInfo = byUid.get(childUid);
-            // 同一动作同一时刻的重复记录只保留一条（历史数据里可能存了两份）
-            String sig = childInfo.getTime() + "|" + (childInfo.getLogObject()
-                    instanceof top.bogey.touch_tool.bean.other.log.ActionLog a ? a.getActionId() : childUid);
-            if (!renderSigs.add(sig)) continue;   // 全局去重：同动作同毫秒只渲染一次
-            node.addChild(buildNode(logSave, childUid, byUid, depth + 1));
-        }
+        // 子节点交给 LazyTreeNode.getData() 按 children 自动加载，
+        // 这里再手工 addChild 会让同一个 uid 被注册两次、展开时出现重复行
         return node;
     }
 
@@ -155,57 +127,8 @@ public class LogFloatViewAdapter extends TreeAdapter {
         if (info == null || info.getUid() == null) return;
 
         String uid = info.getUid();
-        String dbgParent = info.getParentLogUid();
-        if (dbgParent == null && info.getLogObject() instanceof top.bogey.touch_tool.bean.other.log.ActionLog al0) {
-            dbgParent = al0.getParentLogUid();
-        }
         LazyTreeNode node = nodeMap.get(uid);
         if (node == null) {
-            // 增量：带父 uid 的日志（分支/子动作/内容行）直接挂到父节点下
-            String parentUid = dbgParent;
-            if (parentUid != null && !parentUid.isEmpty()) {
-                LazyTreeNode parentNode = nodeMap.get(parentUid);
-                if (parentNode == null) {
-                    // 父节点还没上屏（子日志先到）：先把父节点补成根行，再挂子
-                    LogInfo parentLog = logSave.getLog(parentUid);
-                    if (parentLog != null) {
-                        parentNode = new LazyTreeNode(logSave, parentUid);
-                        nodeMap.put(parentUid, parentNode);
-                        addTreeNode(parentNode);
-                    }
-                }
-                if (parentNode != null) {
-                    LogInfo parentInfo = logSave.getLog(parentUid);
-                    if (parentInfo != null) {
-                        // 父节点下已有同动作同毫秒的子行就不再重复挂
-                        for (TreeNode existNode : parentNode.getChildren()) {
-                            Object existData = existNode.getData();
-                            if (existData instanceof LogInfo existInfo
-                                    && existInfo.getTime() == info.getTime()
-                                    && existInfo.getLogObject() instanceof top.bogey.touch_tool.bean.other.log.ActionLog ea
-                                    && info.getLogObject() instanceof top.bogey.touch_tool.bean.other.log.ActionLog na
-                                    && ea.getActionId().equals(na.getActionId())) {
-                                return;
-                            }
-                        }
-                        boolean has = false;
-                        for (Object flag : parentInfo.getChildrenFlags()) {
-                            if (String.valueOf(flag).equals(uid)) {
-                                has = true;
-                                break;
-                            }
-                        }
-                        if (!has) {
-                            parentInfo.addChild(uid);
-                            top.bogey.touch_tool.bean.save.log.LogSaver.getInstance()
-                                    .updateLog(logSave.getKey(), parentInfo);
-                        }
-                        syncChildren(logSave, parentNode, parentInfo);
-                        return;
-                    }
-                }
-            }
-
             // 没见过的根节点，追加到末尾
             if (!isRootIndex(uid, logSave)) return;
             // 同一个 uid 只能上屏一次：已存在节点（无论根还是子）就不再建根
@@ -226,6 +149,8 @@ public class LogFloatViewAdapter extends TreeAdapter {
             if (insertIndex + 1 < treeNodes.size()) {
                 notifyItemRangeChanged(insertIndex + 1, treeNodes.size() - insertIndex - 1);
             }
+            // 首次上屏的节点可能已经带 children（如并行执行容器先被写入），立即补齐
+            syncChildren(logSave, root, info);
             return;
         }
         syncChildren(logSave, node, info);

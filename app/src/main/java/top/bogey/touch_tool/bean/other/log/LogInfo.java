@@ -27,8 +27,6 @@ public class LogInfo implements ILazyTreeNodeData {
     private final transient List<LogInfo> childrenLog = new ArrayList<>();
     // 是否已经作为根节点写过盘：运行中的动作节点先落盘再增量更新，避免重复写入
     private transient boolean saved = false;
-    // 父日志 uid：任何类型的日志都能挂到父节点下（含内容行）
-    private String parentLogUid;
 
     public LogInfo(Log log) {
         uid = UUID.randomUUID().toString();
@@ -41,21 +39,12 @@ public class LogInfo implements ILazyTreeNodeData {
         time = GsonUtil.getAsLong(jsonObject, "time", 0);
         log = GsonUtil.getAsObject(jsonObject, "log", Log.class, new NormalLog(""));
         children.addAll(GsonUtil.getAsObject(jsonObject, "children", TypeToken.getParameterized(ArrayList.class, String.class).getType(), new ArrayList<>()));
-        parentLogUid = GsonUtil.getAsString(jsonObject, "parentLogUid", null);
     }
 
     public void syncLog(Log log) {
         if (this.log instanceof ActionLog actionLog && log instanceof ActionLog logLog) {
             actionLog.syncLog(logLog);
         }
-    }
-
-    public String getParentLogUid() {
-        return parentLogUid;
-    }
-
-    public void setParentLogUid(String parentLogUid) {
-        this.parentLogUid = parentLogUid;
     }
 
     public String getUid() {

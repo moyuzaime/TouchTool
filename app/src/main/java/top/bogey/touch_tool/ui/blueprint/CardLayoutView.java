@@ -381,10 +381,9 @@ public class CardLayoutView extends FrameLayout implements TaskSaveListener, Var
             if (!(button.getIcon() instanceof BadgeIconDrawable)) {
                 android.graphics.drawable.Drawable icon = button.getIcon();
                 if (icon == null) continue;
-                // 与工具栏其它图标同色（不沿用按钮自身 iconTint）
-                androidx.core.graphics.drawable.DrawableCompat.setTint(icon,
-                        DisplayUtil.getAttrColor(button.getContext(), com.google.android.material.R.attr.colorOnSurfaceVariant));
-                button.setIconTint(null);
+                // 与工具栏其它图标同色：直接设 iconTint，绘制时按动态主色着色
+                button.setIconTint(android.content.res.ColorStateList.valueOf(
+                        DisplayUtil.getAttrColor(button.getContext(), androidx.appcompat.R.attr.colorPrimary)));
                 BadgeIconDrawable badgeIcon = new BadgeIconDrawable(button.getContext(), icon);
                 badgeIcon.setCount(empty ? 0 : savedCardGroups.size());
                 button.setIcon(badgeIcon);

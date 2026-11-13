@@ -27,16 +27,6 @@ public class ActionLog extends Log {
     private final String actionId;
     private final boolean execute;
     private final Map<String, PinObject> values = new LinkedHashMap<>();
-    // 分支日志所属的父动作日志 uid（并行的「并行执行」那条）
-    private String parentLogUid;
-
-    public String getParentLogUid() {
-        return parentLogUid;
-    }
-
-    public void setParentLogUid(String parentLogUid) {
-        this.parentLogUid = parentLogUid;
-    }
 
     public ActionLog(int index, Task task, Action action, boolean execute) {
         super(LogType.ACTION);
@@ -82,7 +72,6 @@ public class ActionLog extends Log {
         taskId = GsonUtil.getAsString(jsonObject, "taskId", "");
         actionId = GsonUtil.getAsString(jsonObject, "actionId", "");
         execute = GsonUtil.getAsBoolean(jsonObject, "execute", true);
-        parentLogUid = GsonUtil.getAsString(jsonObject, "parentLogUid", null);
         values.putAll(GsonUtil.getAsObject(jsonObject, "values", TypeToken.getParameterized(LinkedHashMap.class, String.class, PinBase.class).getType(), new HashMap<>()));
     }
 
