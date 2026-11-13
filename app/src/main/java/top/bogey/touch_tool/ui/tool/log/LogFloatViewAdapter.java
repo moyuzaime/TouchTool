@@ -122,6 +122,13 @@ public class LogFloatViewAdapter extends TreeAdapter {
         if (info == null || info.getUid() == null) return;
 
         String uid = info.getUid();
+        String dbgParent = info.getLogObject() instanceof top.bogey.touch_tool.bean.other.log.ActionLog al0
+                ? al0.getParentLogUid() : null;
+        top.bogey.touch_tool.utils.AppLog.e("DIAGP2", "sync uid=" + uid
+                + " parent=" + dbgParent
+                + " nodeExists=" + nodeMap.containsKey(uid)
+                + " parentNodeExists=" + (dbgParent != null && nodeMap.containsKey(dbgParent))
+                + " flags=" + info.getChildrenFlags().size());
         LazyTreeNode node = nodeMap.get(uid);
         if (node == null) {
             // 增量：分支日志带父 uid 时直接挂到父节点下（实时嵌套）
@@ -209,14 +216,14 @@ public class LogFloatViewAdapter extends TreeAdapter {
 
     // 兜底同步根节点：只追加没见过的，不重建
     public void syncRoots(LogSave logSave) {
-        // key 已经是 GUID，按 order 表遍历，不能用 1..count 序号
+        // 复用 syncLog 的落点逻辑：带父 uid 的挂到父节点，其余才当根
         int count = logSave.getLogCount();
         for (int i = 0; i < count; i++) {
             String uid = logSave.getUidAt(i);
             if (uid == null || nodeMap.containsKey(uid)) continue;
-            LazyTreeNode root = new LazyTreeNode(logSave, uid);
-            nodeMap.put(uid, root);
-            addTreeNode(root);
+            LogInfo info = logSave.getLog(uid);
+            if (info == null) continue;
+            syncLog(logSave, info);
         }
     }
 
