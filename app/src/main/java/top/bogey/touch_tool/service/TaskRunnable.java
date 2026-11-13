@@ -184,6 +184,10 @@ public class TaskRunnable implements Runnable {
                     cacheLogList.add(logInfo);
                 } else {
                     logStack.peek().addChild(logInfo);
+                    // 给普通子日志补上父 uid，实时链路才能挂到父节点而不是当根插入
+                    if (logInfo.getLogObject() instanceof ActionLog childAction) {
+                        childAction.setParentLogUid(logStack.peek().getUid());
+                    }
                     if (!cacheLog) {
                         LogSaver.getInstance().addLog(task.getId(), logInfo, false);
                         // 子节点写入后整条祖链的 children 都变了，逐个重写，日志窗口才能实时看到
