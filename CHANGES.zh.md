@@ -432,3 +432,15 @@ refactor(port): 文件卡片合并为 10 张
 - 分支名存在动作的 `branchNames` 列表并回填针脚，编辑后立即保存任务
 - 新建并行卡只有「完成」出口，分支由「添加执行」生成；继承的 outPin 已从卡面移除
 - 蓝图顶栏新增「运行」按钮，直接执行当前任务的手动开始动作
+## 39. 日志悬浮窗（本轮）
+
+- 浮窗结构对齐上游：外层 filled 卡片 + 内层 `?attr/colorSurface` 卡片承载列表，去掉阴影
+- 动态取色：直接使用传入 Context 的主题（Activity 已含动态色/自定义色），不再二次 `wrapContextIfAvailable` 覆盖用户选色
+- 日志存储：GUID 作 key + `order` 顺序表，读取按 uid 遍历，修复「日志加载失败」
+- 父子关系：`LogInfo` 新增 `parentLogUid`，内容行也能实时嵌套；重建时缺 children 的条目自动补挂
+- 稳定性：`pop` 判空；回退会截断日志栈的 20ms 全局拦截，只对计算日志去重
+
+### 已知问题
+
+- 并行分支内的「输出日志」在同一毫秒会记录两条（渲染层按「时间+actionId」去重仍无法合并，说明两条 actionId 不同）
+- 定位方法：`LogSaver.addLog` 打印 `actionId + 调用栈`，对比两次写入的来源

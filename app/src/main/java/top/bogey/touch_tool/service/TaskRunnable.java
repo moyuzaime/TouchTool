@@ -165,6 +165,7 @@ public class TaskRunnable implements Runnable {
     public void addLog(LogInfo logInfo, int stackOption) {
         switch (stackOption) {
             case -1 -> {
+                if (logStack.isEmpty()) return;
                 LogInfo info = logStack.pop();
                 info.syncLog(logInfo.getLogObject());
                 addLog(info, 0);
@@ -184,6 +185,8 @@ public class TaskRunnable implements Runnable {
                     cacheLogList.add(logInfo);
                 } else {
                     logStack.peek().addChild(logInfo);
+                    // 给普通子日志补上父 uid，实时链路才能挂到父节点而不是当根插入
+                    logInfo.setParentLogUid(logStack.peek().getUid());
                     if (!cacheLog) {
                         LogSaver.getInstance().addLog(task.getId(), logInfo, false);
                         // 子节点写入后整条祖链的 children 都变了，逐个重写，日志窗口才能实时看到
@@ -207,8 +210,7 @@ public class TaskRunnable implements Runnable {
         }
     }
 
-    public void addDebugLog(Action action, int stackOption) {
-        // 只有普通动作的计算日志才可能与执行日志重复；分支首条日志必须写，否则父 children 会丢
+    public void addDebugLog(Action action, int stackOption) {        // 只有普通动作的计算日志才可能与执行日志重复；分支首条日志必须写，否则父 children 会丢
         if (stackOption == 0 && logParentUid == null && !logStack.isEmpty()) {
             LogInfo top = logStack.peek();
             if (top.getLogObject() instanceof ActionLog topLog

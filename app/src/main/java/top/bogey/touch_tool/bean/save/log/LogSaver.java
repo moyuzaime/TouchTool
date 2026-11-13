@@ -42,7 +42,9 @@ public class LogSaver {
                         if (exist == null || exist.getTime() != log.getTime()) continue;
                         if (exist.getLogObject() instanceof top.bogey.touch_tool.bean.other.log.ActionLog existAction
                                 && newAction.getActionId().equals(existAction.getActionId())) {
-                            return;
+                            // 复用已存在的 uid：既避免重复条目，又保证子日志的父引用不会悬空
+                            log.setUid(existUid);
+                            break;
                         }
                     }
                 }
@@ -52,11 +54,13 @@ public class LogSaver {
         logSave.addLog(log, autoUid);
         // 带 parentLogUid 的日志（分支）写入后统一挂到父日志 children，和调用路径无关
         try {
-            if (log.getLogObject() instanceof top.bogey.touch_tool.bean.other.log.ActionLog actionLog
-                    && actionLog.getParentLogUid() != null
-                    && !actionLog.getParentLogUid().isEmpty()) {
+            String logParentUid = log.getParentLogUid();
+            if (logParentUid == null && log.getLogObject() instanceof top.bogey.touch_tool.bean.other.log.ActionLog a0) {
+                logParentUid = a0.getParentLogUid();
+            }
+            if (logParentUid != null && !logParentUid.isEmpty()) {
                 synchronized (logSave) {
-                    LogInfo parent = logSave.getLog(actionLog.getParentLogUid());
+                    LogInfo parent = logSave.getLog(logParentUid);
                     if (parent != null) {
                         parent.addChild(log.getUid());
                         logSave.addLog(parent, false);
