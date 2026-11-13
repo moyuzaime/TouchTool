@@ -94,8 +94,6 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         java.util.Set<TaskRunnable> finished = java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
         int rejectedCount = 0;
         Task currTask = runnable.getTask();
-        // 本动作自己的日志 uid：分支日志挂到它下面
-        String selfLogUid = runnable.getLastLogUid();
         if (runnable.isDebug()) currTask.addFlag(Task.FLAG_DEBUG);
 
         for (Pin dynamicPin : validPins) {
@@ -122,10 +120,7 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
                         resultPin.getValue(PinBoolean.class).setValue(true);
                     }
                 }
-            }, selfLogUid);
-            if (taskRunnable != null) {
-            } else {
-            }
+            });
             runnableList.add(taskRunnable);
             if (taskRunnable == null) {
                 // 线程池已满，分支没能启动，必须让计数器前进，避免一直等到超时

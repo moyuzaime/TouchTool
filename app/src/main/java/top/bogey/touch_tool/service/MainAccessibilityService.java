@@ -318,11 +318,6 @@ public class MainAccessibilityService extends AccessibilityService {
     }
 
     public TaskRunnable runTask(Task task, StartAction startAction, ITaskListener listener) {
-        return runTask(task, startAction, listener, null);
-    }
-
-    // logParentUid 非空时，本次运行的日志会挂到该父日志下面
-    public TaskRunnable runTask(Task task, StartAction startAction, ITaskListener listener, String logParentUid) {
         cleanInterruptTask();
 
         if (task == null || startAction == null) return null;
@@ -333,7 +328,6 @@ public class MainAccessibilityService extends AccessibilityService {
         }
 
         TaskRunnable runnable = new TaskRunnable(task, startAction);
-        if (logParentUid != null) runnable.setLogParentUid(logParentUid);
         if (listener != null) runnable.addListener(listener);
 
         runnable.addListener(new ITaskListener() {
