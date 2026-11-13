@@ -96,6 +96,10 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         Task currTask = runnable.getTask();
         if (runnable.isDebug()) currTask.addFlag(Task.FLAG_DEBUG);
 
+        // 并行执行节点自己的日志 uid：分支根日志挂到它下面，实时嵌套且不脱层
+        String containerUid = runnable.getLastLogUid();
+        String logStoreKey = runnable.getStartTask().getId();
+
         for (Pin dynamicPin : validPins) {
             int branchIndex = validPins.indexOf(dynamicPin) + 1;
             String branchName = getBranchName(dynamicPin);
@@ -120,7 +124,7 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
                         resultPin.getValue(PinBoolean.class).setValue(true);
                     }
                 }
-            });
+            }, logStoreKey, containerUid);
             runnableList.add(taskRunnable);
             if (taskRunnable == null) {
                 // 线程池已满，分支没能启动，必须让计数器前进，避免一直等到超时
