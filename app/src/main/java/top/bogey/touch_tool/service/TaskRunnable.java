@@ -203,33 +203,6 @@ public class TaskRunnable implements Runnable {
                     LogSaver.getInstance().addLog(task.getId(), logInfo, true);
                     logInfo.setSaved(true);
                     logged = true;
-                    // 分支日志：把自己写进父日志的 children，界面重开/重建时才能正确嵌套
-                    if (logParentUid != null && !logParentUid.isEmpty()) {
-                        try {
-                            LogSave logSave = LogSaver.getInstance().getLogSave(task.getId());
-                            if (logSave != null) {
-                                // 多个分支会并发写同一个父日志，读改写必须串行，否则会互相覆盖
-                                synchronized (logSave) {
-                                    LogInfo parentLog = logSave.getLog(logParentUid);
-                                    top.bogey.touch_tool.utils.AppLog.e("DIAGP2", "parent=" + logParentUid + " found=" + (parentLog != null) + " child=" + logInfo.getUid());
-                                    if (parentLog != null) {
-                                        boolean exists = false;
-                                        for (Object flag : parentLog.getChildrenFlags()) {
-                                            if (String.valueOf(flag).equals(logInfo.getUid())) {
-                                                exists = true;
-                                                break;
-                                            }
-                                        }
-                                        if (!exists) {
-                                            parentLog.addChild(logInfo.getUid());
-                                            LogSaver.getInstance().updateLog(task.getId(), parentLog);
-                                        }
-                                    }
-                                }
-                            }
-                        } catch (Throwable ignored) {
-                        }
-                    }
                 }
             }
         }

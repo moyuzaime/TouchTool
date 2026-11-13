@@ -184,6 +184,7 @@ public class LogFloatViewAdapter extends TreeAdapter {
     private void syncChildren(LogSave logSave, LazyTreeNode node, LogInfo info) {
         List<?> flags = info.getChildrenFlags();
         List<TreeNode> children = node.getChildren();
+        top.bogey.touch_tool.utils.AppLog.e("DIAGP2", "syncChildren flags=" + flags.size() + " children=" + children.size());
         if (flags.size() <= children.size()) return;
 
         List<TreeNode> added = new ArrayList<>();
