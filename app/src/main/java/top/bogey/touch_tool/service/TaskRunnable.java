@@ -155,6 +155,7 @@ public class TaskRunnable implements Runnable {
     }
 
     public void setLogParentUid(String uid) {
+        top.bogey.touch_tool.utils.AppLog.e("DIAGP2", "setParent=" + uid);
         this.logParentUid = uid;
     }
 
@@ -210,6 +211,7 @@ public class TaskRunnable implements Runnable {
                                 // 多个分支会并发写同一个父日志，读改写必须串行，否则会互相覆盖
                                 synchronized (logSave) {
                                     LogInfo parentLog = logSave.getLog(logParentUid);
+                                    top.bogey.touch_tool.utils.AppLog.e("DIAGP2", "parent=" + logParentUid + " found=" + (parentLog != null) + " child=" + logInfo.getUid());
                                     if (parentLog != null) {
                                         boolean exists = false;
                                         for (Object flag : parentLog.getChildrenFlags()) {
@@ -234,6 +236,15 @@ public class TaskRunnable implements Runnable {
     }
 
     public void addDebugLog(Action action, int stackOption) {
+        // 只有普通动作的计算日志才可能与执行日志重复；分支首条日志必须写，否则父 children 会丢
+        if (stackOption == 0 && logParentUid == null && !logStack.isEmpty()) {
+            LogInfo top = logStack.peek();
+            if (top.getLogObject() instanceof ActionLog topLog
+                    && topLog.getActionId().equals(action.getId())
+                    && System.currentTimeMillis() - top.getTime() <= 10) {
+                return;
+            }
+        }
         if (action instanceof InnerStartAction) return;
         if (debug) {
             String tag = startAction instanceof top.bogey.touch_tool.bean.action.start.InnerStartAction inner

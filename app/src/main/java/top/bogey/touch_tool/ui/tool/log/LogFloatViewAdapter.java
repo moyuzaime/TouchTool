@@ -209,11 +209,12 @@ public class LogFloatViewAdapter extends TreeAdapter {
 
     // 兜底同步根节点：只追加没见过的，不重建
     public void syncRoots(LogSave logSave) {
+        // key 已经是 GUID，按 order 表遍历，不能用 1..count 序号
         int count = logSave.getLogCount();
-        for (int i = 1; i <= count; i++) {
-            String uid = String.valueOf(i);
-            if (nodeMap.containsKey(uid)) continue;
-            LazyTreeNode root = new LazyTreeNode(logSave, i);
+        for (int i = 0; i < count; i++) {
+            String uid = logSave.getUidAt(i);
+            if (uid == null || nodeMap.containsKey(uid)) continue;
+            LazyTreeNode root = new LazyTreeNode(logSave, uid);
             nodeMap.put(uid, root);
             addTreeNode(root);
         }
@@ -259,12 +260,8 @@ public class LogFloatViewAdapter extends TreeAdapter {
     }
 
     private boolean isRootIndex(String uid, LogSave logSave) {
-        try {
-            int index = Integer.parseInt(uid);
-            return index >= 1 && index <= logSave.getLogCount();
-        } catch (NumberFormatException e) {
-            return false;
-        }
+        // key 已是 GUID，只确认这条日志存在
+        return uid != null && logSave.getLog(uid) != null;
     }
 
     public List<LogInfo> getLogs() {

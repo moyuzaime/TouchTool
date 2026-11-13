@@ -33,6 +33,25 @@ public class LogSaver {
     public void addLog(String key, LogInfo log, boolean autoUid) {
         LogSave logSave = getLogSave(key);
         logSave.addLog(log, autoUid);
+        // 带 parentLogUid 的日志（分支）写入后统一挂到父日志 children，和调用路径无关
+        try {
+            if (log.getLogObject() instanceof top.bogey.touch_tool.bean.other.log.ActionLog actionLog
+                    && actionLog.getParentLogUid() != null
+                    && !actionLog.getParentLogUid().isEmpty()) {
+                synchronized (logSave) {
+                    LogInfo parent = logSave.getLog(actionLog.getParentLogUid());
+                    if (parent != null) {
+                        parent.addChild(log.getUid());
+                        logSave.addLog(parent, false);
+                        notifyNewLog(logSave, parent);   // 让界面把父节点的 children 同步出来
+                    }
+                    top.bogey.touch_tool.utils.AppLog.e("DIAGP2", "attach parent="
+                            + actionLog.getParentLogUid() + " child=" + log.getUid()
+                            + " found=" + (parent != null));
+                }
+            }
+        } catch (Throwable ignored) {
+        }
         notifyNewLog(logSave, log);
     }
 
