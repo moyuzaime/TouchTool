@@ -76,11 +76,14 @@ public class LogFloatViewAdapter extends TreeAdapter {
     }
 
     private LogSave debugLogSave;
+    // 渲染去重：同一动作同一毫秒只显示一条
+    private final java.util.Set<String> renderSigs = new java.util.HashSet<>();
 
     public void setLogSave(LogSave logSave) {
         debugLogSave = logSave;
         task = TaskSaver.getInstance().getTask(logSave.getKey());
         nodeMap.clear();
+        renderSigs.clear();
 
         // 按 order 遍历，按 children（日志 uid）还原层级
         java.util.Map<String, LogInfo> byUid = new java.util.LinkedHashMap<>();
@@ -115,6 +118,13 @@ public class LogFloatViewAdapter extends TreeAdapter {
         List<TreeNode> nodeList = new ArrayList<>();
         for (String uid : byUid.keySet()) {
             if (childUids.contains(uid)) continue;
+            LogInfo rootInfo = byUid.get(uid);
+            if (rootInfo != null) {
+                // 根节点也按「时间+actionId」去重，避免已在父节点下渲染的条目又以根行出现
+                String sig = rootInfo.getTime() + "|" + (rootInfo.getLogObject()
+                        instanceof top.bogey.touch_tool.bean.other.log.ActionLog a ? a.getActionId() : uid);
+                if (!renderSigs.add(sig)) continue;
+            }
             nodeList.add(buildNode(logSave, uid, byUid, 0));
         }
         setTreeNodes(nodeList);
@@ -126,7 +136,7 @@ public class LogFloatViewAdapter extends TreeAdapter {
         nodeMap.put(uid, node);
         LogInfo info = byUid.get(uid);
         if (info == null) return node;
-        java.util.Set<String> childSigs = new java.util.HashSet<>();
+
         for (Object flag : info.getChildrenFlags()) {
             String childUid = String.valueOf(flag);
             if (!byUid.containsKey(childUid)) continue;
@@ -134,7 +144,7 @@ public class LogFloatViewAdapter extends TreeAdapter {
             // 同一动作同一时刻的重复记录只保留一条（历史数据里可能存了两份）
             String sig = childInfo.getTime() + "|" + (childInfo.getLogObject()
                     instanceof top.bogey.touch_tool.bean.other.log.ActionLog a ? a.getActionId() : childUid);
-            if (!childSigs.add(sig)) continue;
+            if (!renderSigs.add(sig)) continue;   // 全局去重：同动作同毫秒只渲染一次
             node.addChild(buildNode(logSave, childUid, byUid, depth + 1));
         }
         return node;
