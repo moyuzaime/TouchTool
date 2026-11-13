@@ -128,13 +128,14 @@ public class LogFloatViewAdapter extends TreeAdapter {
         if (info == null || info.getUid() == null) return;
 
         String uid = info.getUid();
-        String dbgParent = info.getLogObject() instanceof top.bogey.touch_tool.bean.other.log.ActionLog al0
-                ? al0.getParentLogUid() : null;
+        String dbgParent = info.getParentLogUid();
+        if (dbgParent == null && info.getLogObject() instanceof top.bogey.touch_tool.bean.other.log.ActionLog al0) {
+            dbgParent = al0.getParentLogUid();
+        }
         LazyTreeNode node = nodeMap.get(uid);
         if (node == null) {
-            // 增量：分支日志带父 uid 时直接挂到父节点下（实时嵌套）
-            String parentUid = info.getLogObject() instanceof top.bogey.touch_tool.bean.other.log.ActionLog actionLog
-                    ? actionLog.getParentLogUid() : null;
+            // 增量：带父 uid 的日志（分支/子动作/内容行）直接挂到父节点下
+            String parentUid = dbgParent;
             if (parentUid != null && !parentUid.isEmpty()) {
                 LazyTreeNode parentNode = nodeMap.get(parentUid);
                 if (parentNode == null) {
