@@ -176,7 +176,7 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         List<String> logs = new ArrayList<>();
         for (LogInfo logInfo : logList) {
             logs.add(logInfo.getUid());
-            LogSaver.getInstance().addLog(runnable.getStartTask().getId(), logInfo, false);
+            // 分支日志已经实时写入，这里不再重复落库（此前会写入另一份存档，导致同内容两条）
             List<LogInfo> children = new ArrayList<>();
             for (ITreeNodeData child : logInfo.getChildrenData()) {
                 LogInfo childLogInfo = (LogInfo) child;

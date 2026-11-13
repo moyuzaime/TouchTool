@@ -85,6 +85,8 @@ public class LogInfo implements ILazyTreeNodeData {
     }
 
     public void addChild(String child) {
+        // 同一子节点重复挂载会产生两条一样的日志，这里去重
+        if (children.contains(child)) return;
         children.add(child);
     }
 

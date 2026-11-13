@@ -5,7 +5,8 @@
     style="?attr/materialCardViewFilledStyle"
     android:layout_width="320dp"
     android:layout_height="400dp"
-    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Large">
+    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Large"
+    app:cardElevation="0dp">
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/expandButton"
@@ -70,16 +71,26 @@
                 android:layout_height="0dp"
                 android:layout_weight="1">
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recyclerView"
+                <com.google.android.material.card.MaterialCardView
+                    style="?attr/materialCardViewFilledStyle"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:clipToPadding="false"
-                    android:paddingTop="?attr/defaultOffset"
-                    android:paddingBottom="?attr/defaultOffset"
-                    android:scrollbars="none"
-                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                    tools:listitem="@layout/float_log_normal_item" />
+                    app:cardBackgroundColor="?attr/colorSurface"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Large">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recyclerView"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_margin="?attr/defaultPadding"
+                        android:clipToPadding="false"
+                        android:paddingTop="?attr/defaultOffset"
+                        android:paddingBottom="?attr/defaultOffset"
+                        android:scrollbars="none"
+                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                        tools:listitem="@layout/float_log_normal_item" />
+
+                </com.google.android.material.card.MaterialCardView>
 
                 <TextView
                     android:id="@+id/emptyTips"

@@ -202,38 +202,21 @@ public class TaskRunnable implements Runnable {
                     LogSaver.getInstance().addLog(task.getId(), logInfo, true);
                     logInfo.setSaved(true);
                     logged = true;
-                    // 分支日志：把自己写进父日志的 children，界面重开/重建时才能正确嵌套
-                    if (logParentUid != null && !logParentUid.isEmpty()) {
-                        try {
-                            LogSave logSave = LogSaver.getInstance().getLogSave(task.getId());
-                            if (logSave != null) {
-                                // 多个分支会并发写同一个父日志，读改写必须串行，否则会互相覆盖
-                                synchronized (logSave) {
-                                    LogInfo parentLog = logSave.getLog(logParentUid);
-                                    if (parentLog != null) {
-                                        boolean exists = false;
-                                        for (Object flag : parentLog.getChildrenFlags()) {
-                                            if (String.valueOf(flag).equals(logInfo.getUid())) {
-                                                exists = true;
-                                                break;
-                                            }
-                                        }
-                                        if (!exists) {
-                                            parentLog.addChild(logInfo.getUid());
-                                            LogSaver.getInstance().updateLog(task.getId(), parentLog);
-                                        }
-                                    }
-                                }
-                            }
-                        } catch (Throwable ignored) {
-                        }
-                    }
                 }
             }
         }
     }
 
     public void addDebugLog(Action action, int stackOption) {
+        // 只有普通动作的计算日志才可能与执行日志重复；分支首条日志必须写，否则父 children 会丢
+        if (stackOption == 0 && logParentUid == null && !logStack.isEmpty()) {
+            LogInfo top = logStack.peek();
+            if (top.getLogObject() instanceof ActionLog topLog
+                    && topLog.getActionId().equals(action.getId())
+                    && System.currentTimeMillis() - top.getTime() <= 10) {
+                return;
+            }
+        }
         if (action instanceof InnerStartAction) return;
         if (debug) {
             String tag = startAction instanceof top.bogey.touch_tool.bean.action.start.InnerStartAction inner
