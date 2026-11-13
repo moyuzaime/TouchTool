@@ -88,6 +88,8 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         }
 
         CountDownLatch latch = new CountDownLatch(validPins.size());
+        top.bogey.touch_tool.utils.AppLog.e("DIAGP3", "branchCount=" + validPins.size());
+        for (Pin bp : validPins) top.bogey.touch_tool.utils.AppLog.e("DIAGP3", "branch name=" + getBranchName(bp));
         int countValue = count.intValue();
         List<TaskRunnable> runnableList = new ArrayList<>();
         // 已正常结束的分支，用于超时后只停还活着的
@@ -177,7 +179,7 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         List<String> logs = new ArrayList<>();
         for (LogInfo logInfo : logList) {
             logs.add(logInfo.getUid());
-            LogSaver.getInstance().addLog(runnable.getStartTask().getId(), logInfo, false);
+            // 分支日志已经实时写入，这里不再重复落库（此前会写入另一份存档，导致同内容两条）
             List<LogInfo> children = new ArrayList<>();
             for (ITreeNodeData child : logInfo.getChildrenData()) {
                 LogInfo childLogInfo = (LogInfo) child;
