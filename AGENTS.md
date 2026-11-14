@@ -8,6 +8,7 @@
 - 构建：`gradlew.bat :app:assembleDebug`。本机需先设置 `JAVA_HOME`（如 `D:\Android\Android Studio\jbr`）。
 - 提交信息风格：`feat(scope): 中文标题` + 中文正文要点；默认**不推送**。
 - 功能与改动清单见 `CHANGES.zh.md`。
+- 远端：`origin` = 上游 `https://github.com/mr-bogey/TouchTool`，`fork` = 本项目 `https://github.com/moyuzaime/TouchTool`；取上游改动用 `git fetch origin`，推送只推 `fork`。
 
 ## 约定
 
