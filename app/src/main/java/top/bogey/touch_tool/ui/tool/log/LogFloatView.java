@@ -364,13 +364,7 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
     private void pollLogs() {
         if (task == null) return;
         LogSave logSave = LogSaver.getInstance().getLogSave(task.getId());
-        if (logSave.getLogCount() != lastRootCount) {
-            boolean follow = autoFollow && isNearBottom();
-            lastRootCount = logSave.getLogCount();
-            adapter.setLogSave(logSave);
-            if (follow) scrollToBottom();
-            updateEmptyTips();
-        }
+        if (logSave.getLogCount() != lastRootCount) scheduleRebuild();
         postDelayed(pollRunnable, 500);
     }
 
@@ -424,14 +418,24 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
     public void onNewLog(LogSave logSave, LogInfo log) {
         if (task == null) return;
         if (!logSave.getKey().equals(task.getId())) return;
-        // 整表重建：数据层是唯一真相（children 已确定），重建路径始终正确，
-        // 增量插入在 LazyTreeNode 自动建子节点的情况下会重复上屏
-        post(() -> {
+        scheduleRebuild();
+    }
+
+    // 日志可能成批到来：合并成最多每 150ms 重建一次，避免每条日志都整表重建把 UI 线程压死
+    private boolean rebuildPosted = false;
+
+    private void scheduleRebuild() {
+        if (rebuildPosted) return;
+        rebuildPosted = true;
+        postDelayed(() -> {
+            rebuildPosted = false;
+            if (task == null) return;
+            LogSave logSave = LogSaver.getInstance().getLogSave(task.getId());
             boolean follow = autoFollow && isNearBottom();
             adapter.setLogSave(logSave);
             lastRootCount = logSave.getLogCount();
             if (follow) scrollToBottom();
             updateEmptyTips();
-        });
+        }, 150);
     }
 }

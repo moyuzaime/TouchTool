@@ -204,10 +204,8 @@ public class TaskRunnable implements Runnable {
                     logStack.peek().addChild(logInfo);
                     if (!cacheLog) {
                         LogSaver.getInstance().addLog(logKey(), logInfo, false);
-                        // 子节点写入后整条祖链的 children 都变了，逐个重写，日志窗口才能实时看到
-                        for (LogInfo ancestor : logStack) {
-                            LogSaver.getInstance().updateLog(logKey(), ancestor);
-                        }
+                        // 只有直接父节点的 children 变了，祖先的 children 不含本节点，无需重写
+                        LogSaver.getInstance().updateLog(logKey(), logStack.peek());
                         logged = true;
                     }
                 }

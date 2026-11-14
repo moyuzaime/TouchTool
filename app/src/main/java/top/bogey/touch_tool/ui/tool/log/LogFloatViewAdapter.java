@@ -85,10 +85,10 @@ public class LogFloatViewAdapter extends TreeAdapter {
         nodeMap.clear();
         renderSigs.clear();
 
-        // 按 order 遍历，按 children（日志 uid）还原层级
+        // 按 order 遍历，按 children（日志 uid）还原层级；顺序表只取一次，避免逐条重复解析
+        java.util.List<String> order = logSave.getOrder();
         java.util.Map<String, LogInfo> byUid = new java.util.LinkedHashMap<>();
-        for (int i = 0; i < logSave.getLogCount(); i++) {
-            String uid = logSave.getUidAt(i);
+        for (String uid : order) {
             if (uid == null) continue;
             LogInfo info = logSave.getLog(uid);
             if (info == null) continue;

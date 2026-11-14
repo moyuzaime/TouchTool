@@ -77,7 +77,13 @@ public class LogSave implements ITreeNodeDataLoader {
         }
     }
 
+    // 顺序表内存缓存：getOrder 每次都要解 MMKV 并校验每个 uid 是否存在，
+    // 日志一多就是 O(n²) 次解码，界面重建时会明显卡顿
+    private volatile List<String> orderCache = null;
+
     public List<String> getOrder() {
+        List<String> cached = orderCache;
+        if (cached != null) return new ArrayList<>(cached);
         List<String> order = new ArrayList<>();
         String raw = mmkv.decodeString(ORDER, "");
         if (raw != null && !raw.isEmpty()) {
@@ -89,7 +95,8 @@ public class LogSave implements ITreeNodeDataLoader {
         }
         // 顺序表缺失或全部失效时，扫描存储里的日志按时间重建，避免出现「暂无日志」
         if (order.isEmpty()) return repairOrder();
-        return order;
+        orderCache = order;
+        return new ArrayList<>(order);
     }
 
     private synchronized List<String> repairOrder() {
@@ -111,6 +118,7 @@ public class LogSave implements ITreeNodeDataLoader {
 
     private void saveOrder(List<String> order) {
         mmkv.encode(ORDER, String.join(",", order));
+        orderCache = new ArrayList<>(order);
     }
     public String getUidAt(int index) {
         List<String> order = getOrder();
@@ -142,6 +150,7 @@ public class LogSave implements ITreeNodeDataLoader {
 
     public void clearLog() {
         mmkv.clearAll();
+        orderCache = null;
         time = 0;
     }
 
