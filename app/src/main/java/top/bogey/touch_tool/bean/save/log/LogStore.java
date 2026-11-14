@@ -62,31 +62,80 @@ public class LogStore extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
     }
 
+    // 批量事务：每条日志一次 INSERT 都会触发一次提交开销，任务高频写日志时很明显。
+    // 攒够 32 条或距上次落库超过 100ms 提交一次事务；任何读取前先 flush，界面才能立刻看到。
+    private final static int BATCH_SIZE = 32;
+    private final static long FLUSH_INTERVAL_MS = 100;
+
+    private final java.util.ArrayDeque<Object[]> pendingRows = new java.util.ArrayDeque<>();
+    private final Object pendingLock = new Object();
+    private long lastFlushTime = 0;
+
     // ===== 写入 =====
 
-    // 追加一条日志；parentUid 为空表示根日志
+    // 追加一条日志；parentUid 为空表示根日志（先入队，攒批后一次性入库）
     public long append(String taskId, LogInfo info, String parentUid) {
         if (taskId == null || info == null || info.getUid() == null) return -1;
         String payload = toPayload(info);
         if (payload == null) return -1;
-        ContentValues values = new ContentValues();
-        values.put("task_id", taskId);
-        values.put("uid", info.getUid());
-        values.put("parent_uid", parentUid);
-        values.put("ts", info.getTime());
-        values.put("kind", info.getLogObject() == null ? "NORMAL" : info.getLogObject().getType().name());
-        values.put("action_id", actionIdOf(info));
-        values.put("payload", payload);
+        Object[] row = new Object[]{
+                taskId,
+                info.getUid(),
+                parentUid,
+                info.getTime(),
+                info.getLogObject() == null ? "NORMAL" : info.getLogObject().getType().name(),
+                actionIdOf(info),
+                payload
+        };
+        synchronized (pendingLock) {
+            pendingRows.add(row);
+            long now = System.currentTimeMillis();
+            if (pendingRows.size() >= BATCH_SIZE || now - lastFlushTime >= FLUSH_INTERVAL_MS) {
+                flushLocked();
+            }
+        }
+        return -1;
+    }
+
+    // 立即落库：任务结束、或任何读取之前调用
+    public void flushNow() {
+        synchronized (pendingLock) {
+            flushLocked();
+        }
+    }
+
+    private void flushLocked() {
+        if (pendingRows.isEmpty()) return;
+        lastFlushTime = System.currentTimeMillis();
+        java.util.List<Object[]> rows = new java.util.ArrayList<>(pendingRows);
+        pendingRows.clear();
         try {
-            return getWritableDatabase().insertWithOnConflict(TABLE_LOG, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+            SQLiteDatabase db = getWritableDatabase();
+            db.beginTransaction();
+            try {
+                for (Object[] row : rows) {
+                    ContentValues values = new ContentValues();
+                    values.put("task_id", (String) row[0]);
+                    values.put("uid", (String) row[1]);
+                    values.put("parent_uid", (String) row[2]);
+                    values.put("ts", (Long) row[3]);
+                    values.put("kind", (String) row[4]);
+                    values.put("action_id", (String) row[5]);
+                    values.put("payload", (String) row[6]);
+                    db.insertWithOnConflict(TABLE_LOG, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+                }
+                db.setTransactionSuccessful();
+            } finally {
+                db.endTransaction();
+            }
         } catch (Throwable e) {
-            AppLog.e("日志库", "写入日志失败", e);
-            return -1;
+            AppLog.e("日志库", "批量写入失败", e);
         }
     }
 
     // 动作节点结束时值会补齐：只更新这一行的 payload，不动父子关系
     public void updatePayload(String taskId, LogInfo info) {
+        flushNow();   // 读取前先把待写队列落库
         if (taskId == null || info == null || info.getUid() == null) return;
         String payload = toPayload(info);
         if (payload == null) return;
@@ -103,6 +152,7 @@ public class LogStore extends SQLiteOpenHelper {
     // ===== 查询 =====
 
     public LogInfo load(String taskId, String uid) {
+        flushNow();   // 读取前先把待写队列落库
         if (taskId == null || uid == null) return null;
         try (Cursor cursor = getReadableDatabase().query(TABLE_LOG, new String[]{"payload"},
                 "task_id = ? AND uid = ?", new String[]{taskId, uid}, null, null, null)) {
@@ -120,6 +170,7 @@ public class LogStore extends SQLiteOpenHelper {
     }
 
     public List<String> childUids(String taskId, String parentUid) {
+        flushNow();   // 读取前先把待写队列落库
         List<String> uids = new ArrayList<>();
         if (taskId == null) return uids;
         String where = parentUid == null ? "task_id = ? AND parent_uid IS NULL" : "task_id = ? AND parent_uid = ?";
@@ -134,6 +185,7 @@ public class LogStore extends SQLiteOpenHelper {
 
     // 根日志 uid，按 id 倒序取最后 limit 条（分页窗口用）
     public List<String> rootUids(String taskId, int limit) {
+        flushNow();   // 读取前先把待写队列落库
         List<String> uids = new ArrayList<>();
         if (taskId == null) return uids;
         String sql = "SELECT uid FROM " + TABLE_LOG + " WHERE task_id = ? AND parent_uid IS NULL ORDER BY id DESC LIMIT ?";
@@ -148,6 +200,7 @@ public class LogStore extends SQLiteOpenHelper {
 
     // 早于某个 id 的根日志（"加载更多"）
     public List<String> rootUidsBefore(String taskId, long beforeId, int limit) {
+        flushNow();   // 读取前先把待写队列落库
         List<String> uids = new ArrayList<>();
         if (taskId == null) return uids;
         String sql = "SELECT uid FROM " + TABLE_LOG + " WHERE task_id = ? AND parent_uid IS NULL AND id < ? ORDER BY id DESC LIMIT ?";
@@ -161,6 +214,7 @@ public class LogStore extends SQLiteOpenHelper {
     }
 
     public int count(String taskId) {
+        flushNow();   // 读取前先把待写队列落库
         if (taskId == null) return 0;
         try (Cursor cursor = getReadableDatabase().rawQuery("SELECT COUNT(*) FROM " + TABLE_LOG + " WHERE task_id = ?", new String[]{taskId})) {
             if (cursor.moveToFirst()) return cursor.getInt(0);
@@ -172,6 +226,7 @@ public class LogStore extends SQLiteOpenHelper {
 
     public void clear(String taskId) {
         if (taskId == null) return;
+        synchronized (pendingLock) { pendingRows.clear(); }   // 清空时丢掉未落库的行
         try {
             getWritableDatabase().delete(TABLE_LOG, "task_id = ?", new String[]{taskId});
         } catch (Throwable e) {

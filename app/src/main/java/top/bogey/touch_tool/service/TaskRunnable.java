@@ -118,6 +118,7 @@ public class TaskRunnable implements Runnable {
             AppLog.e(e);
         } finally {
             interrupt = true;
+            LogSaver.getInstance().flushLog(logKey());   // 待写队列落库
             listeners.stream().filter(Objects::nonNull).forEach(listener -> listener.onFinish(this));
         }
     }

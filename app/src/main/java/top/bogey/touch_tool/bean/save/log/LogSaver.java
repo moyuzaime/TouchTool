@@ -73,6 +73,11 @@ public class LogSaver {
         logSave.clearLog();
     }
 
+    // 任务结束或界面退出前把待写队列落库
+    public void flushLog(String key) {
+        LogStore.getInstance().flushNow();
+    }
+
     public void addListener(LogSaveListener listener) {
         listeners.add(listener);
     }
