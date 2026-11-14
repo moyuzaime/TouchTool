@@ -75,10 +75,13 @@ public class LogFloatViewAdapter extends TreeAdapter {
         return 0;
     }
 
-    private LogSave debugLogSave;
-    // 渲染去重：同一动作同一毫秒只显示一条
-    private final java.util.Set<String> renderSigs = new java.util.HashSet<>();
-    // 展开状态按 uid 记住：整表重建后恢复，否则边跑边看子日志时每次重建都会被打回折叠
+    // 分页窗口：一次只加载最后 N 条根日志，更早的走 loadMore()
+    private final static int PAGE_SIZE = 200;
+
+    private String storeTaskId;
+    private LogStoreNodeLoader storeLoader;
+    private int pageCount = 1;
+    // 展开状态按 uid 记住：分页/重建后恢复
     private final java.util.Set<String> expandedUids = new java.util.HashSet<>();
 
     @Override
@@ -92,8 +95,26 @@ public class LogFloatViewAdapter extends TreeAdapter {
     }
 
     public void setLogSave(LogSave logSave) {
-        debugLogSave = logSave;
-        task = TaskSaver.getInstance().getTask(logSave.getKey());
+        if (logSave == null) return;
+        setTask(logSave.getKey());
+    }
+
+    public void setTask(String taskId) {
+        pageCount = 1;
+        reload(taskId);
+    }
+
+    // 加载更多：窗口扩大一倍后重载（日志按时间递增，历史项在列表头部）
+    public synchronized void loadMore() {
+        if (storeTaskId == null) return;
+        pageCount++;
+        reload(storeTaskId);
+    }
+
+    private void reload(String taskId) {
+        storeTaskId = taskId;
+        storeLoader = new LogStoreNodeLoader(taskId);
+        task = TaskSaver.getInstance().getTask(taskId);
         // 记住当前展开的节点，重建后恢复
         for (TreeNode node : new ArrayList<>(treeNodes)) {
             if (node instanceof LazyTreeNode lazy && node.isExpanded()) {
@@ -101,35 +122,19 @@ public class LogFloatViewAdapter extends TreeAdapter {
             }
         }
         nodeMap.clear();
-        renderSigs.clear();
-
-        // 按 order 遍历，按 children（日志 uid）还原层级；顺序表只取一次，避免逐条重复解析
-        java.util.List<String> order = logSave.getOrder();
-        java.util.Map<String, LogInfo> byUid = new java.util.LinkedHashMap<>();
-        for (String uid : order) {
-            if (uid == null) continue;
-            LogInfo info = logSave.getLog(uid);
-            if (info == null) continue;
-            byUid.put(uid, info);
-        }
-        java.util.Set<String> childUids = new java.util.HashSet<>();
-        for (LogInfo info : byUid.values()) {
-            for (Object flag : info.getChildrenFlags()) childUids.add(String.valueOf(flag));
-        }
         List<TreeNode> nodeList = new ArrayList<>();
-        for (String uid : byUid.keySet()) {
-            if (childUids.contains(uid)) continue;
-            LogInfo rootInfo = byUid.get(uid);
-            if (rootInfo != null) {
-                // 根节点也按「时间+actionId」去重，避免已在父节点下渲染的条目又以根行出现
-                String sig = rootInfo.getTime() + "|" + (rootInfo.getLogObject()
-                        instanceof top.bogey.touch_tool.bean.other.log.ActionLog a ? a.getActionId() : uid);
-                if (!renderSigs.add(sig)) continue;
-            }
-            nodeList.add(buildNode(logSave, uid, byUid, 0));
+        for (String uid : topbogeyLogStore().rootUids(taskId, PAGE_SIZE * pageCount)) {
+            LazyTreeNode node = new LazyTreeNode(storeLoader, uid);
+            node.setDepth(0);
+            nodeMap.put(uid, node);
+            nodeList.add(node);
         }
         applyTreeNodes(nodeList);
         restoreExpanded();
+    }
+
+    private top.bogey.touch_tool.bean.save.log.LogStore topbogeyLogStore() {
+        return top.bogey.touch_tool.bean.save.log.LogStore.getInstance();
     }
 
     // 整表替换用一次刷新：TreeAdapter.setTreeNodes 是「先删空再插入」，
@@ -154,47 +159,36 @@ public class LogFloatViewAdapter extends TreeAdapter {
         }
     }
 
-    private LazyTreeNode buildNode(LogSave logSave, String uid, java.util.Map<String, LogInfo> byUid, int depth) {
-        LazyTreeNode node = new LazyTreeNode(logSave, uid);
-        node.setDepth(depth);
-        nodeMap.put(uid, node);
-        // 子节点交给 LazyTreeNode.getData() 按 children 自动加载，
-        // 这里再手工 addChild 会让同一个 uid 被注册两次、展开时出现重复行
-        return node;
-    }
-
     // ===== 增量追加：新日志不再整表重建，只在末尾插入一行，滚动位置由 RecyclerView 自行保持 =====
 
     // 新根日志：直接追加到列表末尾
-    public synchronized void appendRoot(LogSave logSave, LogInfo info) {
-        if (info == null || info.getUid() == null) return;
+    public synchronized void appendRoot(LogSave ignored, LogInfo info) {
+        if (info == null || info.getUid() == null || storeLoader == null) return;
         String uid = info.getUid();
         LazyTreeNode exist = nodeMap.get(uid);
         if (exist != null) {
-            // 已在屏上：只同步它的子节点（例如容器节点后来才有 children）
-            syncChildren(logSave, exist, info);
+            expandIfNeeded(exist);
             return;
         }
-        LazyTreeNode root = new LazyTreeNode(logSave, uid);
+        LazyTreeNode root = new LazyTreeNode(storeLoader, uid);
         root.setDepth(0);
         nodeMap.put(uid, root);
         int index = treeNodes.size();
         treeNodes.add(index, root);
         notifyItemInserted(index);
-        // 该节点可能已带 children（如并行执行容器），把它名下已在根层显示的行收进来
-        syncChildren(logSave, root, info);
+        expandIfNeeded(root);
     }
 
     // 父节点下新增子日志：父已展开则插到子树末尾，父折叠时只刷新父行
-    public synchronized void appendChild(LogSave logSave, String parentUid, LogInfo info) {
-        if (info == null || info.getUid() == null) return;
+    public synchronized void appendChild(LogSave ignored, String parentUid, LogInfo info) {
+        if (info == null || info.getUid() == null || storeLoader == null) return;
         String uid = info.getUid();
         if (nodeMap.containsKey(uid)) return;
 
         LazyTreeNode parent = parentUid == null ? null : nodeMap.get(parentUid);
         if (parent == null || treeNodes.indexOf(parent) < 0) {
-            // 父节点还没上屏（容器日志后落盘）：先当根显示，父节点上来后 syncChildren 会把它移进去
-            appendRoot(logSave, info);
+            // 父节点还没上屏（容器日志后落盘）：先当根显示
+            appendRoot(ignored, info);
             return;
         }
 
@@ -214,7 +208,7 @@ public class LogFloatViewAdapter extends TreeAdapter {
             }
         }
         if (child == null) {
-            child = new LazyTreeNode(logSave, uid);
+            child = new LazyTreeNode(storeLoader, uid);
             child.setDepth(parent.getDepth() + 1);
             parent.addChild(child);
         }
@@ -225,14 +219,20 @@ public class LogFloatViewAdapter extends TreeAdapter {
         notifyItemInserted(insertAt);
     }
 
-    // 轮询兜底：把 order 里还没上屏的日志补上（漏通知时用，不做整表重建）
-    public synchronized void appendMissing(LogSave logSave) {
-        java.util.List<String> order = logSave.getOrder();
-        for (String uid : order) {
+    // 轮询兜底：把库里还没上屏的根日志补上（漏通知时用，不做整表重建）
+    public synchronized void appendMissing(LogSave ignored) {
+        if (storeLoader == null) return;
+        for (String uid : topbogeyLogStore().rootUids(storeLoader.getTaskId(), PAGE_SIZE * pageCount)) {
             if (uid == null || nodeMap.containsKey(uid)) continue;
-            LogInfo info = logSave.getLog(uid);
-            if (info != null) appendRoot(logSave, info);
+            LogInfo info = topbogeyLogStore().load(storeLoader.getTaskId(), uid);
+            if (info != null) appendRoot(ignored, info);
         }
+    }
+
+    private void expandIfNeeded(LazyTreeNode node) {
+        if (node.isExpanded()) return;
+        if (!expandedUids.contains(String.valueOf(node.getFlag()))) return;
+        expandNode(node);
     }
 
     // 增量同步：只补新出现的节点，不重建整棵树，已展开的节点不会被打回原状
@@ -622,12 +622,6 @@ public class LogFloatViewAdapter extends TreeAdapter {
 
             LogInfo logInfo = (LogInfo) node.getData();
             if (logInfo == null) {
-                // 排查：为什么这条日志加载失败（key / 原始长度 / 头部内容）
-                try {
-                    String dbgUid = node instanceof LazyTreeNode lazyNode ? String.valueOf(lazyNode.getFlag()) : "?";
-                    String raw = debugLogSave == null ? null : debugLogSave.debugRaw(dbgUid);
-                } catch (Throwable ignored) {
-                }
                 String error = context.getString(R.string.task_running_log_load_error);
 
                 if (normalBinding != null) {

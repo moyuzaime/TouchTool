@@ -72,6 +72,8 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
     private int lastRootCount = 0;
     // 是否跟随最新日志滚动；用户翻看或展开节点后暂停
     private boolean autoFollow = true;
+    // 防止滚到顶部时连续触发"加载更多"
+    private boolean loadingMore = false;
 
     private final int minWidth, minHeight;
     private final int maxWidth, maxHeight;
@@ -112,6 +114,21 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
                 if (newState == RecyclerView.SCROLL_STATE_DRAGGING) autoFollow = false;
                 // 手动拖回底部后恢复跟随
                 if (newState == RecyclerView.SCROLL_STATE_IDLE && isNearBottom()) autoFollow = true;
+            }
+
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                // 滚到顶部时自动加载更早的日志（分页窗口）
+                if (dy < 0 && !loadingMore && recyclerView.getScrollState() == RecyclerView.SCROLL_STATE_DRAGGING) {
+                    RecyclerView.LayoutManager manager = recyclerView.getLayoutManager();
+                    if (manager instanceof LinearLayoutManager linear && linear.findFirstVisibleItemPosition() == 0) {
+                        loadingMore = true;
+                        postDelayed(() -> {
+                            loadingMore = false;
+                            adapter.loadMore();
+                        }, 200);
+                    }
+                }
             }
         });
         initResizeHandle();
@@ -392,10 +409,10 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
 
     private void pollLogs() {
         if (task == null) return;
-        LogSave logSave = LogSaver.getInstance().getLogSave(task.getId());
-        if (logSave.getLogCount() != lastRootCount) {
-            lastRootCount = logSave.getLogCount();
-            adapter.appendMissing(logSave);
+        int count = top.bogey.touch_tool.bean.save.log.LogStore.getInstance().count(task.getId());
+        if (count != lastRootCount) {
+            lastRootCount = count;
+            adapter.appendMissing(null);
             updateEmptyTips();
         }
         postDelayed(pollRunnable, 500);
