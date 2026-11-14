@@ -609,6 +609,8 @@ public class LogFloatViewAdapter extends TreeAdapter {
                         itemBinding.title.setText(pinById.getTitle());
                         if (value instanceof PinImage pinImage) {
                             itemBinding.image.setImageBitmap(pinImage.getImage());
+                            // 点开图片放大查看
+                            itemBinding.image.setOnClickListener(v -> LogImageZoom.show(pinImage.getImage()));
                         } else {
                             itemBinding.content.setText(value.toString());
                         }
