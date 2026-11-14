@@ -75,10 +75,16 @@ public class ActionLog extends Log {
         values.putAll(GsonUtil.getAsObject(jsonObject, "values", TypeToken.getParameterized(LinkedHashMap.class, String.class, PinBase.class).getType(), new HashMap<>()));
     }
 
+    // values 会被任务线程改写（syncLog），同时 UI 线程在刷新日志行时遍历，
+    // 直接返回原表会抛 ConcurrentModificationException，所以读写都加锁、读方拿快照
+    private final transient Object valuesLock = new Object();
+
     public void syncLog(ActionLog log) {
         if (taskId.equals(log.taskId) && actionId.equals(log.actionId)) {
-            this.values.clear();
-            this.values.putAll(log.values);
+            synchronized (valuesLock) {
+                this.values.clear();
+                this.values.putAll(log.values);
+            }
         }
     }
 
@@ -103,6 +109,8 @@ public class ActionLog extends Log {
     }
 
     public Map<String, PinObject> getValues() {
-        return values;
+        synchronized (valuesLock) {
+            return new LinkedHashMap<>(values);
+        }
     }
 }
