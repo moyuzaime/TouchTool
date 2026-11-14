@@ -27,7 +27,6 @@ import top.bogey.touch_tool.bean.other.log.LogInfo;
 import top.bogey.touch_tool.bean.other.log.NormalLog;
 import top.bogey.touch_tool.bean.pin.Pin;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_scale_able.PinImage;
-import top.bogey.touch_tool.bean.save.log.LogSave;
 import top.bogey.touch_tool.bean.save.setting.SettingSaver;
 import top.bogey.touch_tool.bean.save.task.TaskSaver;
 import top.bogey.touch_tool.bean.task.Task;
@@ -94,11 +93,6 @@ public class LogFloatViewAdapter extends TreeAdapter {
         }
     }
 
-    public void setLogSave(LogSave logSave) {
-        if (logSave == null) return;
-        setTask(logSave.getKey());
-    }
-
     public void setTask(String taskId) {
         pageCount = 1;
         reload(taskId);
@@ -162,7 +156,7 @@ public class LogFloatViewAdapter extends TreeAdapter {
     // ===== 澧為噺杩藉姞锛氭柊鏃ュ織涓嶅啀鏁磋〃閲嶅缓锛屽彧鍦ㄦ湯灏炬彃鍏ヤ竴琛岋紝婊氬姩浣嶇疆鐢?RecyclerView 鑷淇濇寔 =====
 
     // 鏂版牴鏃ュ織锛氱洿鎺ヨ拷鍔犲埌鍒楄〃鏈熬
-    public synchronized void appendRoot(LogSave ignored, LogInfo info) {
+    public synchronized void appendRoot(String taskId, LogInfo info) {
         if (info == null || info.getUid() == null || storeLoader == null) return;
         String uid = info.getUid();
         LazyTreeNode exist = nodeMap.get(uid);
@@ -180,7 +174,7 @@ public class LogFloatViewAdapter extends TreeAdapter {
     }
 
     // 鐖惰妭鐐逛笅鏂板瀛愭棩蹇楋細鐖跺凡灞曞紑鍒欐彃鍒板瓙鏍戞湯灏撅紝鐖舵姌鍙犳椂鍙埛鏂扮埗琛?
-    public synchronized void appendChild(LogSave ignored, String parentUid, LogInfo info) {
+    public synchronized void appendChild(String taskId, String parentUid, LogInfo info) {
         if (info == null || info.getUid() == null || storeLoader == null) return;
         String uid = info.getUid();
         if (nodeMap.containsKey(uid)) return;
@@ -188,7 +182,7 @@ public class LogFloatViewAdapter extends TreeAdapter {
         LazyTreeNode parent = parentUid == null ? null : nodeMap.get(parentUid);
         if (parent == null || treeNodes.indexOf(parent) < 0) {
             // 鐖惰妭鐐硅繕娌′笂灞忥紙瀹瑰櫒鏃ュ織鍚庤惤鐩橈級锛氬厛褰撴牴鏄剧ず
-            appendRoot(ignored, info);
+            appendRoot(taskId, info);
             return;
         }
 
@@ -220,12 +214,12 @@ public class LogFloatViewAdapter extends TreeAdapter {
     }
 
     // 杞鍏滃簳锛氭妸搴撻噷杩樻病涓婂睆鐨勬牴鏃ュ織琛ヤ笂锛堟紡閫氱煡鏃剁敤锛屼笉鍋氭暣琛ㄩ噸寤猴級
-    public synchronized void appendMissing(LogSave ignored) {
+    public synchronized void appendMissing(String taskId) {
         if (storeLoader == null) return;
-        for (String uid : topbogeyLogStore().rootUids(storeLoader.getTaskId(), PAGE_SIZE * pageCount)) {
+        for (String uid : topbogeyLogStore().rootUids(taskId, PAGE_SIZE * pageCount)) {
             if (uid == null || nodeMap.containsKey(uid)) continue;
-            LogInfo info = topbogeyLogStore().load(storeLoader.getTaskId(), uid);
-            if (info != null) appendRoot(ignored, info);
+            LogInfo info = topbogeyLogStore().load(taskId, uid);
+            if (info != null) appendRoot(taskId, info);
         }
     }
 
@@ -233,11 +227,6 @@ public class LogFloatViewAdapter extends TreeAdapter {
         if (node.isExpanded()) return;
         if (!expandedUids.contains(String.valueOf(node.getFlag()))) return;
         expandNode(node);
-    }
-
-    public void addLog(LogSave logSave, LogInfo log) {
-        TreeNode node = new LazyTreeNode(logSave, log.getUid());
-        addTreeNode(node);
     }
 
     public int searchLog(String text, Boolean isNext) {

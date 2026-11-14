@@ -26,7 +26,6 @@ import top.bogey.touch_tool.MainApplication;
 import top.bogey.touch_tool.R;
 import top.bogey.touch_tool.bean.other.log.ActionLog;
 import top.bogey.touch_tool.bean.other.log.LogInfo;
-import top.bogey.touch_tool.bean.save.log.LogSave;
 import top.bogey.touch_tool.bean.save.log.LogSaveListener;
 import top.bogey.touch_tool.bean.save.log.LogSaver;
 import top.bogey.touch_tool.bean.save.setting.SettingSaver;
@@ -149,7 +148,7 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
             popup.setOnItemClickListener((parent, view, position, id) -> {
                 this.task = validTasks.get(position);
                 binding.title.setText(this.task.getTitle());
-                adapter.setLogSave(LogSaver.getInstance().getLogSave(this.task.getId()));
+                adapter.setTask(this.task.getId());
                 popup.dismiss();
             });
             popup.setModal(true);
@@ -210,7 +209,7 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
 
         if (task != null) {
             binding.title.setText(task.getTitle());
-            adapter.setLogSave(LogSaver.getInstance().getLogSave(task.getId()));
+            adapter.setTask(task.getId());
             binding.recyclerView.scrollToPosition(adapter.getItemCount() - 1);
         }
 
@@ -421,9 +420,8 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
     // 首次加载/切换任务时重建列表
     private void refreshLogs() {
         if (task == null) return;
-        LogSave logSave = LogSaver.getInstance().getLogSave(task.getId());
-        lastRootCount = logSave.getLogCount();
-        adapter.setLogSave(logSave);
+        lastRootCount = top.bogey.touch_tool.bean.save.log.LogStore.getInstance().count(task.getId());
+        adapter.setTask(task.getId());
         // 首次打开/切换任务时回到最新一条，并恢复跟随
         autoFollow = true;
         scrollToBottom();
@@ -465,22 +463,22 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
     }
 
     @Override
-    public void onNewLog(LogSave logSave, LogInfo log, String parentUid) {
+    public void onNewLog(String taskId, LogInfo log, String parentUid) {
         if (task == null) return;
-        if (!logSave.getKey().equals(task.getId())) return;
+        if (!taskId.equals(task.getId())) return;
         // 增量追加：不整表重建；只有本来就在底部时才跟随滚动，否则保持当前阅读位置
         post(() -> {
-            if (parentUid == null) adapter.appendRoot(logSave, log);
-            else adapter.appendChild(logSave, parentUid, log);
-            lastRootCount = logSave.getLogCount();
+            if (parentUid == null) adapter.appendRoot(taskId, log);
+            else adapter.appendChild(taskId, parentUid, log);
+            lastRootCount = top.bogey.touch_tool.bean.save.log.LogStore.getInstance().count(taskId);
             if (autoFollow && isNearBottom()) scrollToBottom();
             updateEmptyTips();
         });
     }
 
     @Override
-    public void onNewLog(LogSave logSave, LogInfo log) {
-        onNewLog(logSave, log, null);
+    public void onNewLog(String taskId, LogInfo log) {
+        onNewLog(taskId, log, null);
     }
 
     // 日志可能成批到来：合并成最多每 150ms 重建一次，避免每条日志都整表重建把 UI 线程压死
@@ -492,10 +490,9 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
         postDelayed(() -> {
             rebuildPosted = false;
             if (task == null) return;
-            LogSave logSave = LogSaver.getInstance().getLogSave(task.getId());
             boolean follow = autoFollow && isNearBottom();
-            adapter.setLogSave(logSave);
-            lastRootCount = logSave.getLogCount();
+            adapter.setTask(task.getId());
+            lastRootCount = top.bogey.touch_tool.bean.save.log.LogStore.getInstance().count(task.getId());
             if (follow) scrollToBottom();
             updateEmptyTips();
         }, 150);

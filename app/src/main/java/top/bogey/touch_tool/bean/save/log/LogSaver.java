@@ -1,16 +1,13 @@
 package top.bogey.touch_tool.bean.save.log;
 
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
-import top.bogey.touch_tool.MainApplication;
 import top.bogey.touch_tool.bean.other.log.LogInfo;
 import top.bogey.touch_tool.utils.AppLog;
-import top.bogey.touch_tool.utils.AppUtil;
 
+// 日志门面：只负责「写 SQLite + 通知界面」，旧 MMKV 存档由 LegacyLogMigration 一次性迁移后删除
 public class LogSaver {
     private static LogSaver instance;
 
@@ -23,20 +20,16 @@ public class LogSaver {
         return instance;
     }
 
-    private final static String LOG_DIR = MainApplication.getInstance().getCacheDir().getAbsolutePath() + "/" + AppUtil.LOG_DIR_NAME;
-    private final Map<String, LogSave> saves = new ConcurrentHashMap<>();
     // 监听者会被任务线程遍历、UI 线程增删，用写时复制集合避免并发修改异常打断任务
-    private final Set<LogSaveListener> listeners = new java.util.concurrent.CopyOnWriteArraySet<>();
+    private final Set<LogSaveListener> listeners = new CopyOnWriteArraySet<>();
 
-    public LogSave getLogSave(String key) {
-        LogSave logSave = saves.computeIfAbsent(key, k -> new LogSave(key, LOG_DIR));
-        // 旧 MMKV 存档迁移到 SQLite：每个任务只做一次，内部有幂等标记
+    private LogSaver() {
+        // 首次使用前把旧 MMKV 存档迁进 SQLite（幂等，失败会保留旧文件）
         try {
-            LogStore.getInstance().migrateIfNeeded(key, logSave);
+            LegacyLogMigration.runOnce();
         } catch (Throwable e) {
-            AppLog.e("日志库", "迁移检查失败", e);
+            AppLog.e("日志库", "旧日志迁移失败", e);
         }
-        return logSave;
     }
 
     public void addLog(String key, LogInfo log, boolean autoUid) {
@@ -45,37 +38,27 @@ public class LogSaver {
 
     // parentUid 只用于界面增量追加：空=根日志，非空=该父节点下新增的子日志
     public void addLog(String key, LogInfo log, boolean autoUid, String parentUid) {
-        LogSave logSave = getLogSave(key);   // 仍要取一次：顺带完成旧存档的一次性迁移
-        // 到这里写入只落 SQLite；旧 MMKV 存档仅用于迁移读取，不再写入
         LogStore.getInstance().append(key, log, parentUid);
-        notifyNewLog(logSave, log, parentUid);
+        notifyNewLog(key, log, parentUid);
     }
 
-    // 动作节点结束时值补齐：只更新库里这一行的 payload，不再整条重写到 MMKV
+    // 动作节点结束时值补齐：只更新库里这一行
     public void updateLog(String key, LogInfo log) {
-        LogSave logSave = getLogSave(key);
         LogStore.getInstance().updatePayload(key, log);
-        notifyNewLog(logSave, log);
-    }
-
-    private void notifyNewLog(LogSave logSave, LogInfo log) {
-        notifyNewLog(logSave, log, null);
-    }
-
-    private void notifyNewLog(LogSave logSave, LogInfo log, String parentUid) {
-        listeners.stream().filter(Objects::nonNull).forEach(v -> v.onNewLog(logSave, log, parentUid));
+        notifyNewLog(key, log, null);
     }
 
     public void clearLog(String key) {
         LogStore.getInstance().clear(key);
-        LogSave logSave = saves.get(key);
-        if (logSave == null) return;
-        logSave.clearLog();
     }
 
-    // 任务结束或界面退出前把待写队列落库
+    // 待写队列落库
     public void flushLog(String key) {
         LogStore.getInstance().flushNow();
+    }
+
+    private void notifyNewLog(String taskId, LogInfo log, String parentUid) {
+        listeners.stream().filter(Objects::nonNull).forEach(v -> v.onNewLog(taskId, log, parentUid));
     }
 
     public void addListener(LogSaveListener listener) {

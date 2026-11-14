@@ -274,41 +274,23 @@ public class LogStore extends SQLiteOpenHelper {
 
     // ===== 旧 MMKV 存档迁移（每个任务只做一次）=====
 
-    public void migrateIfNeeded(String taskId, LogSave legacy) {
-        if (taskId == null || legacy == null) return;
+    // 迁移完成：外部（LegacyLogMigration）负责读旧存档，这里只负责落库
+    public void migrateRows(String taskId, List<Object[]> rows) {
+        if (taskId == null) return;
         if (isMigrated(taskId)) return;
         try {
-            List<String> order = legacy.getOrder();
-            if (order.isEmpty()) {
-                markMigrated(taskId);
-                return;
-            }
-            // 先建 uid → parent 映射，再逐条插入（旧数据只有 children 数组，没有 parent 字段）
-            java.util.Map<String, String> parentOf = new java.util.HashMap<>();
-            java.util.Map<String, LogInfo> infos = new java.util.LinkedHashMap<>();
-            for (String uid : order) {
-                LogInfo info = legacy.getLog(uid);
-                if (info == null) continue;
-                infos.put(uid, info);
-                for (Object flag : info.getChildrenFlags()) {
-                    parentOf.put(String.valueOf(flag), uid);
-                }
-            }
             SQLiteDatabase db = getWritableDatabase();
             db.beginTransaction();
             try {
-                java.util.List<String> ordered = new java.util.ArrayList<>(infos.keySet());
-                ordered.sort((a, b) -> Long.compare(infos.get(a).getTime(), infos.get(b).getTime()));
-                for (String uid : ordered) {
-                    LogInfo info = infos.get(uid);
+                for (Object[] row : rows) {
                     ContentValues values = new ContentValues();
                     values.put("task_id", taskId);
-                    values.put("uid", uid);
-                    values.put("parent_uid", parentOf.get(uid));
-                    values.put("ts", info.getTime());
-                    values.put("kind", info.getLogObject() == null ? "NORMAL" : info.getLogObject().getType().name());
-                    values.put("action_id", actionIdOf(info));
-                    values.put("payload", toPayload(info));
+                    values.put("uid", (String) row[0]);
+                    values.put("parent_uid", (String) row[1]);
+                    values.put("ts", (Long) row[2]);
+                    values.put("kind", (String) row[3]);
+                    values.put("action_id", (String) row[4]);
+                    values.put("payload", (String) row[5]);
                     db.insertWithOnConflict(TABLE_LOG, null, values, SQLiteDatabase.CONFLICT_IGNORE);
                 }
                 db.setTransactionSuccessful();
@@ -321,7 +303,7 @@ public class LogStore extends SQLiteOpenHelper {
         }
     }
 
-    private boolean isMigrated(String taskId) {
+    public boolean isMigrated(String taskId) {
         try (Cursor cursor = getReadableDatabase().query(TABLE_META, new String[]{"migrated"},
                 "task_id = ?", new String[]{taskId}, null, null, null)) {
             return cursor.moveToFirst() && cursor.getInt(0) == 1;
@@ -330,7 +312,7 @@ public class LogStore extends SQLiteOpenHelper {
         }
     }
 
-    private void markMigrated(String taskId) {
+    public void markMigrated(String taskId) {
         ContentValues values = new ContentValues();
         values.put("task_id", taskId);
         values.put("migrated", 1);

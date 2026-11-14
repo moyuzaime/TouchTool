@@ -22,7 +22,6 @@ import top.bogey.touch_tool.R;
 import top.bogey.touch_tool.bean.action.Action;
 import top.bogey.touch_tool.bean.other.Usage;
 import top.bogey.touch_tool.bean.save.TagSaver;
-import top.bogey.touch_tool.bean.save.log.LogSave;
 import top.bogey.touch_tool.bean.save.log.LogSaver;
 import top.bogey.touch_tool.bean.task.Task;
 import top.bogey.touch_tool.service.MainAccessibilityService;
@@ -292,9 +291,7 @@ public class TaskSaver {
             service.replaceBroadcast(task);
         }
 
-        LogSave logSave = LogSaver.getInstance().getLogSave(id);
-        if (logSave == null) return;
-        logSave.destroy();
+        LogSaver.getInstance().clearLog(id);
     }
 
     public List<Usage> getTaskUses(String id) {
