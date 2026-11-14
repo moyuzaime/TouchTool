@@ -156,11 +156,15 @@ public class LogFloatViewAdapter extends TreeAdapter {
     // ===== 澧為噺杩藉姞锛氭柊鏃ュ織涓嶅啀鏁磋〃閲嶅缓锛屽彧鍦ㄦ湯灏炬彃鍏ヤ竴琛岋紝婊氬姩浣嶇疆鐢?RecyclerView 鑷淇濇寔 =====
 
     // 鏂版牴鏃ュ織锛氱洿鎺ヨ拷鍔犲埌鍒楄〃鏈熬
+    // 父节点还没上屏时先挂起，等父落库后再挂进去（以前是降级成根行，导致跑任务时层级错乱）
+    private final java.util.Set<String> pendingChildUids = new java.util.HashSet<>();
+
     public synchronized void appendRoot(String taskId, LogInfo info) {
         if (info == null || info.getUid() == null || storeLoader == null) return;
         String uid = info.getUid();
         LazyTreeNode exist = nodeMap.get(uid);
         if (exist != null) {
+            attachChildrenFromStore(exist, taskId);
             expandIfNeeded(exist);
             return;
         }
@@ -170,7 +174,57 @@ public class LogFloatViewAdapter extends TreeAdapter {
         int index = treeNodes.size();
         treeNodes.add(index, root);
         notifyItemInserted(index);
+        // 之前被挂起的子日志（父还没上屏那些）在这里一并挂进来
+        attachChildrenFromStore(root, taskId);
         expandIfNeeded(root);
+    }
+
+    // 把库里属于该节点的子项按 id 顺序挂上去；已经在根层显示的错误位置会被摘下来
+    private void attachChildrenFromStore(LazyTreeNode parent, String taskId) {
+        if (parent == null || storeLoader == null) return;
+        String parentUid = String.valueOf(parent.getFlag());
+        java.util.List<String> childUids = topbogeyLogStore().childUids(taskId, parentUid);
+        if (childUids.isEmpty()) return;
+        java.util.List<LazyTreeNode> ordered = new java.util.ArrayList<>();
+        for (String childUid : childUids) {
+            if (childUid == null || parentUid.equals(childUid)) continue;
+            LazyTreeNode child = findChild(parent, childUid);
+            if (child == null) {
+                child = new LazyTreeNode(storeLoader, childUid);
+                child.setDepth(parent.getDepth() + 1);
+                parent.addChild(child);
+            }
+            nodeMap.put(childUid, child);
+            pendingChildUids.remove(childUid);
+            ordered.add(child);
+        }
+        if (ordered.isEmpty()) return;
+        // 先从列表摘掉（可能之前没父时被错插到根层，或已在父下但顺序不对）
+        for (LazyTreeNode child : ordered) {
+            int idx = treeNodes.indexOf(child);
+            if (idx >= 0) {
+                treeNodes.remove(idx);
+                notifyItemRemoved(idx);
+            }
+        }
+        int parentIndex = treeNodes.indexOf(parent);
+        if (parentIndex < 0) return;
+        if (!parent.isExpanded()) {
+            notifyItemChanged(parentIndex);
+            return;
+        }
+        int insertAt = parentIndex + 1;
+        treeNodes.addAll(insertAt, ordered);
+        notifyItemRangeInserted(insertAt, ordered.size());
+    }
+
+    private LazyTreeNode findChild(LazyTreeNode parent, String uid) {
+        for (TreeNode treeNode : parent.getChildren()) {
+            if (treeNode instanceof LazyTreeNode lazy && uid.equals(String.valueOf(lazy.getFlag()))) {
+                return lazy;
+            }
+        }
+        return null;
     }
 
     // 鐖惰妭鐐逛笅鏂板瀛愭棩蹇楋細鐖跺凡灞曞紑鍒欐彃鍒板瓙鏍戞湯灏撅紝鐖舵姌鍙犳椂鍙埛鏂扮埗琛?
@@ -216,6 +270,11 @@ public class LogFloatViewAdapter extends TreeAdapter {
     // 杞鍏滃簳锛氭妸搴撻噷杩樻病涓婂睆鐨勬牴鏃ュ織琛ヤ笂锛堟紡閫氱煡鏃剁敤锛屼笉鍋氭暣琛ㄩ噸寤猴級
     public synchronized void appendMissing(String taskId) {
         if (storeLoader == null) return;
+        if (!pendingChildUids.isEmpty()) {
+            // 仍有父节点未上屏的子日志：整页重载兜底，保证不漏行（重开窗口走的是同一条还原逻辑）
+            reload(taskId);
+            return;
+        }
         for (String uid : topbogeyLogStore().rootUids(taskId, PAGE_SIZE * pageCount)) {
             if (uid == null || nodeMap.containsKey(uid)) continue;
             LogInfo info = topbogeyLogStore().load(taskId, uid);
