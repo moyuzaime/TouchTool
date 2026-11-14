@@ -213,7 +213,6 @@ public class ActionMap {
 
             case LIST -> list.addAll(Arrays.asList(
                     ActionType.LIST_MAKE,
-                    ActionType.MIX_LIST_MAKE,
                     ActionType.LIST_FOREACH,
                     ActionType.LIST_ADD,
                     ActionType.LIST_GET,
@@ -234,7 +233,6 @@ public class ActionMap {
 
             case MAP -> list.addAll(Arrays.asList(
                     ActionType.MAP_MAKE,
-                    ActionType.MIX_MAP_MAKE,
                     ActionType.MAP_FOREACH,
                     ActionType.MAP_GET,
                     ActionType.MAP_SIZE,

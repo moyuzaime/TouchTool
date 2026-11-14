@@ -722,8 +722,6 @@
 
     <string name="list_make_action">新建列表</string>
     <string name="list_make_action_desc">新建一个列表</string>
-    <string name="mix_list_make_action">混合新建列表</string>
-    <string name="mix_list_make_action_desc">把多种类型的值拼成一个列表</string>
 
     <string name="list_size_action">列表长度</string>
     <string name="list_size_action_desc">获取列表长度</string>
@@ -789,8 +787,6 @@
 
     <string name="map_make_action">新建字典</string>
     <string name="map_make_action_desc">新建一个字典</string>
-    <string name="mix_map_make_action">混合新建字典</string>
-    <string name="mix_map_make_action_desc">把多种类型的键值对拼成一个字典</string>
 
     <string name="map_size_action">字典长度</string>
     <string name="map_size_action_desc">获取字典长度</string>

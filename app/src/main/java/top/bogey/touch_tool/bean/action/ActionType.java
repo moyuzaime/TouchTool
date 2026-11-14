@@ -199,7 +199,6 @@ public enum ActionType {
 
     // 数组
     LIST_MAKE,
-    MIX_LIST_MAKE,
     LIST_SIZE,
     LIST_IS_EMPTY,
     LIST_CONTAIN,
@@ -219,7 +218,6 @@ public enum ActionType {
 
     // 字典
     MAP_MAKE,
-    MIX_MAP_MAKE,
     MAP_SIZE,
     MAP_IS_EMPTY,
     MAP_CONTAIN_KEY,
