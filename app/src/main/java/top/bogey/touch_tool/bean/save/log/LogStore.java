@@ -67,6 +67,14 @@ public class LogStore extends SQLiteOpenHelper {
     private final static int BATCH_SIZE = 32;
     private final static long FLUSH_INTERVAL_MS = 100;
 
+    // 上限与清理：单任务最多保留 5 万条，超过从最旧删；只保留最近 7 天；单条 payload 上限 32K 字符
+    private final static int MAX_ROWS_PER_TASK = 50000;
+    private final static int MAX_PAYLOAD_CHARS = 32000;
+    private final static long RETENTION_MS = 7L * 24 * 60 * 60 * 1000;
+    // 每写入这么多条做一次清理检查，避免每次提交都跑统计查询
+    private final static int PRUNE_EVERY = 512;
+    private int insertedSincePrune = 0;
+
     private final java.util.ArrayDeque<Object[]> pendingRows = new java.util.ArrayDeque<>();
     private final Object pendingLock = new Object();
     private long lastFlushTime = 0;
@@ -128,8 +136,38 @@ public class LogStore extends SQLiteOpenHelper {
             } finally {
                 db.endTransaction();
             }
+            insertedSincePrune += rows.size();
+            if (insertedSincePrune >= PRUNE_EVERY) {
+                insertedSincePrune = 0;
+                java.util.Set<String> taskIds = new java.util.LinkedHashSet<>();
+                for (Object[] row : rows) taskIds.add((String) row[0]);
+                for (String taskId : taskIds) pruneTask(taskId);
+                pruneOldRows();
+            }
         } catch (Throwable e) {
             AppLog.e("日志库", "批量写入失败", e);
+        }
+    }
+
+    // 单任务超上限：删掉最旧的，只留最近 MAX_ROWS_PER_TASK 条
+    public void pruneTask(String taskId) {
+        if (taskId == null) return;
+        try {
+            String sql = "DELETE FROM " + TABLE_LOG + " WHERE task_id = ? AND id <= (" +
+                    "SELECT id FROM " + TABLE_LOG + " WHERE task_id = ? ORDER BY id DESC LIMIT 1 OFFSET ?)";
+            getWritableDatabase().execSQL(sql, new Object[]{taskId, taskId, MAX_ROWS_PER_TASK - 1});
+        } catch (Throwable e) {
+            AppLog.e("日志库", "裁剪超限日志失败", e);
+        }
+    }
+
+    // 按天清理：删掉超过保留期的日志（跨全部任务）
+    public void pruneOldRows() {
+        try {
+            long deadline = System.currentTimeMillis() - RETENTION_MS;
+            getWritableDatabase().delete(TABLE_LOG, "ts < ?", new String[]{String.valueOf(deadline)});
+        } catch (Throwable e) {
+            AppLog.e("日志库", "清理过期日志失败", e);
         }
     }
 
@@ -312,7 +350,15 @@ public class LogStore extends SQLiteOpenHelper {
             LogInfo copy = GsonUtil.copy(info, LogInfo.class);
             if (copy == null) return null;
             copy.setChildren(new ArrayList<>());
-            return GsonUtil.toJson(copy);
+            String json = GsonUtil.toJson(copy);
+            if (json != null && json.length() > MAX_PAYLOAD_CHARS) {
+                // 单条过大（通常是动作值里带了图片）：丢值重存，保证日志条目本身不丢
+                if (copy.getLogObject() instanceof top.bogey.touch_tool.bean.other.log.ActionLog actionLog) {
+                    actionLog.clearValues();
+                }
+                json = GsonUtil.toJson(copy);
+            }
+            return json;
         } catch (Throwable e) {
             AppLog.e("日志库", "序列化日志失败", e);
             return null;

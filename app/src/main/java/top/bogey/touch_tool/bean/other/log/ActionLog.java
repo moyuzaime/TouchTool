@@ -113,4 +113,11 @@ public class ActionLog extends Log {
             return new LinkedHashMap<>(values);
         }
     }
+
+    // payload 过大时（动作值里带图片）落库前清掉值，避免单条日志把库撑爆
+    public void clearValues() {
+        synchronized (valuesLock) {
+            values.clear();
+        }
+    }
 }
