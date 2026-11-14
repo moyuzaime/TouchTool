@@ -291,6 +291,7 @@
     <string name="app_setting_enable_desc">在设置中启用功能后才能使用软件提供的各种能力</string>
     <string name="app_setting_enable_tips">需要开启无障碍服务才能启用功能。请依次点击“已下载的应用”->“%s”，然后开启服务。</string>
     <string name="app_setting_enable_error">无障碍服务未启用</string>
+    <string name="float_window_reconnect_tip">悬浮窗状态已失效，已重建无障碍绑定，请再点一次</string>
     <string name="app_setting_enabled">功能已启用</string>
     <string name="app_setting_disable">功能已关闭</string>
     <string name="setting_hero_on">已启用</string>

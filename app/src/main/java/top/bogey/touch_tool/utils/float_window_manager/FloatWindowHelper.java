@@ -49,7 +49,7 @@ public class FloatWindowHelper {
         this.config = config;
     }
 
-    void createFloatWindow() {
+    boolean createFloatWindow() {
         manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         params = new WindowManager.LayoutParams();
 
@@ -80,15 +80,32 @@ public class FloatWindowHelper {
         }
         viewParent.addView(floatView);
 
+        // 加窗失败必须往上反馈：以前吞掉异常还把 helper 记进静态表，
+        // 结果窗口不存在但 tags 里留着记录，之后 show() 一律空转，表现为「点了没反应」。
+        // 无障碍 overlay 依赖服务令牌，服务重连期间令牌会失效，
+        // 这时退到 TYPE_APPLICATION_OVERLAY（已申请 SYSTEM_ALERT_WINDOW）保证窗口仍能出来。
+        if (addViewToWindow()) return true;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            params.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+            if (addViewToWindow()) {
+                top.bogey.touch_tool.utils.AppLog.e("悬浮窗", "无障碍 overlay 不可用，已退回应用悬浮窗");
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean addViewToWindow() {
         try {
             manager.addView(viewParent, params);
-        } catch (android.view.WindowManager.BadTokenException e) {
-            new android.os.Handler(Looper.getMainLooper()).postDelayed(() -> {
-                try {
-                    manager.addView(viewParent, params);
-                } catch (Exception ignored) {
-                }
-            }, 200);
+            return true;
+        } catch (Throwable e) {
+            top.bogey.touch_tool.utils.AppLog.e("悬浮窗", "加窗失败: type=" + params.type, e);
+            try {
+                manager.removeViewImmediate(viewParent);
+            } catch (Throwable ignored) {
+            }
+            return false;
         }
     }
 
@@ -204,6 +221,11 @@ public class FloatWindowHelper {
             viewParent.toDockSide();
             if (config.callback != null) config.callback.onShow(config.tag);
         }
+    }
+
+    // 窗口是否真的还挂在 WindowManager 上：服务重连或被系统移除后这里会是 false
+    boolean isAttached() {
+        return viewParent != null && viewParent.isAttachedToWindow();
     }
 
     void dismissFloatWindow() {

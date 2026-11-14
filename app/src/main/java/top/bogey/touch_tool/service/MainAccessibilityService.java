@@ -197,6 +197,8 @@ public class MainAccessibilityService extends AccessibilityService {
         try {
             connected.setValue(true);
             setEnabled(SettingSaver.APP_SERVICE.get());
+            // 服务实例换了：旧窗口的窗口令牌已经失效，先摘窗清表再复用界面
+            FloatWindow.resetAndRemove();
         } catch (Throwable e) {
             AppLog.e("无障碍服务", "onServiceConnected 异常", e);
         }
@@ -205,7 +207,33 @@ public class MainAccessibilityService extends AccessibilityService {
     @Override
     public boolean onUnbind(Intent intent) {
         connected.setValue(false);
+        // 解绑不一定走 onDestroy，这里必须自己清，否则静态表与系统窗口状态不一致
+        FloatWindow.resetAndRemove();
         return super.onUnbind(intent);
+    }
+
+    // 用 WRITE_SECURE_SETTINGS 触发系统重建无障碍绑定：把本服务从列表移除再写回。
+    // 用于「无障碍服务对象还在但窗口令牌已失效、点了没反应」的自愈。
+    public static boolean reconnectSelf(Context context) {
+        try {
+            String pkg = context.getPackageName();
+            String svc = pkg + "/com.google.android.accessibility.selecttospeak.SelectToSpeakService";
+            android.content.ContentResolver resolver = context.getContentResolver();
+            String cur = android.provider.Settings.Secure.getString(resolver, android.provider.Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+            if (cur == null || !cur.contains(svc)) return false;
+            StringBuilder sb = new StringBuilder();
+            for (String s : cur.split(":")) {
+                if (s.isEmpty() || s.equals(svc)) continue;
+                if (sb.length() > 0) sb.append(':');
+                sb.append(s);
+            }
+            android.provider.Settings.Secure.putString(resolver, android.provider.Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES, sb.toString());
+            android.provider.Settings.Secure.putString(resolver, android.provider.Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES, cur);
+            return true;
+        } catch (Throwable e) {
+            AppLog.e("无障碍服务", "重建绑定失败", e);
+            return false;
+        }
     }
 
     @Override
@@ -225,7 +253,7 @@ public class MainAccessibilityService extends AccessibilityService {
             connected.setValue(false);
             setEnabled(false);
             MainApplication.getInstance().setService(null);
-            FloatWindow.reset();
+            FloatWindow.resetAndRemove();
         } catch (Throwable e) {
             AppLog.e("无障碍服务", "onDestroy 异常", e);
         }

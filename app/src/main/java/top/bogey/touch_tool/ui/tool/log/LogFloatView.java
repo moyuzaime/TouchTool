@@ -46,6 +46,10 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
     // 复用同一个实例：关掉后再次打开不必重新 inflate 与绑定
     private static java.lang.ref.WeakReference<LogFloatView> cached = new java.lang.ref.WeakReference<>(null);
 
+    public static void clearCached() {
+        cached = new java.lang.ref.WeakReference<>(null);
+    }
+
     public static void showTool(android.content.Context context) {
         LogFloatView view = cached.get();
         if (view == null || view.getContext() != context) {
@@ -334,19 +338,33 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
     @Override
     public void show() {
         // 无障碍服务没起来时加窗会抛 BadToken，还可能留下关不掉的幽灵窗口，直接提示
-        if (MainApplication.getInstance().getService() == null) {
-            Toast.makeText(getContext(), R.string.app_setting_enable_error, Toast.LENGTH_SHORT).show();
+        top.bogey.touch_tool.service.MainAccessibilityService service =
+                MainApplication.getInstance().getService();
+        if (service == null || !service.isConnected()) {
+            // 服务对象还在但没真正连上时，加窗会 BadToken 并留下僵尸窗口，先重建绑定
+            boolean reconnected = top.bogey.touch_tool.service.MainAccessibilityService.reconnectSelf(getContext());
+            Toast.makeText(getContext(),
+                    reconnected ? R.string.float_window_reconnect_tip : R.string.app_setting_enable_error,
+                    Toast.LENGTH_SHORT).show();
             return;
         }
 
         Size size = DisplayUtil.getScreenSize(getContext());
-        FloatWindow.with(MainApplication.getInstance().getService())
+        boolean ok = FloatWindow.with(service)
                 .setLayout(this)
                 .setTag(tag)
                 .setSpecial(true)
                 .setLocation(EAnchor.BOTTOM_CENTER, 0, -size.getHeight() / 4)
                 .setExistEditText(true)
                 .show();
+        if (!ok) {
+            // 服务对象还在但窗口令牌已失效：重建一次无障碍绑定，让下次点击能正常开窗
+            boolean reconnected = top.bogey.touch_tool.service.MainAccessibilityService.reconnectSelf(getContext());
+            Toast.makeText(getContext(),
+                    reconnected ? R.string.float_window_reconnect_tip : R.string.app_setting_enable_error,
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
         LogSaver.getInstance().addListener(this);
         postDelayed(pollRunnable, 500);
     }

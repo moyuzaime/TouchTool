@@ -112,6 +112,20 @@ public class FloatWindow {
         views.clear();
     }
 
+    // 服务解绑/重连时用：先把旧窗口真正摘掉，再清表，
+    // 否则静态表被清空但系统里还留着窗口，之后 show() 会因为令牌失效再也建不起来
+    public static void resetAndRemove() {
+        new ArrayList<>(views.values()).forEach(helper -> {
+            try {
+                helper.dismissFloatWindow();
+            } catch (Throwable e) {
+                top.bogey.touch_tool.utils.AppLog.e("悬浮窗", "清理旧窗口失败", e);
+            }
+        });
+        tags.clear();
+        views.clear();
+    }
+
     public static Point getLocation(String tag) {
         tag = checkTag(tag);
         FloatWindowHelper helper = getHelper(tag);
@@ -246,25 +260,33 @@ public class FloatWindow {
             return this;
         }
 
-        public void show() {
+        public boolean show() {
             if (config.layoutId == 0 && config.layoutView == null) {
-                return;
+                return false;
             }
 
             if (config.tag == null) {
                 config.tag = DEFAULT_TAG;
             }
 
-            if (tags.contains(config.tag)) {
-                return;
+            if (context == null) {
+                top.bogey.touch_tool.utils.AppLog.e("悬浮窗", "无障碍服务未连接，无法显示悬浮窗: " + config.tag);
+                return false;
             }
 
-            if (context == null) return;
+            FloatWindowHelper exist = views.get(config.tag);
+            if (exist != null) {
+                // 表里有记录但窗口其实已经没了（服务重连/被系统移除）：自愈重建，别让 show() 空转
+                if (exist.isAttached()) return true;
+                dismiss(config.tag);
+            }
 
             FloatWindowHelper helper = new FloatWindowHelper(context, config);
-            helper.createFloatWindow();
+            // 加窗失败就不登记，否则会留下「表里有、屏幕没有」的僵尸记录
+            if (!helper.createFloatWindow()) return false;
             tags.add(config.tag);
             views.put(config.tag, helper);
+            return true;
         }
     }
 }

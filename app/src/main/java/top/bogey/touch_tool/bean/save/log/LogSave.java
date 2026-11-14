@@ -90,27 +90,29 @@ public class LogSave implements ITreeNodeDataLoader {
     public List<String> getOrder() {
         List<String> cached = orderCache;
         if (cached != null) return new ArrayList<>(cached);
-        // 冷读必须与写入互斥：否则读到一半被任务线程 append 覆盖，缓存会丢掉刚写入的 uid
         synchronized (orderLock) {
-            cached = orderCache;
-            if (cached != null) return new ArrayList<>(cached);
-            List<String> order = new ArrayList<>();
-            String raw = mmkv.decodeString(ORDER, "");
-            if (raw != null && !raw.isEmpty()) {
-                for (String s : raw.split(",")) {
-                    if (s.isEmpty()) continue;
-                    if (mmkv.decodeString(s) == null) continue;
-                    order.add(s);
-                }
-            }
-            // 顺序表缺失或全部失效时，扫描存储里的日志按时间重建，避免出现「暂无日志」
-            if (order.isEmpty()) {
-                order = repairOrderLocked();
-                return new ArrayList<>(order);
-            }
-            orderCache = order;
-            return new ArrayList<>(order);
+            if (orderCache != null) return new ArrayList<>(orderCache);
+            // 冷读必须与写入互斥：否则读到一半被任务线程 append 覆盖，缓存会丢掉刚写入的 uid
+            return new ArrayList<>(loadOrderLocked());
         }
+    }
+
+    // 调用方必须持有 orderLock；返回内部列表本身（addLog 要往里追加）
+    private List<String> loadOrderLocked() {
+        if (orderCache != null) return orderCache;
+        List<String> order = new ArrayList<>();
+        String raw = mmkv.decodeString(ORDER, "");
+        if (raw != null && !raw.isEmpty()) {
+            for (String s : raw.split(",")) {
+                if (s.isEmpty()) continue;
+                if (mmkv.decodeString(s) == null) continue;
+                order.add(s);
+            }
+        }
+        // 顺序表缺失或全部失效时，扫描存储里的日志按时间重建，避免出现「暂无日志」
+        if (order.isEmpty()) order = repairOrderLocked();
+        orderCache = order;
+        return orderCache;
     }
 
     // 调用方已持有 orderLock：这里不要再加 synchronized，避免与 addLog 的锁顺序打架
@@ -167,16 +169,13 @@ public class LogSave implements ITreeNodeDataLoader {
         mmkv.encode(log.getUid(), GsonUtil.toJson(log));
         logCache.put(log.getUid(), log);
         synchronized (orderLock) {
-            List<String> order = orderCache;
-            if (order == null) {
-                order = getOrder();
-            }
+            // 必须拿内部列表追加：getOrder() 返回的是副本，往副本里 add 会整批丢失
+            List<String> order = loadOrderLocked();
             if (!order.contains(log.getUid())) {
                 order.add(log.getUid());
-                if (++pendingOrderWrites >= ORDER_FLUSH_BATCH) {
-                    pendingOrderWrites = 0;
-                    saveOrderLocked(order);
-                }
+                // 顺序表立即落盘：批量延迟写会在进程被杀时丢掉尾部条目，日志明明在却看不到
+                pendingOrderWrites = 0;
+                saveOrderLocked(order);
             }
         }
         time = System.currentTimeMillis();
