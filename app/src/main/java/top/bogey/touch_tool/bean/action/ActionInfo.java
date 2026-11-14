@@ -60,6 +60,7 @@ import top.bogey.touch_tool.bean.action.list.ListSizeAction;
 import top.bogey.touch_tool.bean.action.list.ListSortAction;
 import top.bogey.touch_tool.bean.action.list.ListSubListAction;
 import top.bogey.touch_tool.bean.action.list.MakeListAction;
+import top.bogey.touch_tool.bean.action.list.MixMakeListAction;
 import top.bogey.touch_tool.bean.action.logic.ChoiceExecuteAction;
 import top.bogey.touch_tool.bean.action.logic.ForLoopAction;
 import top.bogey.touch_tool.bean.action.logic.IfConditionAction;
@@ -70,6 +71,7 @@ import top.bogey.touch_tool.bean.action.logic.SwitchAction;
 import top.bogey.touch_tool.bean.action.logic.WaitConditionAction;
 import top.bogey.touch_tool.bean.action.logic.WhileLoopAction;
 import top.bogey.touch_tool.bean.action.map.MakeMapAction;
+import top.bogey.touch_tool.bean.action.map.MixMakeMapAction;
 import top.bogey.touch_tool.bean.action.map.MapAppendAction;
 import top.bogey.touch_tool.bean.action.map.MapClearAction;
 import top.bogey.touch_tool.bean.action.map.MapContainKeyAction;
@@ -411,6 +413,7 @@ public class ActionInfo {
 
     // List操作
     private final static ActionInfo LIST_MAKE_INFO = new ActionInfo(ActionType.LIST_MAKE, MakeListAction.class, R.drawable.icon_data_array, R.string.list_make_action, R.string.list_make_action_desc, 0, CreateListActionCard.class);
+    private final static ActionInfo MIX_LIST_MAKE_INFO = new ActionInfo(ActionType.MIX_LIST_MAKE, MixMakeListAction.class, R.drawable.icon_data_array, R.string.mix_list_make_action, R.string.mix_list_make_action_desc, 0, CreateListActionCard.class);
     private final static ActionInfo LIST_SIZE_INFO = new ActionInfo(ActionType.LIST_SIZE, ListSizeAction.class, R.drawable.icon_straighten, R.string.list_size_action, R.string.list_size_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo LIST_IS_EMPTY_INFO = new ActionInfo(ActionType.LIST_IS_EMPTY, ListIsEmptyAction.class, R.drawable.icon_data_array, R.string.list_is_empty_action, R.string.list_is_empty_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo LIST_CONTAIN_INFO = new ActionInfo(ActionType.LIST_CONTAIN, ListContainAction.class, R.drawable.icon_check, R.string.list_contain_action, R.string.list_contain_action_desc, 0, NormalActionCard.class);
@@ -430,6 +433,7 @@ public class ActionInfo {
 
     // Map操作
     private final static ActionInfo MAP_MAKE_INFO = new ActionInfo(ActionType.MAP_MAKE, MakeMapAction.class, R.drawable.icon_map, R.string.map_make_action, R.string.map_make_action_desc, 0, CreateListActionCard.class);
+    private final static ActionInfo MIX_MAP_MAKE_INFO = new ActionInfo(ActionType.MIX_MAP_MAKE, MixMakeMapAction.class, R.drawable.icon_map, R.string.mix_map_make_action, R.string.mix_map_make_action_desc, 0, CreateListActionCard.class);
     private final static ActionInfo MAP_SIZE_INFO = new ActionInfo(ActionType.MAP_SIZE, MapSizeAction.class, R.drawable.icon_straighten, R.string.map_size_action, R.string.map_size_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo MAP_IS_EMPTY_INFO = new ActionInfo(ActionType.MAP_IS_EMPTY, MapIsEmptyAction.class, R.drawable.icon_check, R.string.map_is_empty_action, R.string.map_is_empty_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo MAP_CONTAIN_KEY_INFO = new ActionInfo(ActionType.MAP_CONTAIN_KEY, MapContainKeyAction.class, R.drawable.icon_check, R.string.map_contain_key_action, R.string.map_contain_key_action_desc, 0, NormalActionCard.class);
@@ -645,6 +649,7 @@ public class ActionInfo {
 
 
             case LIST_MAKE -> LIST_MAKE_INFO;
+            case MIX_LIST_MAKE -> MIX_LIST_MAKE_INFO;
             case LIST_SIZE -> LIST_SIZE_INFO;
             case LIST_IS_EMPTY -> LIST_IS_EMPTY_INFO;
             case LIST_CONTAIN -> LIST_CONTAIN_INFO;
@@ -663,6 +668,7 @@ public class ActionInfo {
 
 
             case MAP_MAKE -> MAP_MAKE_INFO;
+            case MIX_MAP_MAKE -> MIX_MAP_MAKE_INFO;
             case MAP_SIZE -> MAP_SIZE_INFO;
             case MAP_IS_EMPTY -> MAP_IS_EMPTY_INFO;
             case MAP_CONTAIN_KEY -> MAP_CONTAIN_KEY_INFO;
