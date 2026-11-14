@@ -24,7 +24,8 @@ public class LogSaver {
 
     private final static String LOG_DIR = MainApplication.getInstance().getCacheDir().getAbsolutePath() + "/" + AppUtil.LOG_DIR_NAME;
     private final Map<String, LogSave> saves = new ConcurrentHashMap<>();
-    private final Set<LogSaveListener> listeners = new HashSet<>();
+    // 监听者会被任务线程遍历、UI 线程增删，用写时复制集合避免并发修改异常打断任务
+    private final Set<LogSaveListener> listeners = new java.util.concurrent.CopyOnWriteArraySet<>();
 
     public LogSave getLogSave(String key) {
         return saves.computeIfAbsent(key, k -> new LogSave(key, LOG_DIR));

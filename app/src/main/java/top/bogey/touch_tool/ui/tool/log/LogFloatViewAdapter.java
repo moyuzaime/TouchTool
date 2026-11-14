@@ -78,10 +78,28 @@ public class LogFloatViewAdapter extends TreeAdapter {
     private LogSave debugLogSave;
     // 渲染去重：同一动作同一毫秒只显示一条
     private final java.util.Set<String> renderSigs = new java.util.HashSet<>();
+    // 展开状态按 uid 记住：整表重建后恢复，否则边跑边看子日志时每次重建都会被打回折叠
+    private final java.util.Set<String> expandedUids = new java.util.HashSet<>();
+
+    @Override
+    public void switchNodeExpand(TreeNode node) {
+        super.switchNodeExpand(node);
+        if (node instanceof LazyTreeNode lazy) {
+            String uid = String.valueOf(lazy.getFlag());
+            if (node.isExpanded()) expandedUids.add(uid);
+            else expandedUids.remove(uid);
+        }
+    }
 
     public void setLogSave(LogSave logSave) {
         debugLogSave = logSave;
         task = TaskSaver.getInstance().getTask(logSave.getKey());
+        // 记住当前展开的节点，重建后恢复
+        for (TreeNode node : new ArrayList<>(treeNodes)) {
+            if (node instanceof LazyTreeNode lazy && node.isExpanded()) {
+                expandedUids.add(String.valueOf(lazy.getFlag()));
+            }
+        }
         nodeMap.clear();
         renderSigs.clear();
 
@@ -111,6 +129,21 @@ public class LogFloatViewAdapter extends TreeAdapter {
             nodeList.add(buildNode(logSave, uid, byUid, 0));
         }
         setTreeNodes(nodeList);
+        restoreExpanded();
+    }
+
+    // 重建后按 uid 恢复展开状态；expandNode 会把子节点插入列表，所以用按索引推进的循环
+    private void restoreExpanded() {
+        if (expandedUids.isEmpty()) return;
+        int index = 0;
+        while (index < treeNodes.size()) {
+            TreeNode node = treeNodes.get(index);
+            if (node instanceof LazyTreeNode lazy && !node.isExpanded()
+                    && expandedUids.contains(String.valueOf(lazy.getFlag()))) {
+                expandNode(node);
+            }
+            index++;
+        }
     }
 
     private LazyTreeNode buildNode(LogSave logSave, String uid, java.util.Map<String, LogInfo> byUid, int depth) {

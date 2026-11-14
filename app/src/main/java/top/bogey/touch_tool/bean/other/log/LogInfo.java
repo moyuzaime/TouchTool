@@ -85,14 +85,19 @@ public class LogInfo implements ILazyTreeNodeData {
     }
 
     public void addChild(String child) {
-        // 同一子节点重复挂载会产生两条一样的日志，这里去重
-        if (children.contains(child)) return;
-        children.add(child);
+        // 并行分支会并发往同一个容器节点挂子节点
+        synchronized (children) {
+            // 同一子节点重复挂载会产生两条一样的日志，这里去重
+            if (children.contains(child)) return;
+            children.add(child);
+        }
     }
 
     @Override
     public List<Object> getChildrenFlags() {
-        return new ArrayList<>(children);
+        synchronized (children) {
+            return new ArrayList<>(children);
+        }
     }
 
     public void addChild(LogInfo child) {

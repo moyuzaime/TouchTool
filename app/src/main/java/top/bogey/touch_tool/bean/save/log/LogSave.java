@@ -56,12 +56,17 @@ public class LogSave implements ITreeNodeDataLoader {
         mmkv.removeValueForKey(COUNT);
     }
 
+    // 解出来的 LogInfo 缓存：重建列表时不再逐条 Gson 解析，日志上千条时才不至于卡住 UI
+    private final Map<String, LogInfo> logCache = new java.util.concurrent.ConcurrentHashMap<>();
+
     public LogInfo getLog(String key) {
+        if (key == null) return null;
+        LogInfo cached = logCache.get(key);
+        if (cached != null) return cached;
         try {
             String raw = mmkv.decodeString(key);
             LogInfo info = GsonUtil.getAsObject(raw, LogInfo.class, null);
-            if (info == null) {
-            }
+            if (info != null) logCache.put(key, info);
             return info;
         } catch (Exception e) {
             return null;
@@ -80,26 +85,36 @@ public class LogSave implements ITreeNodeDataLoader {
     // 顺序表内存缓存：getOrder 每次都要解 MMKV 并校验每个 uid 是否存在，
     // 日志一多就是 O(n²) 次解码，界面重建时会明显卡顿
     private volatile List<String> orderCache = null;
+    private final Object orderLock = new Object();
 
     public List<String> getOrder() {
         List<String> cached = orderCache;
         if (cached != null) return new ArrayList<>(cached);
-        List<String> order = new ArrayList<>();
-        String raw = mmkv.decodeString(ORDER, "");
-        if (raw != null && !raw.isEmpty()) {
-            for (String s : raw.split(",")) {
-                if (s.isEmpty()) continue;
-                if (mmkv.decodeString(s) == null) continue;
-                order.add(s);
+        // 冷读必须与写入互斥：否则读到一半被任务线程 append 覆盖，缓存会丢掉刚写入的 uid
+        synchronized (orderLock) {
+            cached = orderCache;
+            if (cached != null) return new ArrayList<>(cached);
+            List<String> order = new ArrayList<>();
+            String raw = mmkv.decodeString(ORDER, "");
+            if (raw != null && !raw.isEmpty()) {
+                for (String s : raw.split(",")) {
+                    if (s.isEmpty()) continue;
+                    if (mmkv.decodeString(s) == null) continue;
+                    order.add(s);
+                }
             }
+            // 顺序表缺失或全部失效时，扫描存储里的日志按时间重建，避免出现「暂无日志」
+            if (order.isEmpty()) {
+                order = repairOrderLocked();
+                return new ArrayList<>(order);
+            }
+            orderCache = order;
+            return new ArrayList<>(order);
         }
-        // 顺序表缺失或全部失效时，扫描存储里的日志按时间重建，避免出现「暂无日志」
-        if (order.isEmpty()) return repairOrder();
-        orderCache = order;
-        return new ArrayList<>(order);
     }
 
-    private synchronized List<String> repairOrder() {
+    // 调用方已持有 orderLock：这里不要再加 synchronized，避免与 addLog 的锁顺序打架
+    private List<String> repairOrderLocked() {
         List<String> order = new ArrayList<>();
         String[] keys = mmkv.allKeys();
         if (keys == null) return order;
@@ -112,11 +127,17 @@ public class LogSave implements ITreeNodeDataLoader {
         map.entrySet().stream()
                 .sorted((a, b) -> Long.compare(a.getValue().getTime(), b.getValue().getTime()))
                 .forEach(e -> order.add(e.getKey()));
-        if (!order.isEmpty()) saveOrder(order);
+        saveOrderLocked(order);
         return order;
     }
 
     private void saveOrder(List<String> order) {
+        synchronized (orderLock) {
+            saveOrderLocked(order);
+        }
+    }
+
+    private void saveOrderLocked(List<String> order) {
         mmkv.encode(ORDER, String.join(",", order));
         orderCache = new ArrayList<>(order);
     }
@@ -140,17 +161,26 @@ public class LogSave implements ITreeNodeDataLoader {
             log.setUid(UUID.randomUUID().toString());
         }
         mmkv.encode(log.getUid(), GsonUtil.toJson(log));
-        List<String> order = getOrder();
-        if (!order.contains(log.getUid())) {
-            order.add(log.getUid());
-            saveOrder(order);
+        logCache.put(log.getUid(), log);
+        synchronized (orderLock) {
+            List<String> order = orderCache;
+            if (order == null) {
+                order = getOrder();
+            }
+            if (!order.contains(log.getUid())) {
+                order.add(log.getUid());
+                saveOrderLocked(order);
+            }
         }
         time = System.currentTimeMillis();
     }
 
     public void clearLog() {
         mmkv.clearAll();
-        orderCache = null;
+        synchronized (orderLock) {
+            orderCache = null;
+        }
+        logCache.clear();
         time = 0;
     }
 

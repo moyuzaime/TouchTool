@@ -353,9 +353,20 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
 
     @Override
     public void dismiss() {
+        stopWatch();
+        FloatWindow.dismiss(tag);
+    }
+
+    // 磁贴等外部路径直接 FloatWindow.dismiss 时不会走 dismiss()，这里兜底释放监听与轮询
+    @Override
+    protected void onDetachedFromWindow() {
+        stopWatch();
+        super.onDetachedFromWindow();
+    }
+
+    private void stopWatch() {
         removeCallbacks(pollRunnable);
         LogSaver.getInstance().removeListener(this);
-        FloatWindow.dismiss(tag);
     }
 
     // 兜底轮询：只看根节点数量，漏了通知也能补上，且不做整表重建
