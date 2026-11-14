@@ -206,7 +206,7 @@ public class TaskRunnable implements Runnable {
                 } else {
                     logStack.peek().addChild(logInfo);
                     if (!cacheLog) {
-                        LogSaver.getInstance().addLog(logKey(), logInfo, false);
+                        LogSaver.getInstance().addLog(logKey(), logInfo, false, logStack.peek().getUid());
                         // 只有直接父节点的 children 变了，祖先的 children 不含本节点，无需重写
                         LogSaver.getInstance().updateLog(logKey(), logStack.peek());
                         logged = true;
@@ -219,7 +219,7 @@ public class TaskRunnable implements Runnable {
                 // 顶层动作一开始就落盘成根节点：细节日志模式下所有日志都挂在它下面，
                 // 否则要等整个任务结束才出现，看起来就是一次性刷出来
                 if (!cacheLog && logStack.size() == 1) {
-                    LogSaver.getInstance().addLog(logKey(), logInfo, true);
+                    LogSaver.getInstance().addLog(logKey(), logInfo, true, logContainer == null ? null : logContainer.getUid());
                     logInfo.setSaved(true);
                     lastLogUid = logInfo.getUid();
                     // 分支根日志：挂到父任务里的「并行执行」节点下，保证实时嵌套且不脱层

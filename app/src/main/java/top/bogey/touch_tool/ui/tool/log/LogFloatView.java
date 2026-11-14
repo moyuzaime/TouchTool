@@ -393,7 +393,11 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
     private void pollLogs() {
         if (task == null) return;
         LogSave logSave = LogSaver.getInstance().getLogSave(task.getId());
-        if (logSave.getLogCount() != lastRootCount) scheduleRebuild();
+        if (logSave.getLogCount() != lastRootCount) {
+            lastRootCount = logSave.getLogCount();
+            adapter.appendMissing(logSave);
+            updateEmptyTips();
+        }
         postDelayed(pollRunnable, 500);
     }
 
@@ -444,10 +448,22 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
     }
 
     @Override
-    public void onNewLog(LogSave logSave, LogInfo log) {
+    public void onNewLog(LogSave logSave, LogInfo log, String parentUid) {
         if (task == null) return;
         if (!logSave.getKey().equals(task.getId())) return;
-        scheduleRebuild();
+        // 增量追加：不整表重建；只有本来就在底部时才跟随滚动，否则保持当前阅读位置
+        post(() -> {
+            if (parentUid == null) adapter.appendRoot(logSave, log);
+            else adapter.appendChild(logSave, parentUid, log);
+            lastRootCount = logSave.getLogCount();
+            if (autoFollow && isNearBottom()) scrollToBottom();
+            updateEmptyTips();
+        });
+    }
+
+    @Override
+    public void onNewLog(LogSave logSave, LogInfo log) {
+        onNewLog(logSave, log, null);
     }
 
     // 日志可能成批到来：合并成最多每 150ms 重建一次，避免每条日志都整表重建把 UI 线程压死

@@ -32,9 +32,14 @@ public class LogSaver {
     }
 
     public void addLog(String key, LogInfo log, boolean autoUid) {
+        addLog(key, log, autoUid, null);
+    }
+
+    // parentUid 只用于界面增量追加：空=根日志，非空=该父节点下新增的子日志
+    public void addLog(String key, LogInfo log, boolean autoUid, String parentUid) {
         LogSave logSave = getLogSave(key);
         logSave.addLog(log, autoUid);
-        notifyNewLog(logSave, log);
+        notifyNewLog(logSave, log, parentUid);
     }
 
     // 子日志写入后父节点内容变了，用同一个 uid 重写一次并通知，日志窗口才能实时看到嵌套项
@@ -63,7 +68,11 @@ public class LogSaver {
     }
 
     private void notifyNewLog(LogSave logSave, LogInfo log) {
-        listeners.stream().filter(Objects::nonNull).forEach(v -> v.onNewLog(logSave, log));
+        notifyNewLog(logSave, log, null);
+    }
+
+    private void notifyNewLog(LogSave logSave, LogInfo log, String parentUid) {
+        listeners.stream().filter(Objects::nonNull).forEach(v -> v.onNewLog(logSave, log, parentUid));
     }
 
     public void clearLog(String key) {

@@ -163,6 +163,78 @@ public class LogFloatViewAdapter extends TreeAdapter {
         return node;
     }
 
+    // ===== 增量追加：新日志不再整表重建，只在末尾插入一行，滚动位置由 RecyclerView 自行保持 =====
+
+    // 新根日志：直接追加到列表末尾
+    public synchronized void appendRoot(LogSave logSave, LogInfo info) {
+        if (info == null || info.getUid() == null) return;
+        String uid = info.getUid();
+        LazyTreeNode exist = nodeMap.get(uid);
+        if (exist != null) {
+            // 已在屏上：只同步它的子节点（例如容器节点后来才有 children）
+            syncChildren(logSave, exist, info);
+            return;
+        }
+        LazyTreeNode root = new LazyTreeNode(logSave, uid);
+        root.setDepth(0);
+        nodeMap.put(uid, root);
+        int index = treeNodes.size();
+        treeNodes.add(index, root);
+        notifyItemInserted(index);
+        // 该节点可能已带 children（如并行执行容器），把它名下已在根层显示的行收进来
+        syncChildren(logSave, root, info);
+    }
+
+    // 父节点下新增子日志：父已展开则插到子树末尾，父折叠时只刷新父行
+    public synchronized void appendChild(LogSave logSave, String parentUid, LogInfo info) {
+        if (info == null || info.getUid() == null) return;
+        String uid = info.getUid();
+        if (nodeMap.containsKey(uid)) return;
+
+        LazyTreeNode parent = parentUid == null ? null : nodeMap.get(parentUid);
+        if (parent == null || treeNodes.indexOf(parent) < 0) {
+            // 父节点还没上屏（容器日志后落盘）：先当根显示，父节点上来后 syncChildren 会把它移进去
+            appendRoot(logSave, info);
+            return;
+        }
+
+        int parentIndex = treeNodes.indexOf(parent);
+        if (!parent.isExpanded()) {
+            notifyItemChanged(parentIndex);   // 折叠状态：只更新"有子项"的状态，不动滚动
+            return;
+        }
+
+        // 复用 LazyTreeNode 已有的同名子节点，避免同一 uid 注册两次
+        LazyTreeNode child = null;
+        for (TreeNode treeNode : parent.getChildren()) {
+            if (treeNode instanceof LazyTreeNode lazy
+                    && uid.equals(String.valueOf(lazy.getFlag()))) {
+                child = lazy;
+                break;
+            }
+        }
+        if (child == null) {
+            child = new LazyTreeNode(logSave, uid);
+            child.setDepth(parent.getDepth() + 1);
+            parent.addChild(child);
+        }
+        nodeMap.put(uid, child);
+
+        int insertAt = parentIndex + parent.getExpandedChildren().size();
+        treeNodes.add(insertAt, child);
+        notifyItemInserted(insertAt);
+    }
+
+    // 轮询兜底：把 order 里还没上屏的日志补上（漏通知时用，不做整表重建）
+    public synchronized void appendMissing(LogSave logSave) {
+        java.util.List<String> order = logSave.getOrder();
+        for (String uid : order) {
+            if (uid == null || nodeMap.containsKey(uid)) continue;
+            LogInfo info = logSave.getLog(uid);
+            if (info != null) appendRoot(logSave, info);
+        }
+    }
+
     // 增量同步：只补新出现的节点，不重建整棵树，已展开的节点不会被打回原状
     public synchronized void syncLog(LogSave logSave, LogInfo info) {
         if (info == null || info.getUid() == null) return;
