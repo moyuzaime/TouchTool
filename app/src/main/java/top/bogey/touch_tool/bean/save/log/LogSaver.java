@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import top.bogey.touch_tool.MainApplication;
 import top.bogey.touch_tool.bean.other.log.LogInfo;
+import top.bogey.touch_tool.utils.AppLog;
 import top.bogey.touch_tool.utils.AppUtil;
 
 public class LogSaver {
@@ -28,7 +29,14 @@ public class LogSaver {
     private final Set<LogSaveListener> listeners = new java.util.concurrent.CopyOnWriteArraySet<>();
 
     public LogSave getLogSave(String key) {
-        return saves.computeIfAbsent(key, k -> new LogSave(key, LOG_DIR));
+        LogSave logSave = saves.computeIfAbsent(key, k -> new LogSave(key, LOG_DIR));
+        // 旧 MMKV 存档迁移到 SQLite：每个任务只做一次，内部有幂等标记
+        try {
+            LogStore.getInstance().migrateIfNeeded(key, logSave);
+        } catch (Throwable e) {
+            AppLog.e("日志库", "迁移检查失败", e);
+        }
+        return logSave;
     }
 
     public void addLog(String key, LogInfo log, boolean autoUid) {
@@ -39,6 +47,8 @@ public class LogSaver {
     public void addLog(String key, LogInfo log, boolean autoUid, String parentUid) {
         LogSave logSave = getLogSave(key);
         logSave.addLog(log, autoUid);
+        // 过渡期双写：新库先落 SQLite 事件表；UI 仍读旧 MMKV，切换后停掉旧写
+        LogStore.getInstance().append(key, log, parentUid);
         notifyNewLog(logSave, log, parentUid);
     }
 
@@ -64,6 +74,7 @@ public class LogSaver {
             }
             logSave.addLog(log, false);
         }
+        LogStore.getInstance().updatePayload(key, merged);
         notifyNewLog(logSave, merged);
     }
 
@@ -76,6 +87,7 @@ public class LogSaver {
     }
 
     public void clearLog(String key) {
+        LogStore.getInstance().clear(key);
         LogSave logSave = saves.get(key);
         if (logSave == null) return;
         logSave.clearLog();
