@@ -47,7 +47,7 @@ import top.bogey.touch_tool.utils.tree.TreeNode;
 public class LogFloatViewAdapter extends TreeAdapter {
     private Task task;
     int searchIndex = -1;
-    // uid -> 节点，增量插入时按 uid 定位，避免整表重建
+    // uid -> 鑺傜偣锛屽閲忔彃鍏ユ椂鎸?uid 瀹氫綅锛岄伩鍏嶆暣琛ㄩ噸寤?
     private final Map<String, LazyTreeNode> nodeMap = new HashMap<>();
     private Runnable onNodeToggled;
 
@@ -75,13 +75,13 @@ public class LogFloatViewAdapter extends TreeAdapter {
         return 0;
     }
 
-    // 分页窗口：一次只加载最后 N 条根日志，更早的走 loadMore()
+    // 鍒嗛〉绐楀彛锛氫竴娆″彧鍔犺浇鏈€鍚?N 鏉℃牴鏃ュ織锛屾洿鏃╃殑璧?loadMore()
     private final static int PAGE_SIZE = 200;
 
     private String storeTaskId;
     private LogStoreNodeLoader storeLoader;
     private int pageCount = 1;
-    // 展开状态按 uid 记住：分页/重建后恢复
+    // 灞曞紑鐘舵€佹寜 uid 璁颁綇锛氬垎椤?閲嶅缓鍚庢仮澶?
     private final java.util.Set<String> expandedUids = new java.util.HashSet<>();
 
     @Override
@@ -104,7 +104,7 @@ public class LogFloatViewAdapter extends TreeAdapter {
         reload(taskId);
     }
 
-    // 加载更多：窗口扩大一倍后重载（日志按时间递增，历史项在列表头部）
+    // 鍔犺浇鏇村锛氱獥鍙ｆ墿澶т竴鍊嶅悗閲嶈浇锛堟棩蹇楁寜鏃堕棿閫掑锛屽巻鍙查」鍦ㄥ垪琛ㄥご閮級
     public synchronized void loadMore() {
         if (storeTaskId == null) return;
         pageCount++;
@@ -115,7 +115,7 @@ public class LogFloatViewAdapter extends TreeAdapter {
         storeTaskId = taskId;
         storeLoader = new LogStoreNodeLoader(taskId);
         task = TaskSaver.getInstance().getTask(taskId);
-        // 记住当前展开的节点，重建后恢复
+        // 璁颁綇褰撳墠灞曞紑鐨勮妭鐐癸紝閲嶅缓鍚庢仮澶?
         for (TreeNode node : new ArrayList<>(treeNodes)) {
             if (node instanceof LazyTreeNode lazy && node.isExpanded()) {
                 expandedUids.add(String.valueOf(lazy.getFlag()));
@@ -137,15 +137,15 @@ public class LogFloatViewAdapter extends TreeAdapter {
         return top.bogey.touch_tool.bean.save.log.LogStore.getInstance();
     }
 
-    // 整表替换用一次刷新：TreeAdapter.setTreeNodes 是「先删空再插入」，
-    // 高频重建时会闪出一帧空列表
+    // 鏁磋〃鏇挎崲鐢ㄤ竴娆″埛鏂帮細TreeAdapter.setTreeNodes 鏄€屽厛鍒犵┖鍐嶆彃鍏ャ€嶏紝
+    // 楂橀閲嶅缓鏃朵細闂嚭涓€甯х┖鍒楄〃
     private void applyTreeNodes(List<TreeNode> nodes) {
         treeNodes.clear();
         treeNodes.addAll(nodes);
         notifyDataSetChanged();
     }
 
-    // 重建后按 uid 恢复展开状态；expandNode 会把子节点插入列表，所以用按索引推进的循环
+    // 閲嶅缓鍚庢寜 uid 鎭㈠灞曞紑鐘舵€侊紱expandNode 浼氭妸瀛愯妭鐐规彃鍏ュ垪琛紝鎵€浠ョ敤鎸夌储寮曟帹杩涚殑寰幆
     private void restoreExpanded() {
         if (expandedUids.isEmpty()) return;
         int index = 0;
@@ -159,9 +159,9 @@ public class LogFloatViewAdapter extends TreeAdapter {
         }
     }
 
-    // ===== 增量追加：新日志不再整表重建，只在末尾插入一行，滚动位置由 RecyclerView 自行保持 =====
+    // ===== 澧為噺杩藉姞锛氭柊鏃ュ織涓嶅啀鏁磋〃閲嶅缓锛屽彧鍦ㄦ湯灏炬彃鍏ヤ竴琛岋紝婊氬姩浣嶇疆鐢?RecyclerView 鑷淇濇寔 =====
 
-    // 新根日志：直接追加到列表末尾
+    // 鏂版牴鏃ュ織锛氱洿鎺ヨ拷鍔犲埌鍒楄〃鏈熬
     public synchronized void appendRoot(LogSave ignored, LogInfo info) {
         if (info == null || info.getUid() == null || storeLoader == null) return;
         String uid = info.getUid();
@@ -179,7 +179,7 @@ public class LogFloatViewAdapter extends TreeAdapter {
         expandIfNeeded(root);
     }
 
-    // 父节点下新增子日志：父已展开则插到子树末尾，父折叠时只刷新父行
+    // 鐖惰妭鐐逛笅鏂板瀛愭棩蹇楋細鐖跺凡灞曞紑鍒欐彃鍒板瓙鏍戞湯灏撅紝鐖舵姌鍙犳椂鍙埛鏂扮埗琛?
     public synchronized void appendChild(LogSave ignored, String parentUid, LogInfo info) {
         if (info == null || info.getUid() == null || storeLoader == null) return;
         String uid = info.getUid();
@@ -187,18 +187,18 @@ public class LogFloatViewAdapter extends TreeAdapter {
 
         LazyTreeNode parent = parentUid == null ? null : nodeMap.get(parentUid);
         if (parent == null || treeNodes.indexOf(parent) < 0) {
-            // 父节点还没上屏（容器日志后落盘）：先当根显示
+            // 鐖惰妭鐐硅繕娌′笂灞忥紙瀹瑰櫒鏃ュ織鍚庤惤鐩橈級锛氬厛褰撴牴鏄剧ず
             appendRoot(ignored, info);
             return;
         }
 
         int parentIndex = treeNodes.indexOf(parent);
         if (!parent.isExpanded()) {
-            notifyItemChanged(parentIndex);   // 折叠状态：只更新"有子项"的状态，不动滚动
+            notifyItemChanged(parentIndex);   // 鎶樺彔鐘舵€侊細鍙洿鏂?鏈夊瓙椤?鐨勭姸鎬侊紝涓嶅姩婊氬姩
             return;
         }
 
-        // 复用 LazyTreeNode 已有的同名子节点，避免同一 uid 注册两次
+        // 澶嶇敤 LazyTreeNode 宸叉湁鐨勫悓鍚嶅瓙鑺傜偣锛岄伩鍏嶅悓涓€ uid 娉ㄥ唽涓ゆ
         LazyTreeNode child = null;
         for (TreeNode treeNode : parent.getChildren()) {
             if (treeNode instanceof LazyTreeNode lazy
@@ -219,7 +219,7 @@ public class LogFloatViewAdapter extends TreeAdapter {
         notifyItemInserted(insertAt);
     }
 
-    // 轮询兜底：把库里还没上屏的根日志补上（漏通知时用，不做整表重建）
+    // 杞鍏滃簳锛氭妸搴撻噷杩樻病涓婂睆鐨勬牴鏃ュ織琛ヤ笂锛堟紡閫氱煡鏃剁敤锛屼笉鍋氭暣琛ㄩ噸寤猴級
     public synchronized void appendMissing(LogSave ignored) {
         if (storeLoader == null) return;
         for (String uid : topbogeyLogStore().rootUids(storeLoader.getTaskId(), PAGE_SIZE * pageCount)) {
@@ -233,158 +233,6 @@ public class LogFloatViewAdapter extends TreeAdapter {
         if (node.isExpanded()) return;
         if (!expandedUids.contains(String.valueOf(node.getFlag()))) return;
         expandNode(node);
-    }
-
-    // 增量同步：只补新出现的节点，不重建整棵树，已展开的节点不会被打回原状
-    public synchronized void syncLog(LogSave logSave, LogInfo info) {
-        if (info == null || info.getUid() == null) return;
-
-        String uid = info.getUid();
-        LazyTreeNode node = nodeMap.get(uid);
-        if (node == null) {
-            // 没见过的根节点，追加到末尾
-            if (!isRootIndex(uid, logSave)) return;
-            // 同一个 uid 只能上屏一次：已存在节点（无论根还是子）就不再建根
-            if (nodeMap.containsKey(uid)) return;
-            LazyTreeNode root = new LazyTreeNode(logSave, uid);
-            nodeMap.put(uid, root);
-            Object rootData = root.getData();
-            long rootTime = rootData instanceof LogInfo rootInfo ? rootInfo.getTime() : 0L;
-            int insertIndex = treeNodes.size();
-            for (int i = treeNodes.size() - 1; i >= 0; i--) {
-                Object data = treeNodes.get(i).getData();
-                long time = data instanceof LogInfo info2 ? info2.getTime() : 0L;
-                if (time <= rootTime) break;
-                insertIndex = i;
-            }
-            treeNodes.add(insertIndex, root);
-            notifyItemInserted(insertIndex);
-            if (insertIndex + 1 < treeNodes.size()) {
-                notifyItemRangeChanged(insertIndex + 1, treeNodes.size() - insertIndex - 1);
-            }
-            // 首次上屏的节点可能已经带 children（如并行执行容器先被写入），立即补齐
-            syncChildren(logSave, root, info);
-            return;
-        }
-        syncChildren(logSave, node, info);
-    }
-
-    // 补齐某个节点下新增的子节点
-    private void syncChildren(LogSave logSave, LazyTreeNode node, LogInfo info) {
-        List<?> flags = info.getChildrenFlags();
-        List<TreeNode> children = node.getChildren();
-        if (flags.size() <= children.size()) return;
-
-        List<TreeNode> added = new ArrayList<>();
-        for (int i = children.size(); i < flags.size(); i++) {
-            Object flag = flags.get(i);
-            String childUid0 = String.valueOf(flag);
-            // 该子节点若已作为根行显示，先移出根层，再挂到父节点下（否则会内外各一条）
-            LazyTreeNode existChild = nodeMap.get(childUid0);
-            if (existChild != null) {
-                int existIndex = treeNodes.indexOf(existChild);
-                if (existIndex >= 0) {
-                    treeNodes.remove(existIndex);
-                    notifyItemRemoved(existIndex);
-                }
-                existChild.setDepth(node.getDepth() + 1);
-                node.addChild(existChild);
-                continue;
-            }
-            LazyTreeNode child = new LazyTreeNode(logSave, flag);
-            child.setDepth(node.getDepth() + 1);
-            node.addChild(child);
-            added.add(child);
-            nodeMap.put(String.valueOf(flag), child);
-        }
-
-        int index = treeNodes.indexOf(node);
-        if (index < 0) return;
-        // 折叠状态下子项不显示，只刷新这一行
-        if (!node.isExpanded()) {
-            notifyItemChanged(index);
-            return;
-        }
-
-        // 插到该节点已展开子树的末尾，保持层级顺序
-        int insertIndex = index + 1;
-        for (int i = index + 1; i < treeNodes.size(); i++) {
-            if (treeNodes.get(i).getDepth() <= node.getDepth()) break;
-            insertIndex = i + 1;
-        }
-        treeNodes.addAll(insertIndex, added);
-        notifyItemRangeInserted(insertIndex, added.size());
-    }
-
-    // 兜底同步根节点：只追加没见过的，不重建
-    public void syncRoots(LogSave logSave) {
-        // 复用 syncLog 的落点逻辑：带父 uid 的挂到父节点，其余才当根
-        int count = logSave.getLogCount();
-        for (int i = 0; i < count; i++) {
-            String uid = logSave.getUidAt(i);
-            if (uid == null || nodeMap.containsKey(uid)) continue;
-            LogInfo info = logSave.getLog(uid);
-            if (info == null) continue;
-            syncLog(logSave, info);
-        }
-    }
-
-    // 没有搜索词时上下箭头的目标：以当前视口所在行为锚点，取它所在展开块的首行 / 末行
-    public int findExpandedEdge(boolean isNext, int anchorPosition) {
-        if (treeNodes.isEmpty()) return -1;
-        int anchor = Math.max(0, Math.min(anchorPosition, treeNodes.size() - 1));
-
-        TreeNode node = findExpandedBlock(anchor);
-        if (node == null) return -1;
-        int index = treeNodes.indexOf(node);
-        if (index < 0) return -1;
-
-        if (!isNext) {
-            // 直接跳到展开节点本身那一行
-            return index;
-        }
-
-        // 展开块的最后一行：顺着 depth 走完这棵子树
-        int end = index;
-        for (int i = index + 1; i < treeNodes.size(); i++) {
-            if (treeNodes.get(i).getDepth() <= node.getDepth()) break;
-            end = i;
-        }
-        return end > index ? end : -1;
-    }
-
-    // 从锚点行往上找它所属的展开块头：自身展开就取自身，否则找最近的已展开祖先
-    private TreeNode findExpandedBlock(int position) {
-        TreeNode current = treeNodes.get(position);
-        if (current.isExpanded()) return current;
-
-        int depth = current.getDepth();
-        for (int i = position - 1; i >= 0 && depth > 0; i--) {
-            TreeNode candidate = treeNodes.get(i);
-            if (candidate.getDepth() >= depth) continue;
-            if (candidate.isExpanded()) return candidate;
-            depth = candidate.getDepth();
-        }
-        return null;
-    }
-
-    private boolean isRootIndex(String uid, LogSave logSave) {
-        // key 已是 GUID，只确认这条日志存在
-        return uid != null && logSave.getLog(uid) != null;
-    }
-
-    public List<LogInfo> getLogs() {
-        return getLogs(treeNodes);
-    }
-
-    private List<LogInfo> getLogs(List<TreeNode> treeNodes) {
-        List<LogInfo> logs = new ArrayList<>();
-        for (TreeNode treeNode : treeNodes) {
-            LazyTreeNode node = (LazyTreeNode) treeNode;
-            logs.add((LogInfo) node.getData());
-            logs.addAll(getLogs(node.getChildren()));
-        }
-        return logs;
     }
 
     public void addLog(LogSave logSave, LogInfo log) {
@@ -605,7 +453,7 @@ public class LogFloatViewAdapter extends TreeAdapter {
         @Override
         public void onClicked(View view) {
             super.onClicked(view);
-            // 用户手动展开/折叠后通知外部，日志窗口据此暂停自动跟随
+            // 鐢ㄦ埛鎵嬪姩灞曞紑/鎶樺彔鍚庨€氱煡澶栭儴锛屾棩蹇楃獥鍙ｆ嵁姝ゆ殏鍋滆嚜鍔ㄨ窡闅?
             if (onNodeToggled != null) onNodeToggled.run();
             if (searchIndex != -1) {
                 int index = searchIndex;
@@ -696,4 +544,58 @@ public class LogFloatViewAdapter extends TreeAdapter {
             }
         }
     }
+    // ===== 导航/导出辅助（保留原行为，数据源改为 SQLite 加载器）=====
+
+    public int findExpandedEdge(boolean isNext, int anchorPosition) {
+        if (treeNodes.isEmpty()) return -1;
+        int anchor = Math.max(0, Math.min(anchorPosition, treeNodes.size() - 1));
+
+        TreeNode node = findExpandedBlock(anchor);
+        if (node == null) return -1;
+        int index = treeNodes.indexOf(node);
+        if (index < 0) return -1;
+
+        if (!isNext) {
+            // 直接跳到展开节点本身那一行
+            return index;
+        }
+
+        // 展开块的最后一行：顺着 depth 走完这棵子树
+        int end = index;
+        for (int i = index + 1; i < treeNodes.size(); i++) {
+            if (treeNodes.get(i).getDepth() <= node.getDepth()) break;
+            end = i;
+        }
+        return end > index ? end : -1;
+    }
+
+    // 从锚点行往上找它所属的展开块头：自身展开就取自身，否则找最近的已展开祖先
+    private TreeNode findExpandedBlock(int position) {
+        TreeNode current = treeNodes.get(position);
+        if (current.isExpanded()) return current;
+
+        int depth = current.getDepth();
+        for (int i = position - 1; i >= 0 && depth > 0; i--) {
+            TreeNode candidate = treeNodes.get(i);
+            if (candidate.getDepth() >= depth) continue;
+            if (candidate.isExpanded()) return candidate;
+            depth = candidate.getDepth();
+        }
+        return null;
+    }
+
+    public List<LogInfo> getLogs() {
+        return getLogs(treeNodes);
+    }
+
+    private List<LogInfo> getLogs(List<TreeNode> treeNodes) {
+        List<LogInfo> logs = new ArrayList<>();
+        for (TreeNode treeNode : treeNodes) {
+            LazyTreeNode node = (LazyTreeNode) treeNode;
+            logs.add((LogInfo) node.getData());
+            logs.addAll(getLogs(node.getChildren()));
+        }
+        return logs;
+    }
+
 }

@@ -45,37 +45,17 @@ public class LogSaver {
 
     // parentUid 只用于界面增量追加：空=根日志，非空=该父节点下新增的子日志
     public void addLog(String key, LogInfo log, boolean autoUid, String parentUid) {
-        LogSave logSave = getLogSave(key);
-        logSave.addLog(log, autoUid);
-        // 过渡期双写：新库先落 SQLite 事件表；UI 仍读旧 MMKV，切换后停掉旧写
+        LogSave logSave = getLogSave(key);   // 仍要取一次：顺带完成旧存档的一次性迁移
+        // 到这里写入只落 SQLite；旧 MMKV 存档仅用于迁移读取，不再写入
         LogStore.getInstance().append(key, log, parentUid);
         notifyNewLog(logSave, log, parentUid);
     }
 
-    // 子日志写入后父节点内容变了，用同一个 uid 重写一次并通知，日志窗口才能实时看到嵌套项
+    // 动作节点结束时值补齐：只更新库里这一行的 payload，不再整条重写到 MMKV
     public void updateLog(String key, LogInfo log) {
         LogSave logSave = getLogSave(key);
-        LogInfo merged = log;
-        // 读最新副本再合并 children，避免用旧副本把刚挂上的子节点覆盖掉
-        synchronized (logSave) {
-            LogInfo stored = logSave.getLog(log.getUid());
-            if (stored != null) {
-                for (Object flag : stored.getChildrenFlags()) {
-                    String childUid = String.valueOf(flag);
-                    boolean has = false;
-                    for (Object own : log.getChildrenFlags()) {
-                        if (String.valueOf(own).equals(childUid)) {
-                            has = true;
-                            break;
-                        }
-                    }
-                    if (!has) log.addChild(childUid);
-                }
-            }
-            logSave.addLog(log, false);
-        }
-        LogStore.getInstance().updatePayload(key, merged);
-        notifyNewLog(logSave, merged);
+        LogStore.getInstance().updatePayload(key, log);
+        notifyNewLog(logSave, log);
     }
 
     private void notifyNewLog(LogSave logSave, LogInfo log) {
@@ -91,13 +71,6 @@ public class LogSaver {
         LogSave logSave = saves.get(key);
         if (logSave == null) return;
         logSave.clearLog();
-    }
-
-    // 顺序表延迟刷盘：任务结束或有窗口在用时补写一次
-    public void flushOrder(String key) {
-        if (key == null) return;
-        LogSave logSave = saves.get(key);
-        if (logSave != null) logSave.flushOrder();
     }
 
     public void addListener(LogSaveListener listener) {

@@ -118,8 +118,6 @@ public class TaskRunnable implements Runnable {
             AppLog.e(e);
         } finally {
             interrupt = true;
-            // 顺序表是延迟刷盘的，任务结束时补一次，避免最后几条日志没进顺序表
-            LogSaver.getInstance().flushOrder(logKey());
             listeners.stream().filter(Objects::nonNull).forEach(listener -> listener.onFinish(this));
         }
     }
