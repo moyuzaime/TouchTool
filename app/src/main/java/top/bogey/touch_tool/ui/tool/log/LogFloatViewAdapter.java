@@ -128,8 +128,16 @@ public class LogFloatViewAdapter extends TreeAdapter {
             }
             nodeList.add(buildNode(logSave, uid, byUid, 0));
         }
-        setTreeNodes(nodeList);
+        applyTreeNodes(nodeList);
         restoreExpanded();
+    }
+
+    // 整表替换用一次刷新：TreeAdapter.setTreeNodes 是「先删空再插入」，
+    // 高频重建时会闪出一帧空列表
+    private void applyTreeNodes(List<TreeNode> nodes) {
+        treeNodes.clear();
+        treeNodes.addAll(nodes);
+        notifyDataSetChanged();
     }
 
     // 重建后按 uid 恢复展开状态；expandNode 会把子节点插入列表，所以用按索引推进的循环

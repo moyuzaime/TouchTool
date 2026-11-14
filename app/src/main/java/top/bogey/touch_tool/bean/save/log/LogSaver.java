@@ -72,6 +72,13 @@ public class LogSaver {
         logSave.clearLog();
     }
 
+    // 顺序表延迟刷盘：任务结束或有窗口在用时补写一次
+    public void flushOrder(String key) {
+        if (key == null) return;
+        LogSave logSave = saves.get(key);
+        if (logSave != null) logSave.flushOrder();
+    }
+
     public void addListener(LogSaveListener listener) {
         listeners.add(listener);
     }

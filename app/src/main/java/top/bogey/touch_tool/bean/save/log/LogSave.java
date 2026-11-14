@@ -155,6 +155,10 @@ public class LogSave implements ITreeNodeDataLoader {
         return getOrder().size();
     }
 
+    // 顺序表延迟刷盘：每条日志都重写整张表是 O(n²) 字节搬运，按批刷可以把写放大降到 1/32
+    private final static int ORDER_FLUSH_BATCH = 32;
+    private int pendingOrderWrites = 0;
+
     public synchronized void addLog(LogInfo log, boolean autoUid) {
         // 始终用日志自身 uid（GUID）做 key，不再用序号覆盖，避免 children 引用失效
         if (log.getUid() == null || log.getUid().isEmpty()) {
@@ -169,16 +173,30 @@ public class LogSave implements ITreeNodeDataLoader {
             }
             if (!order.contains(log.getUid())) {
                 order.add(log.getUid());
-                saveOrderLocked(order);
+                if (++pendingOrderWrites >= ORDER_FLUSH_BATCH) {
+                    pendingOrderWrites = 0;
+                    saveOrderLocked(order);
+                }
             }
         }
         time = System.currentTimeMillis();
+    }
+
+    // 把还没落盘的顺序表补写一次（任务结束时调用）
+    public void flushOrder() {
+        synchronized (orderLock) {
+            if (orderCache != null && pendingOrderWrites > 0) {
+                pendingOrderWrites = 0;
+                saveOrderLocked(orderCache);
+            }
+        }
     }
 
     public void clearLog() {
         mmkv.clearAll();
         synchronized (orderLock) {
             orderCache = null;
+            pendingOrderWrites = 0;
         }
         logCache.clear();
         time = 0;

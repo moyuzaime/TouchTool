@@ -112,11 +112,14 @@ public class TaskRunnable implements Runnable {
             while (!logStack.isEmpty()) {
                 addLog(logStack.pop(), 0);
             }
-            if (logged) addLog(new LogInfo(new DateTimeLog()), 0);
+            // 分隔线只由主任务补一条：并行分支各加一条会让每次运行出现 2~3 条同一秒的分隔线
+            if (logged && !(startAction instanceof InnerStartAction)) addLog(new LogInfo(new DateTimeLog()), 0);
         } catch (Exception e) {
             AppLog.e(e);
         } finally {
             interrupt = true;
+            // 顺序表是延迟刷盘的，任务结束时补一次，避免最后几条日志没进顺序表
+            LogSaver.getInstance().flushOrder(logKey());
             listeners.stream().filter(Objects::nonNull).forEach(listener -> listener.onFinish(this));
         }
     }
