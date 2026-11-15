@@ -50,7 +50,8 @@ public class TaskRunnable implements Runnable {
     private final CompletableFuture<Void> done = new CompletableFuture<>();
 
     private boolean cacheLog = false;
-    private final List<LogInfo> cacheLogList = new ArrayList<>();
+    // 分支线程可能同时往父运行的缓存日志里追加，读的时候取快照
+    private final List<LogInfo> cacheLogList = Collections.synchronizedList(new ArrayList<>());
 
     private boolean logged = false;
     private final Stack<LogInfo> logStack = new Stack<>();
@@ -208,7 +209,9 @@ public class TaskRunnable implements Runnable {
     }
 
     public List<LogInfo> getCacheLogList() {
-        return cacheLogList;
+        synchronized (cacheLogList) {
+            return new ArrayList<>(cacheLogList);
+        }
     }
 
     // 当前正在写的日志节点（日志栈顶）：并行执行等跨线程动作靠它给子日志定父

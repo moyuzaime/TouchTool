@@ -1,6 +1,6 @@
 package top.bogey.touch_tool.bean.save.log;
 
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -24,7 +24,8 @@ public class LogSaver {
 
     private final static String LOG_DIR = MainApplication.getInstance().getCacheDir().getAbsolutePath() + "/" + AppUtil.LOG_DIR_NAME;
     private final Map<String, LogSave> saves = new ConcurrentHashMap<>();
-    private final Set<LogSaveListener> listeners = new HashSet<>();
+    // 新日志可能由分支线程写入，监听集合要并发安全
+    private final Set<LogSaveListener> listeners = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     public LogSave getLogSave(String key) {
         return saves.computeIfAbsent(key, k -> new LogSave(key, LOG_DIR));

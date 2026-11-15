@@ -13,6 +13,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import top.bogey.touch_tool.utils.AppUtil;
 import top.bogey.touch_tool.utils.GsonUtil;
@@ -23,8 +24,9 @@ public class LogInfo implements ILazyTreeNodeData {
     private String uid;
     private final long time;
     private final Log log;
-    private final List<String> children = new ArrayList<>();
-    private final transient List<LogInfo> childrenLog = new ArrayList<>();
+    // 分支线程挂子节点、主线程出栈重写父节点会同时读写，用写时复制列表：读到的总是完整快照
+    private final List<String> children = new CopyOnWriteArrayList<>();
+    private final transient List<LogInfo> childrenLog = new CopyOnWriteArrayList<>();
 
     public LogInfo(Log log) {
         uid = UUID.randomUUID().toString();
@@ -83,7 +85,8 @@ public class LogInfo implements ILazyTreeNodeData {
         return new ArrayList<>(children);
     }
 
-    public void addChild(LogInfo child) {
+    // 两个列表一起改，保证顺序一致；调用方（并行卡）另外用 synchronized(容器) 把落盘也串起来
+    public synchronized void addChild(LogInfo child) {
         childrenLog.add(child);
         addChild(child.getUid());
     }
