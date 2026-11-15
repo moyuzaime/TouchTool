@@ -23,4 +23,18 @@
     <color name="HalfAlpha">#66000000</color>
     <color name="HalfAlphaRed">#66110000</color>
     <color name="HalfAlphaGreen">#66001100</color>
+
+    <!-- 默认黑色主色调（浅色模式），夜间模式在 values-night/colors.xml 覆盖 -->
+    <color name="theme_primary">#000000</color>
+    <color name="theme_on_primary">#FFFFFF</color>
+    <color name="theme_primary_container">#E2E2E2</color>
+    <color name="theme_on_primary_container">#1A1A1A</color>
+    <color name="theme_secondary">#4D4D4D</color>
+    <color name="theme_on_secondary">#FFFFFF</color>
+    <color name="theme_secondary_container">#E4E4E4</color>
+    <color name="theme_on_secondary_container">#1C1C1C</color>
+    <color name="theme_tertiary">#666666</color>
+    <color name="theme_on_tertiary">#FFFFFF</color>
+    <color name="theme_tertiary_container">#ECECEC</color>
+    <color name="theme_on_tertiary_container">#1F1F1F</color>
 </resources>

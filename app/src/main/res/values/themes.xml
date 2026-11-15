@@ -4,6 +4,19 @@
         <item name="canvasControlContainer">?attr/colorSurfaceContainerHigh</item>
         <item name="canvasControlPrimary">?attr/colorPrimary</item>
         <item name="canvasControlSelected">?attr/colorPrimaryContainer</item>
+        <!-- 默认黑色主色调：动态颜色选「纯黑」（默认值）时走这套固定配色，浅色/夜间各一套 -->
+        <item name="colorPrimary">@color/theme_primary</item>
+        <item name="colorOnPrimary">@color/theme_on_primary</item>
+        <item name="colorPrimaryContainer">@color/theme_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/theme_on_primary_container</item>
+        <item name="colorSecondary">@color/theme_secondary</item>
+        <item name="colorOnSecondary">@color/theme_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/theme_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/theme_on_secondary_container</item>
+        <item name="colorTertiary">@color/theme_tertiary</item>
+        <item name="colorOnTertiary">@color/theme_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/theme_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/theme_on_tertiary_container</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowActionBar">false</item>

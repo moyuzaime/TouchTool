@@ -431,6 +431,7 @@ feat(blueprint): 任务菜单改为与设置页同款卡片弹窗
 feat(setting): 系统辅助开关一键开启点按反馈与指针位置
 fix(setting): 系统辅助无超级用户时兜底，横屏设置页补缺失行
 feat(setting): 自动重启无障碍与开机自启移到权限设置
+feat(theme): 默认主色调改为黑色
 ```
 
 ## 36. 线程卡片：加锁 / 解锁 / 原子累加
@@ -539,3 +540,11 @@ feat(setting): 自动重启无障碍与开机自启移到权限设置
 - 设置页右上角菜单里的两个开关行（自动重启无障碍、开机自启）移到设置页「权限设置」分组末尾，竖屏/横屏布局同步加了对应行；菜单只剩帮助文档、视频教程、录屏/受限设置命令与日志入口。
 - 行为不变：仍读写 `SettingSaver.APP_AUTO_RESTART_SERVICE` / `APP_AUTO_START`，开启时弹原来的说明对话框；控件换成与其它行一致的 `SettingWidgetSwitch`，整行可点。
 - 真机验证：两行在权限设置里显示、切换正常，开启弹原说明框；重启应用后状态保持开启；⋯ 菜单不再出现这两项。
+
+## 49. 默认主色调改为黑色
+
+- 位置：`res/values/colors.xml`、`res/values-night/colors.xml`、`res/values/themes.xml`、`bean/save/setting/special/DynamicColor.java`、`res/values/strings.xml`
+- `Theme.TouchTool` 直接覆盖 Material3 的 primary/secondary/tertiary 三组颜色：浅色模式是纯黑主色（白字、浅灰容器），夜间模式换成浅灰主色，避免黑底上看不清。
+- 动态颜色：默认「纯黑」不再套壁纸/动态取色（Material 的黑色种子会退回默认紫色），直接用上面这套固定黑白配色；自选其它颜色仍按原有动态取色逻辑走。
+- 设置页「动态颜色」说明改为「开启后应用将使用自选颜色作为主色调（点击此处自选颜色，默认纯黑）」。
+- 真机验证：浅色模式功能启用卡片、开关、按钮、选中态均为黑色；切「总是开启」深色模式后主色变浅灰、文字可读；恢复「跟随系统」回到黑色。

@@ -36,7 +36,8 @@ public class DynamicColor extends SettingSave<Boolean> {
             public void onActivityPreCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
                 super.onActivityPreCreated(activity, savedInstanceState);
                 // 系统调色板颜色是写死在主题资源里的，material 的可用性判定却带厂商白名单，非白名单 ROM 上会直接跳过，这里按资源再套一次
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && get()) {
+                // 默认纯黑（未自选颜色）不套动态取色，直接用主题里固定的黑色配色
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && get() && SettingSaver.DYNAMIC_COLOR_OPTIONS.get() != Color.BLACK) {
                     activity.getTheme().applyStyle(com.google.android.material.R.style.ThemeOverlay_Material3Expressive_DynamicColors_DayNight, true);
                 }
                 DynamicColors.applyToActivityIfAvailable(activity, getDynamicColorOptions());
@@ -46,7 +47,6 @@ public class DynamicColor extends SettingSave<Boolean> {
 
     private DynamicColorsOptions getDynamicColorOptions() {
         DynamicColorsOptions.Builder builder = new DynamicColorsOptions.Builder();
-        builder.setPrecondition((activity, theme) -> get());
         builder.setOnAppliedCallback(activity -> {
             boolean darkMode = (activity.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
 
@@ -57,6 +57,8 @@ public class DynamicColor extends SettingSave<Boolean> {
             FloatWindow.dismiss(KeepAliveFloatView.class.getName());
         });
         int colorValue = SettingSaver.DYNAMIC_COLOR_OPTIONS.get();
+        // 默认纯黑走固定配色，不覆盖；其它颜色按自选颜色生成
+        builder.setPrecondition((activity, theme) -> get() && colorValue != Color.BLACK);
         if (colorValue != Color.BLACK) builder.setContentBasedSource(colorValue);
         return builder.build();
     }

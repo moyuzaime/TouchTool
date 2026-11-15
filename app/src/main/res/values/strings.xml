@@ -430,7 +430,7 @@
     <string name="preference_setting_theme">深色模式</string>
 
     <string name="preference_setting_color">动态颜色</string>
-    <string name="preference_setting_color_desc">在支持的Android版本上，开启后应用将使用壁纸颜色或自选颜色作为主色调\n(点击此处自选颜色，纯黑为壁纸主色调)</string>
+    <string name="preference_setting_color_desc">在支持的Android版本上，开启后应用将使用自选颜色作为主色调\n(点击此处自选颜色，默认纯黑)</string>
 
     <!-- 设置-偏好设置-手动执行 -->
     <string name="preference_setting_manual_play">手动执行</string>

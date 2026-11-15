@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="AppPinColor">#CCCCCC</color>
+
+    <!-- 默认黑色主色调（夜间模式）：黑底上主色改成浅灰，保证可见 -->
+    <color name="theme_primary">#F2F2F2</color>
+    <color name="theme_on_primary">#0A0A0A</color>
+    <color name="theme_primary_container">#3B3B3B</color>
+    <color name="theme_on_primary_container">#F5F5F5</color>
+    <color name="theme_secondary">#C7C7C7</color>
+    <color name="theme_on_secondary">#000000</color>
+    <color name="theme_secondary_container">#474747</color>
+    <color name="theme_on_secondary_container">#EFEFEF</color>
+    <color name="theme_tertiary">#ADADAD</color>
+    <color name="theme_on_tertiary">#000000</color>
+    <color name="theme_tertiary_container">#3F3F3F</color>
+    <color name="theme_on_tertiary_container">#F0F0F0</color>
 </resources>
