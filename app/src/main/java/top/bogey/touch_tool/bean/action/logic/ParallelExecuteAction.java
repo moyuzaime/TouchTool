@@ -4,8 +4,11 @@ import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import top.bogey.touch_tool.MainApplication;
 import top.bogey.touch_tool.R;
@@ -68,9 +71,15 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
             validPins.add(dynamicPin);
         }
 
-        CountDownLatch latch = new CountDownLatch(validPins.size());
-        int countValue = count.intValue();
-        List<TaskRunnable> runnableList = new ArrayList<>();
+        int total = validPins.size();
+        // 完成数至少要 1，否则一有分支结束就会立刻停掉其余的
+        int need = Math.max(1, count.intValue());
+        CountDownLatch latch = new CountDownLatch(total);
+        // 分支结束时会在自己的线程里遍历这个列表，而主线程可能还在往里加，必须用并发容器
+        List<TaskRunnable> runnableList = new CopyOnWriteArrayList<>();
+        AtomicInteger doneCount = new AtomicInteger();
+        AtomicInteger rejectedCount = new AtomicInteger();
+        AtomicBoolean completed = new AtomicBoolean(false);
 
         Task currTask = runnable.getTask();
         if (runnable.isDebug()) currTask.addFlag(Task.FLAG_DEBUG);
@@ -78,7 +87,7 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         LogInfo container = runnable.getCurrentLogInfo();
 
         for (Pin dynamicPin : validPins) {
-            TaskRunnable taskRunnable = service.runTask(currTask, new InnerStartAction(dynamicPin), new ITaskListener() {
+            TaskRunnable taskRunnable = service == null ? null : service.runTask(currTask, new InnerStartAction(dynamicPin), new ITaskListener() {
                 @Override
                 public void onExecute(TaskRunnable run, Action action, int progress) {
                     if (runnable.isCurrentInterrupt()) run.stop();
@@ -104,14 +113,24 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
                         }
                     }
 
+                    doneCount.incrementAndGet();
                     latch.countDown();
-                    if (countValue <= latch.getCount()) {
-                        runnableList.forEach(TaskRunnable::stop);
-                        resultPin.getValue(PinBoolean.class).setValue(true);
+                    // 达成完成数：停掉还在跑的分支，主流程可以继续了
+                    if (doneCount.get() >= need && completed.compareAndSet(false, true)) {
+                        stopBranches(runnableList);
                     }
                 }
             });
-            runnableList.add(taskRunnable);
+            if (taskRunnable == null) {
+                // 未启动也要推进计数，否则每次运行都要等满超时；也不能把 null 塞进列表
+                rejectedCount.incrementAndGet();
+                latch.countDown();
+            } else {
+                runnableList.add(taskRunnable);
+            }
+        }
+        if (rejectedCount.get() > 0) {
+            AppLog.e("并行执行", "分支未启动 " + rejectedCount.get() + " 个（线程池已满或服务不可用）");
         }
 
         ITaskListener listener = new ITaskListener() {
@@ -133,11 +152,37 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
             }
         } catch (InterruptedException e) {
             AppLog.e(e);
-            resultPin.getValue(PinBoolean.class).setValue(false);
+            Thread.currentThread().interrupt();
         }
         runnable.removeListener(listener);
 
+        // 超时、提前完成或任务被停止时，仍在跑的分支必须收掉，
+        // 否则任务结束后它们还在点屏、写日志，日志树里还会迟到冒出新条目
+        int stoppedCount = stopBranches(runnableList);
+        if (stoppedCount > 0) {
+            // 分支里的 sleep 是 100ms 切片，给一点宽限让它自己收尾，日志节点才能挂到并行节点下
+            try {
+                latch.await(200, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            AppLog.e("并行执行", "停止仍在运行的分支 " + stoppedCount + " 个");
+        }
+
+        // 只有完成数达成才算成功；超时和任务停止都算未达成
+        resultPin.getValue(PinBoolean.class).setValue(doneCount.get() >= need);
         executeNext(runnable, completePin);
+    }
+
+    // 停掉还没结束的分支，返回实际停止的数量
+    private int stopBranches(List<TaskRunnable> runnableList) {
+        int count = 0;
+        for (TaskRunnable taskRunnable : runnableList) {
+            if (taskRunnable == null || taskRunnable.isInterrupt()) continue;
+            taskRunnable.stop();
+            count++;
+        }
+        return count;
     }
 
     private List<String> saveLogs(TaskRunnable runnable, List<LogInfo> logList) {
