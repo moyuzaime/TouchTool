@@ -119,14 +119,12 @@
 - 无日志时列表中央显示「暂无日志」，不再是空白。
 - 无障碍服务未就绪时不再尝试加窗（会抛 `BadTokenException` 并留下关不掉的幽灵窗口），改为提示「无障碍服务未启用」。
 
-### 8. 任务菜单改为带图标与开关的弹出面板
+### 8. 任务菜单：上游弹出菜单 + 「辅助工具」开关
 
-- 位置：`ui/blueprint/BlueprintView.java`（`showTaskMenu()`）、`res/layout/dialog_blueprint_menu.xml`
-- 原先是 `androidx.appcompat.widget.PopupMenu`：四项纯文字、字号偏大、右侧是方框勾选，观感与全局对话框不一致。
-- 改为 `PopupWindow` + `MaterialCardView` 承载的自定义面板：贴住顶栏「⋯」按钮下方、右边缘对齐，无遮罩、点外部自动关闭，位置与原弹出菜单一致。
-- 每行「图标 + 标题」，两个开关项（记录日志细节 / 辅助工具）用 `MaterialSwitch` 直接反映状态，行高统一 56dp。
-- 「记录日志细节」仍只在顶层任务显示；「任务截图」的预览/保存/分享流程保持不变（抽成 `showTaskCapture()`）。
-- 原来的 `res/menu/menu_blueprint.xml` 已无引用，一并删除。
+- 位置：`ui/blueprint/BlueprintView.java`（`showTaskMenu()`）、`res/menu/menu_blueprint.xml`
+- 菜单沿用上游的 `PopupMenu`：`打开任务日志`、`记录日志细节`（可勾选，仅顶层任务可见）、`任务截图` 三项的行为与上游一致。
+- 本项目只多一项可勾选的「辅助工具」，控制方向盘/缩放条的显隐。
+- 「任务截图」仍走本项目的流式导出（`showTaskCapture()`），预览、保存、分享流程见第 9 节。
 
 ### 9. 任务截图：按原始尺寸流式导出
 
@@ -444,3 +442,8 @@ refactor(port): 文件卡片合并为 10 张
 
 - 并行分支内的「输出日志」在同一毫秒会记录两条（渲染层按「时间+actionId」去重仍无法合并，说明两条 actionId 不同）
 - 定位方法：`LogSaver.addLog` 打印 `actionId + 调用栈`，对比两次写入的来源
+## 40. 蓝图里的任务日志入口与日志浮窗回退为上游
+
+- 入口：蓝图顶栏不再单独放「日志」按钮，任务日志统一从「⋯ → 打开任务日志」进；「记录日志细节」回到上游的可勾选菜单项（切换任务的 `FLAG_DEBUG` 并保存，仅顶层任务可见）。
+- 浮窗：`ui/tool/log/LogFloatView`、`LogFloatViewAdapter`、`res/layout/float_log.xml` 与上游完全一致，第 5、6、7、39 节描述的日志改造均已回退。
+- 保留：任务菜单里本项目的「辅助工具」开关，以及任务截图的流式导出。

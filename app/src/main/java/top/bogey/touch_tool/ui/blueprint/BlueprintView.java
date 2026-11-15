@@ -5,15 +5,12 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.util.Size;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,7 +18,6 @@ import android.widget.FrameLayout;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Toast;
-import android.widget.PopupWindow;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
@@ -52,7 +48,6 @@ import top.bogey.touch_tool.bean.save.setting.SettingSaver;
 import top.bogey.touch_tool.bean.save.task.TaskSaver;
 import top.bogey.touch_tool.MainApplication;
 import top.bogey.touch_tool.bean.task.Task;
-import top.bogey.touch_tool.databinding.DialogBlueprintMenuBinding;
 import top.bogey.touch_tool.databinding.DialogTaskCaptureBinding;
 import top.bogey.touch_tool.databinding.ViewBlueprintBinding;
 import top.bogey.touch_tool.ui.MainActivity;
@@ -251,50 +246,46 @@ public class BlueprintView extends Fragment {
         }
     }
 
-    // 任务菜单：贴右上角弹出的面板，带图标与开关
+    // 任务菜单：沿用上游的弹出菜单，日志入口与「记录日志细节」行为也给上游一致；「辅助工具」为本项目自有项
     private void showTaskMenu() {
-        DialogBlueprintMenuBinding menuBinding = DialogBlueprintMenuBinding.inflate(getLayoutInflater());
+        PopupMenu popupMenu = new PopupMenu(requireContext(), binding.moreButton);
+        popupMenu.getMenuInflater().inflate(R.menu.menu_blueprint, popupMenu.getMenu());
+
         Task currTask = taskStack.peek();
-        boolean topLevel = currTask.getParent() == null;
 
-        menuBinding.detailRow.setVisibility(topLevel ? View.VISIBLE : View.GONE);
-        menuBinding.detailSwitch.setChecked(currTask.hasFlag(Task.FLAG_DEBUG));
-        menuBinding.editToolsSwitch.setChecked(showEditTools);
+        MenuItem detailItem = popupMenu.getMenu().findItem(R.id.taskDetailLog);
+        detailItem.setChecked(currTask.hasFlag(Task.FLAG_DEBUG));
+        detailItem.setVisible(currTask.getParent() == null);
 
-        PopupWindow popup = new PopupWindow(menuBinding.getRoot(),
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
-        popup.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        popup.setOutsideTouchable(true);
-        popup.setElevation(DisplayUtil.dp2px(requireContext(), 6));
+        MenuItem editToolsItem = popupMenu.getMenu().findItem(R.id.blueprintEditTools);
+        editToolsItem.setChecked(showEditTools);
 
-        menuBinding.logRow.setOnClickListener(v -> {
-            popup.dismiss();
-            Task rootTask = currTask;
-            while (rootTask.getParent() != null) rootTask = rootTask.getParent();
-            new LogFloatView(requireContext(), rootTask).show();
+        popupMenu.setOnMenuItemClickListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.taskRunningLog) {
+                Task rootTask = currTask;
+                while (rootTask.getParent() != null) rootTask = rootTask.getParent();
+                new LogFloatView(requireContext(), rootTask).show();
+                return true;
+            } else if (itemId == R.id.taskDetailLog) {
+                currTask.toggleFlag(Task.FLAG_DEBUG);
+                currTask.save();
+                item.setChecked(currTask.hasFlag(Task.FLAG_DEBUG));
+                return true;
+            } else if (itemId == R.id.taskCapture) {
+                showTaskCapture();
+                return true;
+            } else if (itemId == R.id.blueprintEditTools) {
+                showEditTools = !showEditTools;
+                item.setChecked(showEditTools);
+                applyControlLayout();
+                applyEditToolsVisible(binding.searchButton.isChecked());
+                return true;
+            }
+            return false;
         });
 
-        menuBinding.detailRow.setOnClickListener(v -> menuBinding.detailSwitch.toggle());
-        menuBinding.detailSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked == currTask.hasFlag(Task.FLAG_DEBUG)) return;
-            currTask.toggleFlag(Task.FLAG_DEBUG);
-            currTask.save();
-        });
-
-        menuBinding.captureRow.setOnClickListener(v -> {
-            popup.dismiss();
-            showTaskCapture();
-        });
-
-        menuBinding.editToolsRow.setOnClickListener(v -> menuBinding.editToolsSwitch.toggle());
-        menuBinding.editToolsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            showEditTools = isChecked;
-            applyControlLayout();
-        applyEditToolsVisible(binding.searchButton.isChecked());
-        });
-
-        // 贴住更多按钮下方、右边缘对齐，位置和原生弹出菜单一致
-        popup.showAsDropDown(binding.moreButton, 0, (int) DisplayUtil.dp2px(requireContext(), 4), Gravity.END);
+        popupMenu.show();
     }
 
     // 任务截图：后台按原始尺寸流式生成，再给一个采样预览
@@ -430,12 +421,6 @@ public class BlueprintView extends Fragment {
             }
         });
 
-        // 顶部「日志」：打开当前任务的日志窗口
-        binding.logButton.setOnClickListener(v -> {
-            Task current = taskStack.peek();
-            if (current == null) return;
-            new LogFloatView(requireContext(), current).show();
-        });
         // 顶部「运行」：直接跑当前任务的手动开始动作
         binding.runButton.setOnClickListener(v -> {
             top.bogey.touch_tool.service.MainAccessibilityService service =
