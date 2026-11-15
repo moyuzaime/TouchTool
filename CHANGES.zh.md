@@ -447,3 +447,10 @@ refactor(port): 文件卡片合并为 10 张
 - 入口：蓝图顶栏不再单独放「日志」按钮，任务日志统一从「⋯ → 打开任务日志」进；「记录日志细节」回到上游的可勾选菜单项（切换任务的 `FLAG_DEBUG` 并保存，仅顶层任务可见）。
 - 浮窗：`ui/tool/log/LogFloatView`、`LogFloatViewAdapter`、`res/layout/float_log.xml` 与上游完全一致，第 5、6、7、39 节描述的日志改造均已回退。
 - 保留：任务菜单里本项目的「辅助工具」开关，以及任务截图的流式导出。
+
+## 41. 并行执行的分支日志挂回并行节点
+
+- 位置：`bean/action/logic/ParallelExecuteAction.java`、`service/TaskRunnable.java`（新增 `getCurrentLogInfo()`）
+- 问题：分支 runnable 的日志在 `onFinish` 里才落盘，此时主流程可能已经走完并行卡、日志栈已清空，`runnable.addLog()` 于是把分支写成新的根节点——日志窗口里表现为并行节点没有子项、分支条目跑到同级甚至根级，顺序也乱。
+- 改动：执行并行卡时先取当前日志节点作为容器，分支结束时把分支日志节点直接挂到它下面并补写一次父节点；容器为空（未开细节日志）时仍走原来的 `addLog()`。
+- 结果：结构回到上游那种 `循环 → 并行执行 → 并行执行(分支) → 条件循环/输出日志` 的嵌套。

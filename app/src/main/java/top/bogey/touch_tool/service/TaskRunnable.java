@@ -184,6 +184,11 @@ public class TaskRunnable implements Runnable {
         return cacheLogList;
     }
 
+    // 当前正在写的日志节点（日志栈顶）：并行执行等跨线程动作靠它给子日志定父
+    public LogInfo getCurrentLogInfo() {
+        return logStack.isEmpty() ? null : logStack.peek();
+    }
+
     public int getProgress() {
         return progress;
     }

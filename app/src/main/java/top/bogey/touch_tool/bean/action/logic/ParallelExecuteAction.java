@@ -74,6 +74,8 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
 
         Task currTask = runnable.getTask();
         if (runnable.isDebug()) currTask.addFlag(Task.FLAG_DEBUG);
+        // 并行节点自己的日志：分支日志统一挂到它下面，分支晚于主流程结束也不会脱层
+        LogInfo container = runnable.getCurrentLogInfo();
 
         for (Pin dynamicPin : validPins) {
             TaskRunnable taskRunnable = service.runTask(currTask, new InnerStartAction(dynamicPin), new ITaskListener() {
@@ -88,7 +90,19 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
                     List<String> logs = saveLogs(runnable, logList);
                     LogInfo logInfo = new LogInfo(new ActionLog(runnable.getProgress() + 1, currTask, ParallelExecuteAction.this, true));
                     logInfo.setChildren(logs);
-                    runnable.addLog(logInfo, 0);
+                    // 分支结束时主流程可能已经走完、日志栈已清空，这时再走 runnable.addLog()
+                    // 会把分支写成新的根节点；直接挂到并行的日志节点下，父子关系才稳定
+                    if (container == null) {
+                        runnable.addLog(logInfo, 0);
+                    } else {
+                        synchronized (container) {
+                            container.addChild(logInfo);
+                            String taskId = runnable.getStartTask().getId();
+                            LogSaver.getInstance().addLog(taskId, logInfo, false);
+                            // 并行节点可能已落盘，补写一次把新挂的分支带上
+                            LogSaver.getInstance().addLog(taskId, container, false);
+                        }
+                    }
 
                     latch.countDown();
                     if (countValue <= latch.getCount()) {

@@ -32,3 +32,5 @@
 - **广播收发**：发送侧只按 `setPackage` 做包限定——app 针脚给的是 activity，用 `setClassName` 会变成指向组件的显式广播，动态注册的接收器永远收不到；app 针脚为空则发全局隐式广播；context 优先用无障碍服务，服务不在时退回 `MainApplication`。接收侧 `broadcastReceivers` 以 `taskId + actionId` 为键，重复注册必须先把旧接收器注销，否则改了触发器的广播名后旧过滤器残留、新名字收不到，只能重启服务；extras 用 `bundle.get()` 转字符串，`getString` 会把 int/bool 取成 null。
 
 - **NodePicker**：选中结果没有快照回退——`roots` 由 `NodeInfo.getWindows()` 现场抓取，打开前已被移除的控件找不回（`findNode` 返回 null），只有手动导入 .ttl 才走离线树；打开后才移除的反而选得到，因为整棵树在构造时已物化冻结。已知隐患：`getChildCount()` 实时而 `getChild(i)` 优先返回缓存，会跳过末尾节点或错位返回兄弟节点；`PinNode.nodeInfo` 是 `transient`，选中结果不参与序列化。
+
+- **并行执行的日志归属**：分支 runnable（`InnerStartAction`）的 `cacheLog` 为 true，日志只在 `onFinish` 里经 `saveLogs()` 落盘；此时主流程可能已经走完并行卡、主 runnable 的 `logStack` 已清空，再调 `runnable.addLog()` 会把分支写成新的根节点（日志窗里分支条目与并行节点同级甚至升到根级）。并行卡必须先取 `runnable.getCurrentLogInfo()` 作容器，分支结束时把分支日志节点挂到它下面并补写一次父节点，容器为空时（未开细节日志）才回退到 `addLog()`。日志树靠「节点出栈时整条重写」落盘，所以父节点的 children 必须在出栈前挂好。
