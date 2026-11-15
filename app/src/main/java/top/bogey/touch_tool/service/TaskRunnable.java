@@ -3,12 +3,15 @@ package top.bogey.touch_tool.service;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.Stack;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import top.bogey.touch_tool.bean.action.Action;
 import top.bogey.touch_tool.bean.action.start.InnerStartAction;
@@ -24,7 +27,8 @@ import top.bogey.touch_tool.utils.AppLog;
 
 public class TaskRunnable implements Runnable {
     private final Stack<TaskContext> taskContextStack = new Stack<>();
-    private final Set<ITaskListener> listeners = new HashSet<>();
+    // 监听器可能由任意线程回调（分支在自己的线程里结束、取消排队中的运行由调用方线程触发），用并发集合
+    private final Set<ITaskListener> listeners = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     private final Task task;
     private final StartAction startAction;
@@ -33,10 +37,17 @@ public class TaskRunnable implements Runnable {
 
     private int progress = 0;
 
-    private Future<?> future;
+    private volatile Future<?> future;
     private volatile boolean interrupt = false;
     private volatile long pauseTime = -1;
     private volatile boolean forcePaused = false;
+
+    // run() 是否已经开始执行：用来区分「排队中被取消（run() 永不执行）」和「已在跑」
+    private volatile boolean started = false;
+    // 收尾只做一次：run() 的 finally 与 stop() 取消排队任务都可能走到收尾
+    private final AtomicBoolean finished = new AtomicBoolean(false);
+    // 完成信号：等待异步分支时直接等它，不用轮询
+    private final CompletableFuture<Void> done = new CompletableFuture<>();
 
     private boolean cacheLog = false;
     private final List<LogInfo> cacheLogList = new ArrayList<>();
@@ -53,6 +64,7 @@ public class TaskRunnable implements Runnable {
 
     @Override
     public void run() {
+        started = true;
         if (startAction instanceof InnerStartAction) {
             cacheLog = true;
         }
@@ -86,9 +98,23 @@ public class TaskRunnable implements Runnable {
         } catch (Exception e) {
             AppLog.e(e);
         } finally {
-            interrupt = true;
-            listeners.stream().filter(Objects::nonNull).forEach(listener -> listener.onFinish(this));
+            finishOnce();
         }
+    }
+
+    // 统一的收尾出口：正常跑完和「取消排队中的运行」都走这里，保证 onFinish 只触发一次
+    private void finishOnce() {
+        if (!finished.compareAndSet(false, true)) return;
+        interrupt = true;
+        for (ITaskListener listener : new ArrayList<>(listeners)) {
+            if (listener == null) continue;
+            try {
+                listener.onFinish(this);
+            } catch (Throwable e) {
+                AppLog.e("线程", "onFinish 回调异常", e);
+            }
+        }
+        done.complete(null);
     }
 
     public void pushStack(Task task, Action action) {
@@ -124,6 +150,7 @@ public class TaskRunnable implements Runnable {
     }
 
     public void addListener(ITaskListener listener) {
+        if (listener == null) return;
         listeners.add(listener);
     }
 
@@ -193,12 +220,24 @@ public class TaskRunnable implements Runnable {
         return progress;
     }
 
-    public synchronized void stop() {
-        interrupt = true;
-        forceResume();
-        if (pauseTime >= 0) resume();
-        if (future != null) future.cancel(true);
-        taskContextStack.forEach(taskContext -> taskContext.setInterrupt(true));
+    public void stop() {
+        boolean needFinish;
+        boolean wasPaused;
+        synchronized (this) {
+            interrupt = true;
+            wasPaused = forcePaused || pauseTime >= 0;
+            forcePaused = false;
+            pauseTime = -1;
+            notifyAll();
+            Future<?> f = future;
+            // cancel 对「排队中」和「已在跑」都返回 true，只有还没开始时 run() 不会执行，
+            // 必须在这里补一次收尾，否则 onFinish 永远不来（并行 latch、异步句柄都会残留）；
+            // 已在跑的任务走 run() 的 finally，不能提前触发 onFinish
+            needFinish = f != null && f.cancel(true) && !started;
+            taskContextStack.forEach(taskContext -> taskContext.setInterrupt(true));
+        }
+        if (wasPaused) notifyPauseChanged(false);
+        if (needFinish) finishOnce();
     }
 
     public void stopCurrent() {
@@ -210,7 +249,9 @@ public class TaskRunnable implements Runnable {
     }
 
     public boolean isCurrentInterrupt() {
-        return interrupt || taskContextStack.peek().isInterrupt();
+        if (interrupt) return true;
+        if (taskContextStack.isEmpty()) return false;
+        return taskContextStack.peek().isInterrupt();
     }
 
     private synchronized void checkStatus() {
@@ -271,19 +312,50 @@ public class TaskRunnable implements Runnable {
     }
 
     // 其他线程告诉当前任务要暂停了
-    public synchronized void forcePause() {
-        if (forcePaused) return;
-        forcePaused = true;
-        listeners.stream().filter(Objects::nonNull).forEach(listener -> listener.onPauseChanged(this, true));
+    public void forcePause() {
+        synchronized (this) {
+            if (forcePaused || interrupt) return;
+            forcePaused = true;
+            // 等锁的线程可能已通过 while 判断进入 wait，这里补一次唤醒
+            notifyAll();
+        }
+        notifyPauseChanged(true);
     }
 
-    public synchronized void forceResume() {
-        if (!forcePaused) return;
-        forcePaused = false;
-        notifyAll();
-        listeners.stream().filter(Objects::nonNull).forEach(listener -> listener.onPauseChanged(this, false));
+    // 其他线程告诉当前任务要继续了
+    public void forceResume() {
+        synchronized (this) {
+            if (!forcePaused) return;
+            forcePaused = false;
+            notifyAll();
+        }
+        notifyPauseChanged(false);
     }
 
+    // 通知监听方暂停状态变化：放在锁外回调，避免监听方再操作别的运行时互相等锁
+    private void notifyPauseChanged(boolean paused) {
+        for (ITaskListener listener : new ArrayList<>(listeners)) {
+            if (listener == null) continue;
+            try {
+                listener.onPauseChanged(this, paused);
+            } catch (Throwable e) {
+                AppLog.e("线程", "onPauseChanged 回调异常", e);
+            }
+        }
+    }
+
+    // 完成信号：等待异步分支结束时用，未结束前不返回
+    public CompletableFuture<Void> getDone() {
+        return done;
+    }
+
+    public boolean isFinished() {
+        return finished.get();
+    }
+
+    public boolean isStarted() {
+        return started;
+    }
 
     public boolean isDebug() {
         return debug;
