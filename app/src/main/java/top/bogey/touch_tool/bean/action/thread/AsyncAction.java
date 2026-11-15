@@ -42,7 +42,7 @@ public class AsyncAction extends ExecuteAction {
                 public void onExecute(TaskRunnable run, Action action, int progress) {
                     if (runnable.isCurrentInterrupt()) run.stop();
                 }
-            });
+            }, runnable);
         }
 
         String handle = "";

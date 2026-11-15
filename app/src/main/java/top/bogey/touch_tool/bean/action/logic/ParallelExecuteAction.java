@@ -120,7 +120,7 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
                         stopBranches(runnableList);
                     }
                 }
-            });
+            }, runnable);
             if (taskRunnable == null) {
                 // 未启动也要推进计数，否则每次运行都要等满超时；也不能把 null 塞进列表
                 rejectedCount.incrementAndGet();
@@ -133,17 +133,6 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
             AppLog.e("并行执行", "分支未启动 " + rejectedCount.get() + " 个（线程池已满或服务不可用）");
         }
 
-        ITaskListener listener = new ITaskListener() {
-            @Override
-            public void onPauseChanged(TaskRunnable runnable, boolean paused) {
-                for (TaskRunnable taskRunnable : runnableList) {
-                    if (paused) taskRunnable.forcePause();
-                    else taskRunnable.forceResume();
-                }
-            }
-        };
-        runnable.addListener(listener);
-
         try {
             if (timeout.intValue() <= 0) {
                 latch.await();
@@ -154,7 +143,6 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
             AppLog.e(e);
             Thread.currentThread().interrupt();
         }
-        runnable.removeListener(listener);
 
         // 超时、提前完成或任务被停止时，仍在跑的分支必须收掉，
         // 否则任务结束后它们还在点屏、写日志，日志树里还会迟到冒出新条目

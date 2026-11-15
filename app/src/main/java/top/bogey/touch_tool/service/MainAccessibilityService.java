@@ -342,10 +342,15 @@ public class MainAccessibilityService extends AccessibilityService {
     }
 
     public void runTask(Task task, StartAction startAction) {
-        runTask(task, startAction, null);
+        runTask(task, startAction, null, null);
     }
 
     public TaskRunnable runTask(Task task, StartAction startAction, ITaskListener listener) {
+        return runTask(task, startAction, listener, null);
+    }
+
+    // parent 不为空表示这是一条分支：父运行暂停/恢复时同步传给分支，各分支入口不用各写一遍
+    public TaskRunnable runTask(Task task, StartAction startAction, ITaskListener listener, TaskRunnable parent) {
         cleanInterruptTask();
 
         if (task == null || startAction == null) return null;
@@ -358,6 +363,24 @@ public class MainAccessibilityService extends AccessibilityService {
         TaskRunnable runnable = new TaskRunnable(task, startAction);
         // 若当前任务有分支日志收集器（并行/异步分支），把本 runnable 的缓存日志也登记进去
         if (listener != null) runnable.addListener(listener);
+
+        if (parent != null) {
+            ITaskListener pauseBridge = new ITaskListener() {
+                @Override
+                public void onPauseChanged(TaskRunnable run, boolean paused) {
+                    if (paused) runnable.forcePause();
+                    else runnable.forceResume();
+                }
+            };
+            parent.addListener(pauseBridge);
+            // 分支结束后把桥接监听摘掉，否则父运行会一直攒着监听
+            runnable.addListener(new ITaskListener() {
+                @Override
+                public void onFinish(TaskRunnable run) {
+                    parent.removeListener(pauseBridge);
+                }
+            });
+        }
 
         runnable.addListener(new ITaskListener() {
 
