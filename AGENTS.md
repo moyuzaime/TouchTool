@@ -38,3 +38,5 @@
 - **清理缓存与分享到的选项数组**：`SettingView` 的清理缓存对话框用 `setMultiChoiceItems`，条目来自 `R.array.cache_dir_name`，与 `AppUtil` 里实际清理的三个缓存目录（log/task/document）一一对应；多选列表的条目与勾选数组长度不一致时，AppCompat 测量列表会按条目下标取勾选状态而越界崩溃，改名字数组必须同步改目录列表。`R.array.share_type` 只有「文字 / 文件」两项，`ShareToAction` 按 index 0/1 分发，多出来的选项会发出没有 type 的 SEND intent。
 
 - **设置页的两套布局**：设置页同时有 `res/layout/view_setting.xml` 与 `res/layout-land/view_setting.xml`，`SettingView` 用 `ViewSettingBinding` 绑定每个行 id；只往一套里加行时，另一套创建页面会因绑定字段为 null 直接空指针崩溃（`fileAccessSwitch`、`branchLimitSelect` 都踩过），加行必须两边同步。
+
+- **按开关收起输出针脚**：要让一张卡默认少显示几个输出，用 `ShowAblePin` 子类在 `showAble(Task)` 里查动作上的开关针脚（`GetNodeInfoAction` 的「显示全部属性」+ `isLinked()` 就是这么做的），卡片高度与 `PinView.expand` 会自动跟着变；开关针脚插在定义列表中间也安全，`reAddPins` 按类顺序匹配、遇到不同类不会消耗老任务的临时针脚，老任务不会丢针脚。

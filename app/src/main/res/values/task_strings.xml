@@ -569,6 +569,7 @@
 
     <string name="get_node_info_action">获取控件信息</string>
     <string name="get_node_info_action_desc">获取控件详细信息</string>
+    <string name="get_node_info_action_show_all">显示全部属性</string>
     <string name="get_node_info_action_clazz">类名</string>
     <string name="get_node_info_action_id">控件ID</string>
     <string name="get_node_info_action_node_desc">描述</string>
