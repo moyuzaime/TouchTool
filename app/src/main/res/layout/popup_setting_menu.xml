@@ -90,51 +90,6 @@
                 android:text="@string/app_setting_log_title" />
         </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/rowAutoRestart"
-            style="@style/Theme.TouchTool.PopupMenuRow"
-            android:layout_width="match_parent">
-
-            <TextView
-                style="@style/Theme.TouchTool.PopupMenuText"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:maxWidth="10000dp"
-                android:text="@string/app_setting_auto_reload" />
-
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/autoRestartSwitch"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/rowAutoStart"
-            style="@style/Theme.TouchTool.PopupMenuRow"
-            android:layout_width="match_parent">
-
-            <TextView
-                style="@style/Theme.TouchTool.PopupMenuText"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:maxWidth="10000dp"
-                android:text="@string/app_setting_auto_start" />
-
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/autoStartSwitch"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp" />
-        </LinearLayout>
-
-
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

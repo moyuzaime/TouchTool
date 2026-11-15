@@ -291,10 +291,32 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="?attr/defaultOffset"
                     android:layout_marginTop="?attr/defaultOffset"
-                    app:rowCorner="bottom"
+                    app:rowCorner="middle"
                     app:description="@string/permission_setting_location_desc"
                     app:icon="@drawable/icon_my_location"
                     app:title="@string/permission_setting_location" />
+
+                <top.bogey.touch_tool.ui.setting.widget.SettingWidgetSwitch
+                    android:id="@+id/autoRestartSwitch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="?attr/defaultOffset"
+                    android:layout_marginTop="?attr/defaultOffset"
+                    app:rowCorner="middle"
+                    app:description="@string/app_setting_auto_reload_desc"
+                    app:icon="@drawable/icon_refresh"
+                    app:title="@string/app_setting_auto_reload" />
+
+                <top.bogey.touch_tool.ui.setting.widget.SettingWidgetSwitch
+                    android:id="@+id/autoStartSwitch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="?attr/defaultOffset"
+                    android:layout_marginTop="?attr/defaultOffset"
+                    app:rowCorner="bottom"
+                    app:description="@string/app_setting_auto_start_desc"
+                    app:icon="@drawable/icon_autoplay"
+                    app:title="@string/app_setting_auto_start" />
 
             </LinearLayout>
 

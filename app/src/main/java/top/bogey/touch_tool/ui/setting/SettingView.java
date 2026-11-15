@@ -122,33 +122,6 @@ public class SettingView extends Fragment {
             dismissPopup(menu.getRoot());
             showLogDialog();
         });
-        // 自动重启：服务掉线时回前台自动重绑
-        menu.autoRestartSwitch.setChecked(SettingSaver.APP_AUTO_RESTART_SERVICE.get());
-        menu.rowAutoRestart.setOnClickListener(v -> menu.autoRestartSwitch.toggle());
-        menu.autoRestartSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            SettingSaver.APP_AUTO_RESTART_SERVICE.set(isChecked);
-            if (isChecked) {
-                new MaterialAlertDialogBuilder(requireContext())
-                        .setTitle(R.string.app_setting_auto_reload)
-                        .setMessage(R.string.app_setting_auto_reload_desc)
-                        .setPositiveButton(R.string.close, null)
-                        .show();
-            }
-        });
-
-        // 开机自启
-        menu.autoStartSwitch.setChecked(SettingSaver.APP_AUTO_START.get());
-        menu.rowAutoStart.setOnClickListener(v -> menu.autoStartSwitch.toggle());
-        menu.autoStartSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            SettingSaver.APP_AUTO_START.set(isChecked);
-            if (isChecked) {
-                new MaterialAlertDialogBuilder(requireContext())
-                        .setTitle(R.string.app_setting_auto_start)
-                        .setMessage(R.string.app_setting_auto_start_desc)
-                        .setPositiveButton(R.string.close, null)
-                        .show();
-            }
-        });
 
         PopupWindow popup = new PopupWindow(menu.getRoot(),
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
@@ -579,6 +552,34 @@ public class SettingView extends Fragment {
             }
         });
         binding.locationSwitch.setChecked(SettingSaver.PERMISSION_LOCATION.get());
+
+        // 自动重启无障碍：服务掉线时回前台自动重绑
+        binding.autoRestartSwitch.setChecked(SettingSaver.APP_AUTO_RESTART_SERVICE.get());
+        binding.autoRestartSwitch.setOnSwitchClickListener(v -> {
+            boolean enabled = binding.autoRestartSwitch.isChecked();
+            SettingSaver.APP_AUTO_RESTART_SERVICE.set(enabled);
+            if (enabled) {
+                new MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(R.string.app_setting_auto_reload)
+                        .setMessage(R.string.app_setting_auto_reload_desc)
+                        .setPositiveButton(R.string.close, null)
+                        .show();
+            }
+        });
+
+        // 开机自启
+        binding.autoStartSwitch.setChecked(SettingSaver.APP_AUTO_START.get());
+        binding.autoStartSwitch.setOnSwitchClickListener(v -> {
+            boolean enabled = binding.autoStartSwitch.isChecked();
+            SettingSaver.APP_AUTO_START.set(enabled);
+            if (enabled) {
+                new MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(R.string.app_setting_auto_start)
+                        .setMessage(R.string.app_setting_auto_start_desc)
+                        .setPositiveButton(R.string.close, null)
+                        .show();
+            }
+        });
 
 
         // 手势轨迹
