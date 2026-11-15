@@ -323,16 +323,20 @@ public class SettingView extends Fragment {
         binding.cleanCacheButton.setOnClickListener(v -> {
             String[] dirs = new String[]{AppUtil.LOG_DIR_NAME, AppUtil.TASK_DIR_NAME, AppUtil.DOCUMENT_DIR_NAME};
             String[] dirNames = getResources().getStringArray(R.array.cache_dir_name);
+            // 多选列表的条目与勾选状态必须等长，长度对不上时按较短的来并记一条日志，避免越界
+            int count = Math.min(dirs.length, dirNames.length);
+            if (dirs.length != dirNames.length) {
+                AppLog.e("设置", "清理缓存目录名数量不匹配：目录 " + dirs.length + " 个，名称 " + dirNames.length + " 个");
+            }
 
-            File[] files = new File[dirs.length];
-            boolean[] isChecked = new boolean[dirs.length];
-            for (int i = 0; i < dirs.length; i++) {
-                String dir = dirs[i];
-                File file = new File(activity.getCacheDir(), dir);
+            File[] files = new File[count];
+            boolean[] isChecked = new boolean[count];
+            String[] names = new String[count];
+            for (int i = 0; i < count; i++) {
+                File file = new File(activity.getCacheDir(), dirs[i]);
                 files[i] = file;
-                String sizeString = AppUtil.getFileSizeString(file);
-                dirNames[i] += " (" + sizeString + ")";
                 isChecked[i] = file.exists();
+                names[i] = dirNames[i] + " (" + AppUtil.getFileSizeString(file) + ")";
             }
             new MaterialAlertDialogBuilder(requireContext())
                     .setTitle(R.string.app_setting_clean_cache)
@@ -350,7 +354,7 @@ public class SettingView extends Fragment {
                         binding.cleanCacheButton.setDescription(getString(R.string.app_setting_clean_cache_desc, AppUtil.getCacheDirsSizeString(activity)));
                     })
                     .setNegativeButton(R.string.cancel, null)
-                    .setMultiChoiceItems(dirNames, isChecked, (dialog, which, checked) -> isChecked[which] = checked)
+                    .setMultiChoiceItems(names, isChecked, (dialog, which, checked) -> isChecked[which] = checked)
                     .show();
         });
         binding.cleanCacheButton.setDescription(getString(R.string.app_setting_clean_cache_desc, AppUtil.getCacheDirsSizeString(activity)));

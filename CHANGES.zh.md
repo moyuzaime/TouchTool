@@ -426,6 +426,7 @@ fix(thread): setFuture 补登 future 时的取消与收尾
 fix(thread): 收尾回调去重判定，等待信号缓存到运行上
 docs: 补充并行超时语义与分支上限默认值说明
 perf(thread): 并行卡统计日志写明结束原因
+fix(setting): 清理缓存多选列表越界崩溃，并去掉分享到多出的线程选项
 ```
 
 ## 36. 线程卡片：加锁 / 解锁 / 原子累加
@@ -495,3 +496,11 @@ perf(thread): 并行卡统计日志写明结束原因
 - 体验：蓝图里并行/异步卡右上角显示「运行中 N」；根运行停止 200ms 后仍有分支未收尾时记一条「强制放弃 N 个分支」。
 - 边界：并行卡超时设为 0 表示一直等；分支停止是协作式的，忽略中断的动作只能靠停止任务收场。
 - 待真机验证：超时收尾后的日志树结构、开启分支上限后现有任务是否够用、卡片角标位置（顶部针脚多的卡片可能与角标重叠）。
+
+## 44. 清理缓存对话框崩溃与「分享到」多出的线程选项
+
+- 位置：`ui/setting/SettingView.java`、`res/values/string_array.xml`
+- 崩溃：`R.array.cache_dir_name` 里多了一项「线程」（线程分组那笔提交顺带加的），与 `SettingView` 实际清理的三个缓存目录（log/task/document）数量对不上。`setMultiChoiceItems` 的条目与勾选数组长度不一致，AppCompat 在多选列表测量时按条目下标取勾选状态，`AlertController$AlertParams$1.getView` 越界崩溃（`length=3; index=3`），打开「清理缓存」必现。
+- 处理：删掉多余的「线程」；对话框的条目、勾选、文件数组统一按两个列表的较短长度构造，长度不一致时记一条日志，以后再加名字也不会崩。
+- 「分享到」：`R.array.share_type` 同样被加了「线程」，但 `ShareToAction` 只按 index 0（文字）/1（文件）分发，选第三项会发出没有 type 的 SEND intent；已删除该项。
+- 旧数据：`PinSingleSelect.getIndex()` 找不到原值时回落到 0（文字），旧任务里误选过的「线程」不会再走空 intent。
