@@ -154,6 +154,8 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         if (earlyStopped) stopBranches(runnableList);
 
         long timeoutMs = timeout.intValue();
+        boolean timedOut = false;
+        boolean interrupted = false;
         try {
             if (timeoutMs <= 0) {
                 // 超时 <= 0 表示一直等；分支停止是协作式的，卡在不响应中断的动作里只能靠停止任务收场
@@ -161,9 +163,10 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
             } else {
                 // 超时从提交起算，提交本身花掉的时间要从等待窗口里扣掉
                 long remain = timeoutMs - (SystemClock.uptimeMillis() - startTime);
-                latch.await(Math.max(0, remain), TimeUnit.MILLISECONDS);
+                timedOut = !latch.await(Math.max(0, remain), TimeUnit.MILLISECONDS);
             }
         } catch (InterruptedException e) {
+            interrupted = true;
             AppLog.e(e);
             Thread.currentThread().interrupt();
         }
@@ -183,11 +186,17 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
 
         // 只有完成数达成才算成功；超时和任务停止都算未达成
         resultPin.getValue(PinBoolean.class).setValue(doneCount.get() >= need);
+
+        String outcome;
+        if (interrupted) outcome = "任务停止";
+        else if (timedOut) outcome = "超时";
+        else if (doneCount.get() >= need) outcome = "达成完成数";
+        else outcome = "分支全部结束";
         AppLog.d("并行执行", "分支 启动 " + runnableList.size() + "/" + total
                 + "，完成 " + doneCount.get()
                 + "，未启动 " + rejectedCount.get()
                 + "，停止 " + stoppedCount
-                + "，提前结束 " + (completed.get() ? "是" : "否")
+                + "，结果 " + outcome
                 + "，提交 " + submitCost + "ms，总用时 " + (SystemClock.uptimeMillis() - startTime) + "ms");
         executeNext(runnable, completePin);
     }
