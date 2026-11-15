@@ -4,6 +4,19 @@
 
 TouchTool 是一款 Android 自动化点击工具，通过无障碍服务实现自动点击、屏幕录制、OCR 识别等功能，帮助用户实现手机操作的自动化。
 
+> **本仓库是 [mr-bogey/TouchTool](https://github.com/mr-bogey/TouchTool) 的分支（`test` 分支）**：上游功能全量保留，另外补了若干移植功能与修复。逐项清单（含代码位置、与原版差异）见 [CHANGES.zh.md](CHANGES.zh.md)；开发约定见 [AGENTS.md](AGENTS.md)。同步上游用 `git fetch origin`，推送只推 fork。
+
+## 本分支的改动
+
+| 类别 | 内容 |
+|---|---|
+| 蓝图编辑 | 辅助工具（缩放条、四边跳转、结果计数）、卡片组暂存（按任务存，不随 `.tt` 导出）、连线跳转与跳回、顶栏「运行」按钮、任务菜单（保留上游三项，另加「辅助工具」开关） |
+| 新增动作 | 10 张文件操作卡片（读写/按行读写、复制、删除、列目录、是否存在等）、6 张线程卡片（加锁/解锁/原子累加、异步执行/等待/取消） |
+| 动作合并 | 与/或合并为「所有/任意条件达成」（带短路开关）、数值比较合并为一张卡（`>` `<` `=` `≥` `≤` `≠`）、关所有贴图并入「关闭贴图」、区域内取控件并入「查找控件」 |
+| 选择与预览 | 图片识别支持全屏/区域并可直接复制区域；控件、区域、颜色选择器与预览悬浮窗的层级与显隐整理 |
+| 日志 | 蓝图任务日志入口与日志浮窗回退为上游实现；修复并行执行分支日志脱层错乱（分支日志挂回并行节点，不再升到根级） |
+| 稳定性 | 悬浮窗在无障碍服务重连时自愈、加窗失败退回应用悬浮窗；无障碍关键回调加异常兜底；导出/分享统一走系统分享面板；任务截图按原始尺寸流式导出 PNG |
+
 ## 核心特色
 
 ### 蓝图式任务编辑
@@ -64,8 +77,7 @@ TouchTool 采用直观的**蓝图式任务编辑器**，通过可视化节点连
 | [`延时`](app/src/main/java/top/bogey/touch_tool/bean/action/normal/DelayAction.java)             | 等待一段时间后再继续执行  |
 | [`输出日志`](app/src/main/java/top/bogey/touch_tool/bean/action/normal/LoggerAction.java)          | 输出日志到日志界面     |
 | [`贴图到屏幕上`](app/src/main/java/top/bogey/touch_tool/bean/action/normal/StickScreenAction.java)   | 将针脚内容贴到屏幕上    |
-| [`关闭贴图`](app/src/main/java/top/bogey/touch_tool/bean/action/normal/StickCloseAction.java)      | 关闭对应贴图        |
-| [`关闭所有贴图`](app/src/main/java/top/bogey/touch_tool/bean/action/normal/StickCloseAllAction.java) | 关闭屏幕所有贴图      |
+| [`关闭贴图`](app/src/main/java/top/bogey/touch_tool/bean/action/normal/StickCloseAction.java)      | 关闭对应贴图；「全部」打开时清空屏幕上所有贴图 |
 | [`配置面板`](app/src/main/java/top/bogey/touch_tool/bean/action/normal/InputConfigAction.java)     | 手动输入任务运行需要的配置 |
 | [`区域备注`](app/src/main/java/top/bogey/touch_tool/bean/action/normal/ShowTextAction.java)        | 对一片区域内的卡片进行备注 |
 
@@ -121,9 +133,7 @@ TouchTool 采用直观的**蓝图式任务编辑器**，通过可视化节点连
 | [`数值相除`](app/src/main/java/top/bogey/touch_tool/bean/action/number/NumberDivAction.java)          | 两个数值相除           |
 | [`取余数`](app/src/main/java/top/bogey/touch_tool/bean/action/number/NumberModAction.java)           | 取两个数值的余数         |
 | [`取绝对值`](app/src/main/java/top/bogey/touch_tool/bean/action/number/NumberAbsAction.java)          | 取一个数值的绝对值        |
-| [`数值比较 =`](app/src/main/java/top/bogey/touch_tool/bean/action/number/NumberEqualAction.java)      | 判断两个数值是否相等       |
-| [`数值比较 <`](app/src/main/java/top/bogey/touch_tool/bean/action/number/NumberLessAction.java)       | 判断第一个数值是否小于第二个数值 |
-| [`数值比较 >`](app/src/main/java/top/bogey/touch_tool/bean/action/number/NumberGreaterAction.java)    | 判断第一个数值是否大于第二个数值 |
+| [`数值比较`](app/src/main/java/top/bogey/touch_tool/bean/action/number/NumberGreaterAction.java)    | 按 `>` `<` `=` `≥` `≤` `≠` 比较两个数值 |
 | [`随机数`](app/src/main/java/top/bogey/touch_tool/bean/action/number/NumberRandomAction.java)        | 生成一个随机数值         |
 | [`取整`](app/src/main/java/top/bogey/touch_tool/bean/action/number/NumberToIntegerAction.java)      | 将数值按规则取整         |
 | [`数值范围判断`](app/src/main/java/top/bogey/touch_tool/bean/action/number/CheckNumberInValueArea.java) | 判断数值是否在指定范围内     |
@@ -154,19 +164,15 @@ TouchTool 采用直观的**蓝图式任务编辑器**，通过可视化节点连
 
 | 动作类型                                                                                                    | 功能说明                       |
 |---------------------------------------------------------------------------------------------------------|----------------------------|
-| [`所有条件达成`](app/src/main/java/top/bogey/touch_tool/bean/action/bool/BooleanAndAction.java)               | 所有条件达成结果才是达成               |
-| [`任意条件达成`](app/src/main/java/top/bogey/touch_tool/bean/action/bool/BooleanOrAction.java)                | 任意条件达成结果就能达成               |
+| [`所有/任意条件达成`](app/src/main/java/top/bogey/touch_tool/bean/action/bool/BooleanAndAction.java) | 选「与」时全部达成才达成，选「或」时任意一个达成即可；短路开关打开后遇到反向结果立即停止 |
 | [`反转条件`](app/src/main/java/top/bogey/touch_tool/bean/action/bool/BooleanNotAction.java)                 | 取与条件相反的结果                  |
-| [`短路所有条件达成`](app/src/main/java/top/bogey/touch_tool/bean/action/bool/BooleanAndShortCircuitAction.java) | 短路所有条件达成结果才是达成（遇到false则停止） |
-| [`短路任意条件达成`](app/src/main/java/top/bogey/touch_tool/bean/action/bool/BooleanOrShortCircuitAction.java)  | 短路任意条件达成结果就能达成（遇到true则停止）  |
 
 ### 控件操作类动作
 
 | 动作类型                                                                                           | 功能说明         |
 |------------------------------------------------------------------------------------------------|--------------|
-| [`查找控件`](app/src/main/java/top/bogey/touch_tool/bean/action/node/FindNodeAction.java)          | 根据条件获取控件     |
+| [`查找控件`](app/src/main/java/top/bogey/touch_tool/bean/action/node/FindNodeAction.java)          | 按文本/ID/类名/描述等条件获取控件，可限定在某个区域内 |
 | [`控件是否存在`](app/src/main/java/top/bogey/touch_tool/bean/action/node/IsNodeExistAction.java)     | 判断控件是否存在     |
-| [`获取区域内控件`](app/src/main/java/top/bogey/touch_tool/bean/action/node/GetNodesInAreaAction.java) | 获取与区域相交的所有控件 |
 | [`获取控件信息`](app/src/main/java/top/bogey/touch_tool/bean/action/node/GetNodeInfoAction.java)     | 获取控件详细信息     |
 | [`获取子控件`](app/src/main/java/top/bogey/touch_tool/bean/action/node/GetNodeChildrenAction.java)  | 获取控件所有子控件    |
 | [`获取父控件`](app/src/main/java/top/bogey/touch_tool/bean/action/node/GetNodeParentAction.java)    | 获取控件的父控件     |
@@ -279,6 +285,18 @@ TouchTool 采用直观的**蓝图式任务编辑器**，通过可视化节点连
 - **任务复用**：支持子任务调用，实现任务模块化
 - **变量系统**：支持全局和局部变量，实现数据传递
 - **标签管理**：支持任务和变量的标签分类
+
+## 本地构建
+
+需要 JDK 21 与 Android SDK（compileSdk 37、build-tools 37、NDK 30、CMake 4.1）：
+
+```powershell
+$env:JAVA_HOME = "C:\path\to\jdk-21"
+$env:ANDROID_HOME = "C:\path\to\android-sdk"
+.\gradlew.bat :app:assembleDebug
+```
+
+产物在 `app/build/outputs/apk/debug/app-debug.apk`。首次构建需要下载依赖与 NDK 组件，耗时较长。
 
 ## 许可证
 
