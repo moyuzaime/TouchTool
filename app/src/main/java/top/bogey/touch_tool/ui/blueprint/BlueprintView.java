@@ -5,25 +5,27 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.PointF;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.util.Size;
+import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.PopupWindow;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
 
 import java.io.File;
@@ -49,6 +51,7 @@ import top.bogey.touch_tool.bean.save.task.TaskSaver;
 import top.bogey.touch_tool.MainApplication;
 import top.bogey.touch_tool.bean.task.Task;
 import top.bogey.touch_tool.databinding.DialogTaskCaptureBinding;
+import top.bogey.touch_tool.databinding.PopupBlueprintMenuBinding;
 import top.bogey.touch_tool.databinding.ViewBlueprintBinding;
 import top.bogey.touch_tool.ui.MainActivity;
 import top.bogey.touch_tool.ui.blueprint.card.ActionCard;
@@ -246,46 +249,60 @@ public class BlueprintView extends Fragment {
         }
     }
 
-    // 任务菜单：沿用上游的弹出菜单，日志入口与「记录日志细节」行为也给上游一致；「辅助工具」为本项目自有项
+    // 任务菜单：卡片弹窗，与设置页右上角菜单同款；「辅助工具」为本项目自有项
     private void showTaskMenu() {
-        PopupMenu popupMenu = new PopupMenu(requireContext(), binding.moreButton);
-        popupMenu.getMenuInflater().inflate(R.menu.menu_blueprint, popupMenu.getMenu());
-
         Task currTask = taskStack.peek();
+        if (currTask == null) return;
 
-        MenuItem detailItem = popupMenu.getMenu().findItem(R.id.taskDetailLog);
-        detailItem.setChecked(currTask.hasFlag(Task.FLAG_DEBUG));
-        detailItem.setVisible(currTask.getParent() == null);
+        PopupBlueprintMenuBinding menu = PopupBlueprintMenuBinding.inflate(getLayoutInflater());
 
-        MenuItem editToolsItem = popupMenu.getMenu().findItem(R.id.blueprintEditTools);
-        editToolsItem.setChecked(showEditTools);
-
-        popupMenu.setOnMenuItemClickListener(item -> {
-            int itemId = item.getItemId();
-            if (itemId == R.id.taskRunningLog) {
-                Task rootTask = currTask;
-                while (rootTask.getParent() != null) rootTask = rootTask.getParent();
-                new LogFloatView(requireContext(), rootTask).show();
-                return true;
-            } else if (itemId == R.id.taskDetailLog) {
-                currTask.toggleFlag(Task.FLAG_DEBUG);
-                currTask.save();
-                item.setChecked(currTask.hasFlag(Task.FLAG_DEBUG));
-                return true;
-            } else if (itemId == R.id.taskCapture) {
-                showTaskCapture();
-                return true;
-            } else if (itemId == R.id.blueprintEditTools) {
-                showEditTools = !showEditTools;
-                item.setChecked(showEditTools);
-                applyControlLayout();
-                applyEditToolsVisible(binding.searchButton.isChecked());
-                return true;
-            }
-            return false;
+        menu.rowTaskLog.setOnClickListener(v -> {
+            dismissPopup(menu.getRoot());
+            Task rootTask = currTask;
+            while (rootTask.getParent() != null) rootTask = rootTask.getParent();
+            new LogFloatView(requireContext(), rootTask).show();
+        });
+        menu.rowTaskCapture.setOnClickListener(v -> {
+            dismissPopup(menu.getRoot());
+            showTaskCapture();
         });
 
-        popupMenu.show();
+        // 记录日志细节：只有顶层任务能改，卡片里打开的子任务不显示这一行
+        menu.rowTaskDetailLog.setVisibility(currTask.getParent() == null ? View.VISIBLE : View.GONE);
+        menu.detailLogSwitch.setChecked(currTask.hasFlag(Task.FLAG_DEBUG));
+        menu.rowTaskDetailLog.setOnClickListener(v -> menu.detailLogSwitch.toggle());
+        menu.detailLogSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (currTask.hasFlag(Task.FLAG_DEBUG) == isChecked) return;
+            currTask.toggleFlag(Task.FLAG_DEBUG);
+            currTask.save();
+        });
+
+        // 辅助工具：缩放条、四边跳转等编辑控件
+        menu.editToolsSwitch.setChecked(showEditTools);
+        menu.rowEditTools.setOnClickListener(v -> menu.editToolsSwitch.toggle());
+        menu.editToolsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (showEditTools == isChecked) return;
+            showEditTools = isChecked;
+            applyControlLayout();
+            applyEditToolsVisible(binding.searchButton.isChecked());
+        });
+
+        PopupWindow popup = new PopupWindow(menu.getRoot(),
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+        popup.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        popup.setElevation(DisplayUtil.dp2px(requireContext(), 6));
+        menu.getRoot().setTag(popup);
+
+        int[] location = new int[2];
+        binding.moreButton.getLocationOnScreen(location);
+        int y = location[1] + binding.moreButton.getHeight();
+        popup.showAtLocation(binding.moreButton, Gravity.TOP | Gravity.END, (int) DisplayUtil.dp2px(requireContext(), 8), y);
+    }
+
+    private void dismissPopup(View view) {
+        if (view == null) return;
+        Object tag = view.getTag();
+        if (tag instanceof PopupWindow popup) popup.dismiss();
     }
 
     // 任务截图：后台按原始尺寸流式生成，再给一个采样预览

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="6dp">
+
+    <LinearLayout
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingVertical="?attr/defaultPadding">
+
+        <LinearLayout
+            android:id="@+id/rowTaskLog"
+            style="@style/Theme.TouchTool.PopupMenuRow">
+
+            <ImageView
+                style="@style/Theme.TouchTool.PopupMenuIcon"
+                android:importantForAccessibility="no"
+                android:src="@drawable/icon_note_stack" />
+
+            <TextView
+                style="@style/Theme.TouchTool.PopupMenuText"
+                android:text="@string/task_running_log" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/rowTaskCapture"
+            style="@style/Theme.TouchTool.PopupMenuRow">
+
+            <ImageView
+                style="@style/Theme.TouchTool.PopupMenuIcon"
+                android:importantForAccessibility="no"
+                android:src="@drawable/icon_image" />
+
+            <TextView
+                style="@style/Theme.TouchTool.PopupMenuText"
+                android:text="@string/task_capture" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginHorizontal="?attr/defaultPadding"
+            android:background="?attr/colorOutlineVariant" />
+
+        <LinearLayout
+            android:id="@+id/rowTaskDetailLog"
+            style="@style/Theme.TouchTool.PopupMenuRow"
+            android:layout_width="match_parent">
+
+            <TextView
+                style="@style/Theme.TouchTool.PopupMenuText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:maxWidth="10000dp"
+                android:text="@string/task_running_detail_log" />
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/detailLogSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/rowEditTools"
+            style="@style/Theme.TouchTool.PopupMenuRow"
+            android:layout_width="match_parent">
+
+            <TextView
+                style="@style/Theme.TouchTool.PopupMenuText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:maxWidth="10000dp"
+                android:text="@string/blueprint_edit_tools" />
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/editToolsSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>
