@@ -25,7 +25,7 @@ TouchTool 采用直观的**蓝图式任务编辑器**，通过可视化节点连
 
 ### 多种多样的自动化动作
 
-应用提供了**160+ 种自动化动作**，覆盖系统操作、界面交互、数据处理、逻辑控制等多个维度，满足各种自动化需求。
+应用提供了**170+ 种自动化动作**，覆盖系统操作、界面交互、数据处理、逻辑控制、文件读写、多线程协调等多个维度，满足各种自动化需求。
 
 ## 界面截图
 
@@ -273,6 +273,32 @@ TouchTool 采用直观的**蓝图式任务编辑器**，通过可视化节点连
 | [`获取键`](app/src/main/java/top/bogey/touch_tool/bean/action/map/MapGetKeysAction.java)          | 获取字典中的所有键   |
 | [`获取值`](app/src/main/java/top/bogey/touch_tool/bean/action/map/MapGetValuesAction.java)        | 获取字典中的所有值   |
 | [`遍历字典`](app/src/main/java/top/bogey/touch_tool/bean/action/map/MapForeachAction.java)         | 遍历字典中的每个键值对 |
+
+### 文件操作类动作
+
+| 动作类型                                                                                       | 功能说明                        |
+|--------------------------------------------------------------------------------------------|-----------------------------|
+| [`读取文件`](app/src/main/java/top/bogey/touch_tool/bean/action/file/ReadFileAction.java)         | 把文件内容读取为文本                  |
+| [`写入文件`](app/src/main/java/top/bogey/touch_tool/bean/action/file/WriteFileAction.java)        | 写入文本，可选覆盖整个文件或追加一行          |
+| [`读取所有行`](app/src/main/java/top/bogey/touch_tool/bean/action/file/ReadAllFileLinesAction.java) | 把文件所有行读取为文本列表               |
+| [`读取一行`](app/src/main/java/top/bogey/touch_tool/bean/action/file/ReadFileLineAction.java)      | 读取文件指定行号的文本，行号从 1 开始        |
+| [`编辑行`](app/src/main/java/top/bogey/touch_tool/bean/action/file/WriteFileLineAction.java)      | 按行号写入、替换或删除行                |
+| [`创建`](app/src/main/java/top/bogey/touch_tool/bean/action/file/CreateFileAction.java)         | 创建文件或文件夹，已存在则不处理            |
+| [`删除文件`](app/src/main/java/top/bogey/touch_tool/bean/action/file/DeleteFileAction.java)        | 删除文件或文件夹（文件夹会递归删除）          |
+| [`文件是否存在`](app/src/main/java/top/bogey/touch_tool/bean/action/file/FileExistsAction.java)     | 判断文件或文件夹是否存在                |
+| [`列出目录`](app/src/main/java/top/bogey/touch_tool/bean/action/file/ListDirAction.java)          | 列出目录下的文件名                   |
+| [`复制文件`](app/src/main/java/top/bogey/touch_tool/bean/action/file/CopyFileAction.java)         | 把文件复制到目标路径，已存在则覆盖           |
+
+### 线程操作类动作
+
+| 动作类型                                                                                     | 功能说明                                  |
+|------------------------------------------------------------------------------------------|---------------------------------------|
+| [`加锁`](app/src/main/java/top/bogey/touch_tool/bean/action/thread/MutexLockAction.java)        | 按名字互斥，防止多个并行分支同时执行同一段；可设超时，输出「是否拿到锁」 |
+| [`解锁`](app/src/main/java/top/bogey/touch_tool/bean/action/thread/MutexUnlockAction.java)      | 释放同名的锁，与「加锁」配对使用                      |
+| [`原子累加`](app/src/main/java/top/bogey/touch_tool/bean/action/thread/AtomicAddAction.java)     | 跨分支安全累加计数，输出累加后的值                     |
+| [`异步执行`](app/src/main/java/top/bogey/touch_tool/bean/action/thread/AsyncAction.java)        | 把分支放到另一条线程执行，主流程立刻继续，输出句柄             |
+| [`等待完成`](app/src/main/java/top/bogey/touch_tool/bean/action/thread/AwaitAsyncAction.java)    | 等待异步分支结束，句柄留空则等待本次运行的全部异步分支           |
+| [`取消子任务`](app/src/main/java/top/bogey/touch_tool/bean/action/thread/CancelAsyncAction.java)   | 结束异步分支，句柄留空则结束本次运行的全部异步分支             |
 
 ## 其他功能特性
 
