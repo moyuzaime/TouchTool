@@ -356,6 +356,7 @@ public class MainAccessibilityService extends AccessibilityService {
         }
 
         TaskRunnable runnable = new TaskRunnable(task, startAction);
+        // 若当前任务有分支日志收集器（并行/异步分支），把本 runnable 的缓存日志也登记进去
         if (listener != null) runnable.addListener(listener);
 
         runnable.addListener(new ITaskListener() {
