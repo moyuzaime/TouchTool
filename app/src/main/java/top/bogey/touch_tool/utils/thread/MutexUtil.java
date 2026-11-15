@@ -56,4 +56,23 @@ public class MutexUtil {
             }
         }
     }
+
+    // 调试用：锁与计数器的登记情况，设置页长按版本号可查看
+    public static String debugSnapshot() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("锁登记 ").append(LOCKS.size())
+                .append("，持有中的运行 ").append(HELD.size()).append('\n');
+        for (Map.Entry<String, ReentrantLock> entry : LOCKS.entrySet()) {
+            ReentrantLock lock = entry.getValue();
+            if (!lock.isLocked()) continue;
+            builder.append("  锁 [").append(entry.getKey()).append("] 已占用");
+            if (lock.isHeldByCurrentThread()) builder.append("，当前线程持有");
+            builder.append('\n');
+        }
+        builder.append("计数器 ").append(COUNTERS.size()).append('\n');
+        for (Map.Entry<String, AtomicLong> entry : COUNTERS.entrySet()) {
+            builder.append("  [").append(entry.getKey()).append("] = ").append(entry.getValue().get()).append('\n');
+        }
+        return builder.toString();
+    }
 }

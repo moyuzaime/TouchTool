@@ -12,6 +12,7 @@ import java.util.concurrent.TimeoutException;
 
 import top.bogey.touch_tool.service.ITaskListener;
 import top.bogey.touch_tool.service.TaskRunnable;
+import top.bogey.touch_tool.utils.AppLog;
 
 // 异步分支登记表：按句柄查找、按父运行批量取消
 public class AsyncUtil {
@@ -41,10 +42,12 @@ public class AsyncUtil {
             CHILDREN.computeIfAbsent(parent, k -> ConcurrentHashMap.newKeySet()).add(handle);
             EMPTY_SIGNALS.computeIfAbsent(parent, k -> new CompletableFuture<>());
         }
+        long startTime = System.currentTimeMillis();
         child.addListener(new ITaskListener() {
             @Override
             public void onFinish(TaskRunnable run) {
                 remove(parent, handle);
+                AppLog.d("异步执行", "分支结束，句柄 " + handle + "，运行 " + (System.currentTimeMillis() - startTime) + "ms");
             }
         });
         return handle;
@@ -126,6 +129,11 @@ public class AsyncUtil {
 
     public static int parentCount() {
         return CHILDREN.size();
+    }
+
+    // 调试用：句柄与父运行登记数量
+    public static String debugSnapshot() {
+        return "句柄 " + HANDLES.size() + "，登记父运行 " + CHILDREN.size();
     }
 
     // 摘掉一个句柄：句柄表与父运行的子集合都要清，归零时唤醒等待方

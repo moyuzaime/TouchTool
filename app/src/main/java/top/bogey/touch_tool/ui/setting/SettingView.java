@@ -12,9 +12,11 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -25,6 +27,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.PopupWindow;
+import android.widget.ScrollView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -37,6 +40,7 @@ import androidx.navigation.Navigation;
 
 import com.google.android.material.chip.Chip;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.textview.MaterialTextView;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -61,6 +65,7 @@ import top.bogey.touch_tool.ui.tool.task_manager.ExportTaskDialog;
 import top.bogey.touch_tool.utils.AppLog;
 import top.bogey.touch_tool.utils.AppUtil;
 import top.bogey.touch_tool.utils.DisplayUtil;
+import top.bogey.touch_tool.utils.ThreadUtil;
 
 public class SettingView extends Fragment {
     // 并行分支上限下拉项对应的实际取值，0 表示不限制
@@ -564,8 +569,12 @@ public class SettingView extends Fragment {
         } catch (Exception e) {
             AppLog.e(e);
         }
-        // 点击版本号查看应用内日志
+        // 点击版本号查看应用内日志；长按查看线程运行态，排「任务卡住 / 分支没跑」用
         binding.versionText.setOnClickListener(v -> showLogDialog());
+        binding.versionText.setOnLongClickListener(v -> {
+            showThreadStateDialog();
+            return true;
+        });
 
         return binding.getRoot();
     }
@@ -624,9 +633,28 @@ public class SettingView extends Fragment {
         dialog.show();
     }
 
+    // 线程状态弹窗：线程池活跃/排队/拒绝/排队等待，异步句柄与锁的登记情况
+    private void showThreadStateDialog() {
+        MaterialTextView textView = new MaterialTextView(requireContext());
+        textView.setText(ThreadUtil.debugSnapshot());
+        textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        textView.setTypeface(Typeface.MONOSPACE);
+        int padding = (int) DisplayUtil.dp2px(requireContext(), 16);
+        textView.setPadding(padding, padding, padding, padding);
+
+        ScrollView scrollView = new ScrollView(requireContext());
+        scrollView.addView(textView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.app_setting_thread_state_title)
+                .setView(scrollView)
+                .setNeutralButton(R.string.app_setting_thread_state_refresh, (dialog, which) -> showThreadStateDialog())
+                .setPositiveButton(R.string.close, null)
+                .show();
+    }
+
     // 导出应用内日志为 txt，走系统文件选择器保存
-    private void exportLogs() {
-        StringBuilder builder = new StringBuilder();
+    private void exportLogs() {        StringBuilder builder = new StringBuilder();
         for (AppLog.Entry entry : AppLog.getLogs()) {
             builder.append(entry.time()).append(" [").append(entry.category()).append("] ")
                     .append(entry.tag()).append(": ").append(entry.message()).append('\n');

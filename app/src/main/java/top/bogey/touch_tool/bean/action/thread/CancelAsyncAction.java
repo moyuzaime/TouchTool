@@ -9,6 +9,7 @@ import top.bogey.touch_tool.bean.pin.Pin;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinBoolean;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinString;
 import top.bogey.touch_tool.service.TaskRunnable;
+import top.bogey.touch_tool.utils.AppLog;
 import top.bogey.touch_tool.utils.thread.AsyncUtil;
 
 // 取消子任务：按句柄结束异步分支，句柄留空则结束本运行的全部异步分支
@@ -34,8 +35,12 @@ public class CancelAsyncAction extends ExecuteAction {
         boolean success;
         if (handle == null || handle.isEmpty()) {
             success = AsyncUtil.cancelAll(runnable) > 0;
+            if (success) AppLog.d("异步执行", "取消本运行的全部异步分支");
+            else AppLog.d("异步执行", "没有可取消的异步分支");
         } else {
             success = AsyncUtil.cancel(handle);
+            if (success) AppLog.d("异步执行", "取消分支，句柄 " + handle);
+            else AppLog.d("异步执行", "取消分支失败，句柄不存在：" + handle);
         }
         resultPin.getValue(PinBoolean.class).setValue(success);
 

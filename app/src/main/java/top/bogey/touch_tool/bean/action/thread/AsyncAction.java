@@ -47,9 +47,10 @@ public class AsyncAction extends ExecuteAction {
 
         String handle = "";
         if (child == null) {
-            AppLog.e("异步执行", "分支未能启动（线程池已满或服务不可用）");
+            AppLog.e("异步执行", "分支未能启动（线程池已满、服务不可用或已达分支上限）");
         } else {
             handle = AsyncUtil.register(runnable, child);
+            AppLog.d("异步执行", "启动分支，句柄 " + handle);
         }
         handlePin.getValue(PinString.class).setValue(handle);
 

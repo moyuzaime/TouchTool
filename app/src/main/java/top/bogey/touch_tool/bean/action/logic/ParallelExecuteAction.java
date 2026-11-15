@@ -159,6 +159,10 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
 
         // 只有完成数达成才算成功；超时和任务停止都算未达成
         resultPin.getValue(PinBoolean.class).setValue(doneCount.get() >= need);
+        AppLog.d("并行执行", "分支 启动 " + runnableList.size() + "/" + total
+                + "，完成 " + doneCount.get()
+                + "，未启动 " + rejectedCount.get()
+                + "，停止 " + stoppedCount);
         executeNext(runnable, completePin);
     }
 
