@@ -102,29 +102,34 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
                 @Override
                 public void onFinish(TaskRunnable run) {
                     BranchMonitor.removeRunning(getId());
-                    List<LogInfo> logList = run.getCacheLogList();
-                    List<String> logs = saveLogs(runnable, logList);
-                    LogInfo logInfo = new LogInfo(new ActionLog(runnable.getProgress() + 1, currTask, ParallelExecuteAction.this, true));
-                    logInfo.setChildren(logs);
-                    // 分支结束时主流程可能已经走完、日志栈已清空，这时再走 runnable.addLog()
-                    // 会把分支写成新的根节点；直接挂到并行的日志节点下，父子关系才稳定
-                    if (container == null) {
-                        runnable.addLog(logInfo, 0);
-                    } else {
-                        synchronized (container) {
-                            container.addChild(logInfo);
-                            String taskId = runnable.getStartTask().getId();
-                            LogSaver.getInstance().addLog(taskId, logInfo, false);
-                            // 并行节点可能已落盘，补写一次把新挂的分支带上
-                            LogSaver.getInstance().addLog(taskId, container, false);
+                    try {
+                        List<LogInfo> logList = run.getCacheLogList();
+                        List<String> logs = saveLogs(runnable, logList);
+                        LogInfo logInfo = new LogInfo(new ActionLog(runnable.getProgress() + 1, currTask, ParallelExecuteAction.this, true));
+                        logInfo.setChildren(logs);
+                        // 分支结束时主流程可能已经走完、日志栈已清空，这时再走 runnable.addLog()
+                        // 会把分支写成新的根节点；直接挂到并行的日志节点下，父子关系才稳定
+                        if (container == null) {
+                            runnable.addLog(logInfo, 0);
+                        } else {
+                            synchronized (container) {
+                                container.addChild(logInfo);
+                                String taskId = runnable.getStartTask().getId();
+                                LogSaver.getInstance().addLog(taskId, logInfo, false);
+                                // 并行节点可能已落盘，补写一次把新挂的分支带上
+                                LogSaver.getInstance().addLog(taskId, container, false);
+                            }
                         }
-                    }
-
-                    doneCount.incrementAndGet();
-                    latch.countDown();
-                    // 达成完成数：停掉还在跑的分支，主流程可以继续了
-                    if (doneCount.get() >= need && completed.compareAndSet(false, true)) {
-                        stopBranches(runnableList);
+                    } catch (Throwable e) {
+                        // 日志挂载失败不能让计数停住，否则并行卡要等满超时
+                        AppLog.e("并行执行", "分支日志挂载失败", e);
+                    } finally {
+                        doneCount.incrementAndGet();
+                        latch.countDown();
+                        // 达成完成数：停掉还在跑的分支，主流程可以继续了
+                        if (doneCount.get() >= need && completed.compareAndSet(false, true)) {
+                            stopBranches(runnableList);
+                        }
                     }
                 }
             }, runnable);

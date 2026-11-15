@@ -131,6 +131,8 @@ public class TaskRunnable implements Runnable {
         interrupt = true;
         for (ITaskListener listener : new ArrayList<>(listeners)) {
             if (listener == null) continue;
+            // 先摘掉再回调：与 addListener 的「已收尾立即补一次」互斥，避免同一个监听被回调两次
+            listeners.remove(listener);
             try {
                 listener.onFinish(this);
             } catch (Throwable e) {

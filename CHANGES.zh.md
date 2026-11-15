@@ -476,7 +476,7 @@ feat(thread): 分支进度角标与停止宽限提示
 - 位置：`bean/action/logic/ParallelExecuteAction.java`、`bean/action/thread/AsyncAction.java`、`AwaitAsyncAction.java`、`CancelAsyncAction.java`、`service/TaskRunnable.java`、`service/MainAccessibilityService.java`、`utils/ThreadUtil.java`、`utils/thread/AsyncUtil.java`、`MutexUtil.java`、`BranchLimiter.java`、`BranchMonitor.java`、`TaskThreadPoolExecutor.java`、`bean/other/log/LogInfo.java`、`bean/save/log/LogSaver.java`
 - 超时收尾：并行卡在 `latch` 返回后停掉仍在跑的分支，再给 200ms 宽限；任务结束后不再有分支继续点屏、写日志，日志树也不会迟到冒出新条目。
 - 未启动计数：`runTask` 返回 `null`（池满/服务不可用/达分支上限）时计入「未启动」并推进计数，不再每次运行都等满超时，也不再出现对 `null` 调 `stop()` 的空指针。
-- 排队中取消：`TaskRunnable` 新增 `finishOnce()` 统一收尾出口；取消还没开始的任务时由 `stop()` 补一次 `onFinish`，并行 `latch`、异步句柄、分支名额都能归零。已在跑的任务仍走 `run()` 的 `finally`，不会提前触发。
+- 排队中取消：`TaskRunnable` 新增 `finishOnce()` 统一收尾出口；取消还没开始的任务时由 `stop()` 补一次 `onFinish`，并行 `latch`、异步句柄、分支名额都能归零。已在跑的任务仍走 `run()` 的 `finally`，不会提前触发。收尾时先把监听从集合摘掉再回调，补挂在已收尾运行上的监听只补一次；并行分支的日志挂载失败也照样推进计数。
 - 完成数：按实际完成的分支数判断（原实现会提前一个分支触发），达成后只停一次其余分支；结果针脚按是否达成赋值。
 - 异步等待：`AwaitAsync` 改用 `TaskRunnable.getDone()` 与 `AsyncUtil.awaitAll()`，去掉 50ms 轮询；取消句柄时同步清理父运行的子集合，`size(parent)` 能真正归零。
 - 暂停传播：`runTask(task, startAction, listener, parent)` 统一给分支挂暂停桥接，并行卡与异步卡语义一致，删掉并行卡里重复的实现。
