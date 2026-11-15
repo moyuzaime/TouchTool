@@ -2,6 +2,10 @@ package top.bogey.touch_tool.bean.action.thread;
 
 import com.google.gson.JsonObject;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import top.bogey.touch_tool.R;
 import top.bogey.touch_tool.bean.action.ActionType;
 import top.bogey.touch_tool.bean.action.parent.ExecuteAction;
@@ -10,6 +14,7 @@ import top.bogey.touch_tool.bean.pin.pin_objects.PinBoolean;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_number.PinInteger;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinString;
 import top.bogey.touch_tool.service.TaskRunnable;
+import top.bogey.touch_tool.utils.AppLog;
 import top.bogey.touch_tool.utils.thread.AsyncUtil;
 
 // 等待完成：等某个句柄（或全部异步分支）结束，可设置超时
@@ -34,28 +39,28 @@ public class AwaitAsyncAction extends ExecuteAction {
         PinInteger timeoutValue = getPinValue(runnable, timeoutPin);
         String handle = handleValue == null ? "" : handleValue.getValue();
         int timeout = timeoutValue == null ? 0 : timeoutValue.intValue();
-        long endTime = timeout > 0 ? System.currentTimeMillis() + timeout : 0;
 
         boolean timedOut = false;
         TaskRunnable child = AsyncUtil.get(handle);
-        if (child != null) {
-            // 没有直接的 join，只能轮询运行状态
-            while (!child.isInterrupt() && AsyncUtil.get(handle) != null) {
-                if (timeout > 0 && System.currentTimeMillis() > endTime) {
-                    timedOut = true;
-                    break;
+        try {
+            if (child != null) {
+                // 有句柄就等它的完成信号，不再按 50ms 轮询
+                if (timeout > 0) {
+                    child.getDone().get(timeout, TimeUnit.MILLISECONDS);
+                } else {
+                    child.getDone().get();
                 }
-                runnable.sleep(50);
+            } else {
+                // 句柄为空或已结束：等本运行登记的全部异步分支，同样等完成信号
+                timedOut = !AsyncUtil.awaitAll(runnable, timeout);
             }
-        } else {
-            // 句柄为空或已结束时等待本运行登记的全部异步分支
-            while (AsyncUtil.size(runnable) > 0) {
-                if (timeout > 0 && System.currentTimeMillis() > endTime) {
-                    timedOut = true;
-                    break;
-                }
-                runnable.sleep(50);
-            }
+        } catch (TimeoutException e) {
+            timedOut = true;
+        } catch (ExecutionException e) {
+            AppLog.e(e);
+        } catch (InterruptedException e) {
+            // 任务被停止时线程被中断，继续保持中断标记，后面不会再往下执行
+            Thread.currentThread().interrupt();
         }
 
         timeoutResultPin.getValue(PinBoolean.class).setValue(timedOut);
