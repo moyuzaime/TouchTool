@@ -157,137 +157,64 @@ public class LogFloatViewAdapter extends TreeAdapter {
 
     // 鏂版牴鏃ュ織锛氱洿鎺ヨ拷鍔犲埌鍒楄〃鏈熬
     // 父节点还没上屏时先挂起，等父落库后再挂进去（以前是降级成根行，导致跑任务时层级错乱）
-    private final java.util.Set<String> pendingChildUids = new java.util.HashSet<>();
+    // ===== 方案 B：增量只做「按库取结构 + 差额合并」，与重开窗口吃同一条还原路径 =====
+    // 通知里只关心"有新日志"，结构一律回库里查（parent_uid + id 顺序），不再手工算插入位置
 
-    public synchronized void appendRoot(String taskId, LogInfo info) {
-        if (info == null || info.getUid() == null || storeLoader == null) return;
-        String uid = info.getUid();
-        LazyTreeNode exist = nodeMap.get(uid);
-        if (exist != null) {
-            attachChildrenFromStore(exist, taskId);
-            expandIfNeeded(exist);
-            return;
+    public synchronized void syncFromStore(String taskId) {
+        if (storeLoader == null || taskId == null) return;
+        java.util.List<TreeNode> desired = buildDesiredRows(taskId);
+        int prefix = 0;
+        int min = Math.min(desired.size(), treeNodes.size());
+        while (prefix < min && sameRow(treeNodes.get(prefix), desired.get(prefix))) prefix++;
+        if (prefix == treeNodes.size() && prefix == desired.size()) return;   // 没有变化，不动列表
+
+        if (prefix < treeNodes.size()) {
+            int removed = treeNodes.size() - prefix;
+            treeNodes.subList(prefix, treeNodes.size()).clear();
+            notifyItemRangeRemoved(prefix, removed);
         }
-        LazyTreeNode root = new LazyTreeNode(storeLoader, uid);
-        root.setDepth(0);
-        nodeMap.put(uid, root);
-        int index = treeNodes.size();
-        treeNodes.add(index, root);
-        notifyItemInserted(index);
-        // 之前被挂起的子日志（父还没上屏那些）在这里一并挂进来
-        attachChildrenFromStore(root, taskId);
-        expandIfNeeded(root);
+        java.util.List<TreeNode> tail = desired.subList(prefix, desired.size());
+        if (!tail.isEmpty()) {
+            treeNodes.addAll(tail);
+            notifyItemRangeInserted(prefix, tail.size());
+        }
     }
 
-    // 把库里属于该节点的子项按 id 顺序挂上去；已经在根层显示的错误位置会被摘下来
-    private void attachChildrenFromStore(LazyTreeNode parent, String taskId) {
-        if (parent == null || storeLoader == null) return;
-        String parentUid = String.valueOf(parent.getFlag());
-        java.util.List<String> childUids = topbogeyLogStore().childUids(taskId, parentUid);
-        if (childUids.isEmpty()) return;
-        java.util.List<LazyTreeNode> ordered = new java.util.ArrayList<>();
-        for (String childUid : childUids) {
-            if (childUid == null || parentUid.equals(childUid)) continue;
-            LazyTreeNode child = findChild(parent, childUid);
-            if (child == null) {
-                child = new LazyTreeNode(storeLoader, childUid);
-                child.setDepth(parent.getDepth() + 1);
-                parent.addChild(child);
-            }
-            nodeMap.put(childUid, child);
-            pendingChildUids.remove(childUid);
-            ordered.add(child);
-        }
-        if (ordered.isEmpty()) return;
-        // 先从列表摘掉（可能之前没父时被错插到根层，或已在父下但顺序不对）
-        for (LazyTreeNode child : ordered) {
-            int idx = treeNodes.indexOf(child);
-            if (idx >= 0) {
-                treeNodes.remove(idx);
-                notifyItemRemoved(idx);
-            }
-        }
-        int parentIndex = treeNodes.indexOf(parent);
-        if (parentIndex < 0) return;
-        if (!parent.isExpanded()) {
-            notifyItemChanged(parentIndex);
-            return;
-        }
-        int insertAt = parentIndex + 1;
-        treeNodes.addAll(insertAt, ordered);
-        notifyItemRangeInserted(insertAt, ordered.size());
-    }
-
-    private LazyTreeNode findChild(LazyTreeNode parent, String uid) {
-        for (TreeNode treeNode : parent.getChildren()) {
-            if (treeNode instanceof LazyTreeNode lazy && uid.equals(String.valueOf(lazy.getFlag()))) {
-                return lazy;
-            }
-        }
-        return null;
-    }
-
-    // 鐖惰妭鐐逛笅鏂板瀛愭棩蹇楋細鐖跺凡灞曞紑鍒欐彃鍒板瓙鏍戞湯灏撅紝鐖舵姌鍙犳椂鍙埛鏂扮埗琛?
-    public synchronized void appendChild(String taskId, String parentUid, LogInfo info) {
-        if (info == null || info.getUid() == null || storeLoader == null) return;
-        String uid = info.getUid();
-        if (nodeMap.containsKey(uid)) return;
-
-        LazyTreeNode parent = parentUid == null ? null : nodeMap.get(parentUid);
-        if (parent == null || treeNodes.indexOf(parent) < 0) {
-            // 鐖惰妭鐐硅繕娌′笂灞忥紙瀹瑰櫒鏃ュ織鍚庤惤鐩橈級锛氬厛褰撴牴鏄剧ず
-            appendRoot(taskId, info);
-            return;
-        }
-
-        int parentIndex = treeNodes.indexOf(parent);
-        if (!parent.isExpanded()) {
-            notifyItemChanged(parentIndex);   // 鎶樺彔鐘舵€侊細鍙洿鏂?鏈夊瓙椤?鐨勭姸鎬侊紝涓嶅姩婊氬姩
-            return;
-        }
-
-        // 澶嶇敤 LazyTreeNode 宸叉湁鐨勫悓鍚嶅瓙鑺傜偣锛岄伩鍏嶅悓涓€ uid 娉ㄥ唽涓ゆ
-        LazyTreeNode child = null;
-        for (TreeNode treeNode : parent.getChildren()) {
-            if (treeNode instanceof LazyTreeNode lazy
-                    && uid.equals(String.valueOf(lazy.getFlag()))) {
-                child = lazy;
-                break;
-            }
-        }
-        if (child == null) {
-            child = new LazyTreeNode(storeLoader, uid);
-            child.setDepth(parent.getDepth() + 1);
-            parent.addChild(child);
-        }
-        nodeMap.put(uid, child);
-
-        int insertAt = parentIndex + parent.getExpandedChildren().size();
-        treeNodes.add(insertAt, child);
-        notifyItemInserted(insertAt);
-    }
-
-    // 杞鍏滃簳锛氭妸搴撻噷杩樻病涓婂睆鐨勬牴鏃ュ織琛ヤ笂锛堟紡閫氱煡鏃剁敤锛屼笉鍋氭暣琛ㄩ噸寤猴級
-    public synchronized void appendMissing(String taskId) {
-        if (storeLoader == null) return;
-        if (!pendingChildUids.isEmpty()) {
-            // 仍有父节点未上屏的子日志：整页重载兜底，保证不漏行（重开窗口走的是同一条还原逻辑）
-            reload(taskId);
-            return;
-        }
+    // 拼出"应该显示的可见行"：根日志 + 已展开节点的子树（顺序来自数据库 id）
+    private java.util.List<TreeNode> buildDesiredRows(String taskId) {
+        java.util.List<TreeNode> rows = new java.util.ArrayList<>();
         for (String uid : topbogeyLogStore().rootUids(taskId, PAGE_SIZE * pageCount)) {
-            if (uid == null || nodeMap.containsKey(uid)) continue;
-            LogInfo info = topbogeyLogStore().load(taskId, uid);
-            if (info != null) appendRoot(taskId, info);
+            if (uid == null) continue;
+            rows.add(nodeFor(uid, 0));
+            if (expandedUids.contains(uid)) appendChildRows(rows, taskId, uid, 1);
+        }
+        return rows;
+    }
+
+    private void appendChildRows(java.util.List<TreeNode> rows, String taskId, String parentUid, int depth) {
+        for (String childUid : topbogeyLogStore().childUids(taskId, parentUid)) {
+            if (childUid == null) continue;
+            rows.add(nodeFor(childUid, depth));
+            if (expandedUids.contains(childUid)) appendChildRows(rows, taskId, childUid, depth + 1);
         }
     }
 
-    private void expandIfNeeded(LazyTreeNode node) {
-        if (node.isExpanded()) return;
-        if (!expandedUids.contains(String.valueOf(node.getFlag()))) return;
-        expandNode(node);
+    // 复用已有节点：保住展开状态，也不会重复注册
+    private LazyTreeNode nodeFor(String uid, int depth) {
+        LazyTreeNode node = nodeMap.get(uid);
+        if (node == null) {
+            node = new LazyTreeNode(storeLoader, uid);
+            nodeMap.put(uid, node);
+        }
+        node.setDepth(depth);
+        return node;
     }
 
+    private boolean sameRow(TreeNode a, TreeNode b) {
+        if (!(a instanceof LazyTreeNode la) || !(b instanceof LazyTreeNode lb)) return false;
+        return String.valueOf(la.getFlag()).equals(String.valueOf(lb.getFlag()))
+                && la.getDepth() == lb.getDepth();
+    }
     public int searchLog(String text, Boolean isNext) {
         if (text.isEmpty()) {
             searchIndex = -1;

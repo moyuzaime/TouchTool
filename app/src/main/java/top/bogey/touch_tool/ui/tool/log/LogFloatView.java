@@ -411,7 +411,7 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
         int count = top.bogey.touch_tool.bean.save.log.LogStore.getInstance().count(task.getId());
         if (count != lastRootCount) {
             lastRootCount = count;
-            adapter.appendMissing(null);
+            adapter.syncFromStore(task.getId());
             updateEmptyTips();
         }
         postDelayed(pollRunnable, 500);
@@ -466,14 +466,24 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
     public void onNewLog(String taskId, LogInfo log, String parentUid) {
         if (task == null) return;
         if (!taskId.equals(task.getId())) return;
-        // 增量追加：不整表重建；只有本来就在底部时才跟随滚动，否则保持当前阅读位置
-        post(() -> {
-            if (parentUid == null) adapter.appendRoot(taskId, log);
-            else adapter.appendChild(taskId, parentUid, log);
-            lastRootCount = top.bogey.touch_tool.bean.save.log.LogStore.getInstance().count(taskId);
-            if (autoFollow && isNearBottom()) scrollToBottom();
+        // 只标记"有新日志"，结构由 syncFromStore 按库差额合并；150ms 内多次通知只合并一次
+        scheduleSync();
+    }
+
+    private boolean syncPosted = false;
+
+    private void scheduleSync() {
+        if (syncPosted) return;
+        syncPosted = true;
+        postDelayed(() -> {
+            syncPosted = false;
+            if (task == null) return;
+            boolean follow = autoFollow && isNearBottom();
+            adapter.syncFromStore(task.getId());
+            lastRootCount = top.bogey.touch_tool.bean.save.log.LogStore.getInstance().count(task.getId());
+            if (follow) scrollToBottom();
             updateEmptyTips();
-        });
+        }, 150);
     }
 
     @Override
