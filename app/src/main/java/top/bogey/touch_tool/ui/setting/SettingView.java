@@ -55,6 +55,7 @@ import top.bogey.touch_tool.databinding.ViewSettingBinding;
 import top.bogey.touch_tool.service.MainAccessibilityService;
 import top.bogey.touch_tool.service.TaskInfoSummary;
 import top.bogey.touch_tool.service.notification.NotificationService;
+import top.bogey.touch_tool.service.super_user.CmdResult;
 import top.bogey.touch_tool.service.super_user.ISuperUser;
 import top.bogey.touch_tool.service.super_user.SuperUser;
 import top.bogey.touch_tool.service.super_user.root.RootSuperUser;
@@ -62,6 +63,7 @@ import top.bogey.touch_tool.service.super_user.shizuku.ShizukuSuperUser;
 import top.bogey.touch_tool.ui.MainActivity;
 import top.bogey.touch_tool.ui.blueprint.picker.ColorPickerPreview;
 import top.bogey.touch_tool.ui.tool.task_manager.ExportTaskDialog;
+import top.bogey.touch_tool.ui.setting.widget.SettingWidgetSwitch;
 import top.bogey.touch_tool.utils.AppLog;
 import top.bogey.touch_tool.utils.AppUtil;
 import top.bogey.touch_tool.utils.DisplayUtil;
@@ -71,6 +73,9 @@ public class SettingView extends Fragment {
     // 并行分支上限下拉项对应的实际取值，0 表示不限制；顺序必须与 res/values/string_array.xml
     // 的 task_branch_limit 一致
     private static final int[] BRANCH_LIMITS = {4, 8, 16, 32, 0};
+    // 系统「开发者选项」里的两个开关，统一走 settings put system 修改
+    private static final String SYSTEM_OPTION_SHOW_TOUCHES = "show_touches";
+    private static final String SYSTEM_OPTION_POINTER_LOCATION = "pointer_location";
 
     private ViewSettingBinding binding;
 
@@ -163,6 +168,75 @@ public class SettingView extends Fragment {
         if (tag instanceof PopupWindow popup) popup.dismiss();
     }
 
+    // 系统辅助开关：初始状态直接读系统设置；读不到就按关闭显示
+    private void initDeveloperSettings() {
+        binding.showTouchesSwitch.setChecked(isSystemOptionEnabled(SYSTEM_OPTION_SHOW_TOUCHES));
+        binding.showTouchesSwitch.setOnSwitchClickListener(v ->
+                toggleSystemOption(binding.showTouchesSwitch, SYSTEM_OPTION_SHOW_TOUCHES, R.string.developer_setting_show_touches));
+
+        binding.pointerLocationSwitch.setChecked(isSystemOptionEnabled(SYSTEM_OPTION_POINTER_LOCATION));
+        binding.pointerLocationSwitch.setOnSwitchClickListener(v ->
+                toggleSystemOption(binding.pointerLocationSwitch, SYSTEM_OPTION_POINTER_LOCATION, R.string.developer_setting_pointer_location));
+    }
+
+    private boolean isSystemOptionEnabled(String key) {
+        try {
+            return Settings.System.getInt(requireContext().getContentResolver(), key, 0) != 0;
+        } catch (Throwable e) {
+            return false;
+        }
+    }
+
+    // 一键开关：有 Root/Shizuku 时直接执行 settings 命令，没有就给可复制的 adb 命令
+    private void toggleSystemOption(SettingWidgetSwitch widget, String key, int titleRes) {
+        boolean enabled = widget.isChecked();
+        String command = "settings put system " + key + " " + (enabled ? 1 : 0);
+
+        ISuperUser superUser = SuperUser.getInstance();
+        if (superUser == null) {
+            showSystemOptionCommand(widget, key, titleRes, command);
+            return;
+        }
+        if (superUser.isValid()) {
+            applySystemOption(widget, key, titleRes, enabled, command, superUser);
+            return;
+        }
+        // 首次使用还没初始化超级用户会话，初始化完再执行
+        superUser.init(result -> {
+            if (!isAdded()) return;
+            requireActivity().runOnUiThread(() -> {
+                if (result) applySystemOption(widget, key, titleRes, enabled, command, superUser);
+                else showSystemOptionCommand(widget, key, titleRes, command);
+            });
+        });
+    }
+
+    private void applySystemOption(SettingWidgetSwitch widget, String key, int titleRes, boolean enabled, String command, ISuperUser superUser) {
+        CmdResult result = superUser.runCommand(command);
+        if (result == null || !result.getResult()) {
+            showSystemOptionCommand(widget, key, titleRes, command);
+            return;
+        }
+        boolean actual = enabled;
+        try {
+            actual = Settings.System.getInt(requireContext().getContentResolver(), key, enabled ? 1 : 0) != 0;
+        } catch (Throwable ignored) {
+            // 读不到就按命令的目标状态显示
+        }
+        widget.setChecked(actual);
+        Toast.makeText(requireContext(), actual ? R.string.developer_setting_on : R.string.developer_setting_off, Toast.LENGTH_SHORT).show();
+    }
+
+    private void showSystemOptionCommand(SettingWidgetSwitch widget, String key, int titleRes, String command) {
+        widget.setChecked(isSystemOptionEnabled(key));
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext())
+                .setMessage(getString(R.string.developer_setting_need_root) + "\n\n" + command)
+                .setPositiveButton(R.string.setting_copy_shell, (dialog, which) -> AppUtil.copyToClipboard(requireContext(), command))
+                .setNegativeButton(R.string.close, null);
+        if (titleRes != 0) builder.setTitle(titleRes);
+        builder.show();
+    }
+
     // 自动开启录屏：授予 PROJECT_MEDIA
     private void showAutoCapturePermissionCmd() {
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext())
@@ -235,6 +309,9 @@ public class SettingView extends Fragment {
         binding.enableHero.setChecked(serv != null && serv.isEnabled());
         refreshHeroCorner((MainActivity) requireActivity());
         refreshIgnoreBattery();
+        // 系统开发者选项可能在系统设置里被改过，回来同步开关
+        binding.showTouchesSwitch.setChecked(isSystemOptionEnabled(SYSTEM_OPTION_SHOW_TOUCHES));
+        binding.pointerLocationSwitch.setChecked(isSystemOptionEnabled(SYSTEM_OPTION_POINTER_LOCATION));
     }
 
     @SuppressLint("SetTextI18n")
@@ -358,6 +435,9 @@ public class SettingView extends Fragment {
                     .show();
         });
         binding.cleanCacheButton.setDescription(getString(R.string.app_setting_clean_cache_desc, AppUtil.getCacheDirsSizeString(activity)));
+
+        // 系统辅助：开发者选项里的点按反馈与指针位置
+        initDeveloperSettings();
 
         // 超级用户
         binding.superUserSelect.setOnButtonCheckedListener((group, checkedId, isChecked) -> {

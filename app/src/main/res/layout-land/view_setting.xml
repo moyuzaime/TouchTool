@@ -171,6 +171,56 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_margin="?attr/defaultPadding"
+                            android:text="@string/developer_setting"
+                            android:textSize="12sp" />
+
+                    </LinearLayout>
+
+                    <top.bogey.touch_tool.ui.setting.widget.SettingWidgetSwitch
+                        android:id="@+id/showTouchesSwitch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="?attr/defaultOffset"
+                        android:layout_marginTop="?attr/defaultOffset"
+                        app:rowCorner="top"
+                        app:description="@string/developer_setting_show_touches_desc"
+                        app:icon="@drawable/icon_gesture"
+                        app:title="@string/developer_setting_show_touches" />
+
+                    <top.bogey.touch_tool.ui.setting.widget.SettingWidgetSwitch
+                        android:id="@+id/pointerLocationSwitch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="?attr/defaultOffset"
+                        android:layout_marginTop="?attr/defaultOffset"
+                        app:rowCorner="bottom"
+                        app:description="@string/developer_setting_pointer_location_desc"
+                        app:icon="@drawable/icon_my_location"
+                        app:title="@string/developer_setting_pointer_location" />
+
+                </LinearLayout>
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/defaultPadding" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
+
+                        <Space
+                            android:layout_width="?attr/minTouchTargetSize"
+                            android:layout_height="wrap_content" />
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="?attr/defaultPadding"
                             android:text="@string/task_setting"
                             android:textSize="12sp" />
 

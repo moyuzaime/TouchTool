@@ -346,6 +346,15 @@
     <string name="app_setting_clean_cache_desc">点击清理任务日志、分享任务、分享文件产生的缓存。\n当前: %s</string>
     <string name="app_setting_clean_cache_button_text">清理</string>
 
+    <string name="developer_setting">系统辅助</string>
+    <string name="developer_setting_show_touches">显示点按操作反馈</string>
+    <string name="developer_setting_show_touches_desc">显示点按操作的视觉反馈（系统「开发者选项」里的开关）</string>
+    <string name="developer_setting_pointer_location">指针位置</string>
+    <string name="developer_setting_pointer_location_desc">屏幕叠加层显示当前触摸点坐标（系统「开发者选项」里的开关）</string>
+    <string name="developer_setting_need_root">需要 Root / Shizuku 或 adb 执行下面的命令才能修改系统开发者选项：</string>
+    <string name="developer_setting_on">已开启</string>
+    <string name="developer_setting_off">已关闭</string>
+
 
     <!-- 设置-权限设置 -->
     <string name="permission_setting">权限设置</string>
