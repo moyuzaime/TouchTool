@@ -24,6 +24,8 @@ import top.bogey.touch_tool.bean.save.setting.SettingSaver;
 import top.bogey.touch_tool.bean.save.log.LogSaver;
 import top.bogey.touch_tool.bean.task.Task;
 import top.bogey.touch_tool.utils.AppLog;
+import top.bogey.touch_tool.utils.ThreadUtil;
+import top.bogey.touch_tool.utils.thread.BranchLimiter;
 
 public class TaskRunnable implements Runnable {
     private final Stack<TaskContext> taskContextStack = new Stack<>();
@@ -50,6 +52,8 @@ public class TaskRunnable implements Runnable {
     private final CompletableFuture<Void> done = new CompletableFuture<>();
     // 所属任务运行的根运行：分支共享同一个根，用于按任务运行限流与统计
     private volatile TaskRunnable root;
+    // 停止后的宽限报告只排一次
+    private final AtomicBoolean stopReportScheduled = new AtomicBoolean(false);
 
     private boolean cacheLog = false;
     // 分支线程可能同时往父运行的缓存日志里追加，读的时候取快照
@@ -171,6 +175,14 @@ public class TaskRunnable implements Runnable {
     public void addListener(ITaskListener listener) {
         if (listener == null) return;
         listeners.add(listener);
+        // 已经收尾的运行不会再有回调：立即补一次，避免登记方（句柄、角标、分支名额）永远等不到结束
+        if (finished.get() && listeners.remove(listener)) {
+            try {
+                listener.onFinish(this);
+            } catch (Throwable e) {
+                AppLog.e("线程", "onFinish 回调异常", e);
+            }
+        }
     }
 
     public void removeListener(ITaskListener listener) {
@@ -259,6 +271,28 @@ public class TaskRunnable implements Runnable {
         }
         if (wasPaused) notifyPauseChanged(false);
         if (needFinish) finishOnce();
+        // 根运行被停止后给分支一点宽限，仍未收尾的记一条日志，便于定位死循环分支
+        if (isRoot()) scheduleStopReport();
+    }
+
+    private boolean isRoot() {
+        return root == null || root == this;
+    }
+
+    private void scheduleStopReport() {
+        if (!stopReportScheduled.compareAndSet(false, true)) return;
+        ThreadUtil.execute(() -> {
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+            int branches = BranchLimiter.used(getRoot());
+            if (branches > 0) {
+                AppLog.e("任务", "强制放弃 " + branches + " 个分支（停止 200ms 后仍未收尾）");
+            }
+        });
     }
 
     public void stopCurrent() {

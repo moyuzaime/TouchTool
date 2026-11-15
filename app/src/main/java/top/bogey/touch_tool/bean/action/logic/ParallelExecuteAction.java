@@ -32,6 +32,7 @@ import top.bogey.touch_tool.service.ITaskListener;
 import top.bogey.touch_tool.service.MainAccessibilityService;
 import top.bogey.touch_tool.service.TaskRunnable;
 import top.bogey.touch_tool.utils.AppLog;
+import top.bogey.touch_tool.utils.thread.BranchMonitor;
 import top.bogey.touch_tool.utils.tree.ITreeNodeData;
 
 public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsAction {
@@ -87,6 +88,8 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         LogInfo container = runnable.getCurrentLogInfo();
 
         for (Pin dynamicPin : validPins) {
+            // 先记运行态再 runTask：分支可能瞬间就跑完，晚记会把「已结束」又加回来
+            BranchMonitor.addRunning(getId());
             TaskRunnable taskRunnable = service == null ? null : service.runTask(currTask, new InnerStartAction(dynamicPin), new ITaskListener() {
                 @Override
                 public void onExecute(TaskRunnable run, Action action, int progress) {
@@ -95,6 +98,7 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
 
                 @Override
                 public void onFinish(TaskRunnable run) {
+                    BranchMonitor.removeRunning(getId());
                     List<LogInfo> logList = run.getCacheLogList();
                     List<String> logs = saveLogs(runnable, logList);
                     LogInfo logInfo = new LogInfo(new ActionLog(runnable.getProgress() + 1, currTask, ParallelExecuteAction.this, true));
@@ -123,6 +127,7 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
             }, runnable);
             if (taskRunnable == null) {
                 // 未启动也要推进计数，否则每次运行都要等满超时；也不能把 null 塞进列表
+                BranchMonitor.removeRunning(getId());
                 rejectedCount.incrementAndGet();
                 latch.countDown();
             } else {

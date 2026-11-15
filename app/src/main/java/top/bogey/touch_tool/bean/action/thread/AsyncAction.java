@@ -16,6 +16,7 @@ import top.bogey.touch_tool.service.MainAccessibilityService;
 import top.bogey.touch_tool.service.TaskRunnable;
 import top.bogey.touch_tool.utils.AppLog;
 import top.bogey.touch_tool.utils.thread.AsyncUtil;
+import top.bogey.touch_tool.utils.thread.BranchMonitor;
 
 // 异步执行：把「异步」针脚后面的动作放到另一条线程跑，主流程立刻继续
 public class AsyncAction extends ExecuteAction {
@@ -35,6 +36,8 @@ public class AsyncAction extends ExecuteAction {
     @Override
     public void execute(TaskRunnable runnable, Pin pin) {
         MainAccessibilityService service = MainApplication.getInstance().getService();
+        // 先记运行态再建分支：分支可能瞬间就跑完，晚记会把「已结束」又加回来
+        BranchMonitor.addRunning(getId());
         TaskRunnable child = null;
         if (service != null) {
             child = service.runTask(runnable.getTask(), new InnerStartAction(asyncPin), new ITaskListener() {
@@ -42,11 +45,17 @@ public class AsyncAction extends ExecuteAction {
                 public void onExecute(TaskRunnable run, Action action, int progress) {
                     if (runnable.isCurrentInterrupt()) run.stop();
                 }
+
+                @Override
+                public void onFinish(TaskRunnable run) {
+                    BranchMonitor.removeRunning(getId());
+                }
             }, runnable);
         }
 
         String handle = "";
         if (child == null) {
+            BranchMonitor.removeRunning(getId());
             AppLog.e("异步执行", "分支未能启动（线程池已满、服务不可用或已达分支上限）");
         } else {
             handle = AsyncUtil.register(runnable, child);

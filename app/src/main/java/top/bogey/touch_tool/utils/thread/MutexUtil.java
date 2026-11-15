@@ -26,15 +26,22 @@ public class MutexUtil {
 
     // 记录持有关系，并在该次运行结束时释放，防止异常退出后锁一直不还
     public static void remember(TaskRunnable runnable, ReentrantLock lock) {
-        Set<ReentrantLock> set = HELD.computeIfAbsent(runnable, k -> {
-            k.addListener(new ITaskListener() {
+        // 已经收尾的运行不会再有 onFinish 回调，记了也没人释放，直接还回去
+        if (runnable.isFinished()) {
+            if (lock.isHeldByCurrentThread()) lock.unlock();
+            return;
+        }
+        Set<ReentrantLock> created = ConcurrentHashMap.newKeySet();
+        Set<ReentrantLock> set = HELD.putIfAbsent(runnable, created);
+        if (set == null) {
+            set = created;
+            runnable.addListener(new ITaskListener() {
                 @Override
                 public void onFinish(TaskRunnable run) {
                     releaseAll(run);
                 }
             });
-            return ConcurrentHashMap.newKeySet();
-        });
+        }
         set.add(lock);
     }
 

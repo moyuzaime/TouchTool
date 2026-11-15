@@ -34,6 +34,7 @@ import top.bogey.touch_tool.utils.DisplayUtil;
 import top.bogey.touch_tool.ui.blueprint.pin.PinView;
 import top.bogey.touch_tool.utils.AppUtil;
 import top.bogey.touch_tool.utils.DisplayUtil;
+import top.bogey.touch_tool.utils.thread.BranchMonitor;
 
 public abstract class ActionCard extends MaterialCardView implements ActionListener {
     protected final Task task;
@@ -45,6 +46,12 @@ public abstract class ActionCard extends MaterialCardView implements ActionListe
 
     private boolean savedGroupHighlight = false;
     private final Paint savedGroupBorderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+    // 「运行中 N」角标：按动作 id 订阅运行态，右上角画一个小圆标
+    private final Paint badgeBgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint badgeTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private int runningCount = 0;
+    private BranchMonitor.Listener branchListener;
 
     private MaterialTextView posView;
 
@@ -66,14 +73,41 @@ public abstract class ActionCard extends MaterialCardView implements ActionListe
 
         init();
 
+        badgeBgPaint.setColor(DisplayUtil.getAttrColor(context, com.google.android.material.R.attr.colorTertiary));
+        badgeTextPaint.setColor(android.graphics.Color.WHITE);
+        badgeTextPaint.setTextAlign(Paint.Align.CENTER);
+        badgeTextPaint.setTextSize(DisplayUtil.dp2px(context, 9));
+        badgeTextPaint.setFakeBoldText(true);
+
         action.getPins().forEach(this::addPinView);
         action.addListener(this);
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if (branchListener != null) return;
+        branchListener = (actionId, count) -> {
+            if (!action.getId().equals(actionId)) return;
+            // 回调可能来自分支线程，切回 UI 线程再改状态
+            post(() -> {
+                if (runningCount == count) return;
+                runningCount = count;
+                invalidate();
+            });
+        };
+        BranchMonitor.addListener(branchListener);
+        runningCount = BranchMonitor.getRunning(action.getId());
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         action.removeListener(this);
+        if (branchListener != null) {
+            BranchMonitor.removeListener(branchListener);
+            branchListener = null;
+        }
     }
 
     public abstract void init();
@@ -382,9 +416,26 @@ public abstract class ActionCard extends MaterialCardView implements ActionListe
         invalidate();
     }
 
+    // 分支卡片右上角的「运行中 N」角标
+    private void drawRunningBadge(Canvas canvas) {
+        if (runningCount <= 0 || getWidth() <= 0) return;
+        Context context = getContext();
+        float margin = DisplayUtil.dp2px(context, 4);
+        float radius = DisplayUtil.dp2px(context, 8);
+        float cx = getWidth() - radius - margin;
+        float cy = radius + margin;
+        canvas.drawCircle(cx, cy, radius, badgeBgPaint);
+
+        String text = runningCount > 99 ? "99+" : String.valueOf(runningCount);
+        badgeTextPaint.setTextSize(DisplayUtil.dp2px(context, text.length() > 1 ? 7 : 9));
+        float baseline = cy - (badgeTextPaint.descent() + badgeTextPaint.ascent()) / 2f;
+        canvas.drawText(text, cx, baseline, badgeTextPaint);
+    }
+
     @Override
     protected void dispatchDraw(Canvas canvas) {
         super.dispatchDraw(canvas);
+        drawRunningBadge(canvas);
         if (!savedGroupHighlight) return;
 
         // 组高亮用「实线 + tertiary 色」，与选中态的「虚线 + primary 色」区分开
