@@ -434,7 +434,7 @@ public class BlueprintView extends Fragment {
         binding.logButton.setOnClickListener(v -> {
             Task current = taskStack.peek();
             if (current == null) return;
-            top.bogey.touch_tool.ui.tool.log.LogFloatView.showTool(requireContext(), current);
+            new LogFloatView(requireContext(), current).show();
         });
         // 顶部「运行」：直接跑当前任务的手动开始动作
         binding.runButton.setOnClickListener(v -> {

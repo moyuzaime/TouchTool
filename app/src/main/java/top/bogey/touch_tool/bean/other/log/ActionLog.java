@@ -59,11 +59,6 @@ public class ActionLog extends Log {
         log = builder.toString();
     }
 
-    public ActionLog(int index, Task task, Action action, boolean execute, String tag) {
-        this(index, task, action, execute);
-        if (tag != null && !tag.isEmpty()) log = tag + " " + log;
-    }
-
     public ActionLog(JsonObject jsonObject) {
         super(jsonObject);
         index = GsonUtil.getAsInt(jsonObject, "index", -1);
@@ -75,16 +70,10 @@ public class ActionLog extends Log {
         values.putAll(GsonUtil.getAsObject(jsonObject, "values", TypeToken.getParameterized(LinkedHashMap.class, String.class, PinBase.class).getType(), new HashMap<>()));
     }
 
-    // values 会被任务线程改写（syncLog），同时 UI 线程在刷新日志行时遍历，
-    // 直接返回原表会抛 ConcurrentModificationException，所以读写都加锁、读方拿快照
-    private final transient Object valuesLock = new Object();
-
     public void syncLog(ActionLog log) {
         if (taskId.equals(log.taskId) && actionId.equals(log.actionId)) {
-            synchronized (valuesLock) {
-                this.values.clear();
-                this.values.putAll(log.values);
-            }
+            this.values.clear();
+            this.values.putAll(log.values);
         }
     }
 
@@ -109,15 +98,6 @@ public class ActionLog extends Log {
     }
 
     public Map<String, PinObject> getValues() {
-        synchronized (valuesLock) {
-            return new LinkedHashMap<>(values);
-        }
-    }
-
-    // payload 过大时（动作值里带图片）落库前清掉值，避免单条日志把库撑爆
-    public void clearValues() {
-        synchronized (valuesLock) {
-            values.clear();
-        }
+        return values;
     }
 }

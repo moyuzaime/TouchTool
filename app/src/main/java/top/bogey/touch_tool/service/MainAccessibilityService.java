@@ -346,11 +346,6 @@ public class MainAccessibilityService extends AccessibilityService {
     }
 
     public TaskRunnable runTask(Task task, StartAction startAction, ITaskListener listener) {
-        return runTask(task, startAction, listener, null, null);
-    }
-
-    // logStoreKey：日志写入的存档 key；logContainerUid：分支根日志要挂到的父节点 uid
-    public TaskRunnable runTask(Task task, StartAction startAction, ITaskListener listener, String logStoreKey, top.bogey.touch_tool.bean.other.log.LogInfo logContainer) {
         cleanInterruptTask();
 
         if (task == null || startAction == null) return null;
@@ -361,8 +356,6 @@ public class MainAccessibilityService extends AccessibilityService {
         }
 
         TaskRunnable runnable = new TaskRunnable(task, startAction);
-        if (logStoreKey != null) runnable.setLogStoreKey(logStoreKey);
-        if (logContainer != null) runnable.setLogContainer(logContainer);
         if (listener != null) runnable.addListener(listener);
 
         runnable.addListener(new ITaskListener() {

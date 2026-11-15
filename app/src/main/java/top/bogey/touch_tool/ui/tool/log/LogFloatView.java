@@ -6,18 +6,14 @@ import android.graphics.RectF;
 import android.text.Editable;
 import android.util.Size;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Toast;
 import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.ListPopupWindow;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,13 +22,13 @@ import top.bogey.touch_tool.MainApplication;
 import top.bogey.touch_tool.R;
 import top.bogey.touch_tool.bean.other.log.ActionLog;
 import top.bogey.touch_tool.bean.other.log.LogInfo;
+import top.bogey.touch_tool.bean.save.log.LogSave;
 import top.bogey.touch_tool.bean.save.log.LogSaveListener;
 import top.bogey.touch_tool.bean.save.log.LogSaver;
 import top.bogey.touch_tool.bean.save.setting.SettingSaver;
 import top.bogey.touch_tool.bean.save.task.TaskSaver;
 import top.bogey.touch_tool.bean.task.Task;
 import top.bogey.touch_tool.databinding.FloatLogBinding;
-import top.bogey.touch_tool.utils.AnimUtil;
 import top.bogey.touch_tool.utils.AppUtil;
 import top.bogey.touch_tool.utils.DisplayUtil;
 import top.bogey.touch_tool.utils.EAnchor;
@@ -42,37 +38,9 @@ import top.bogey.touch_tool.utils.listener.TextChangedListener;
 
 @SuppressLint("ViewConstructor")
 public class LogFloatView extends FrameLayout implements FloatInterface, LogSaveListener {
-    // 复用同一个实例：关掉后再次打开不必重新 inflate 与绑定
-    private static java.lang.ref.WeakReference<LogFloatView> cached = new java.lang.ref.WeakReference<>(null);
-
-    public static void clearCached() {
-        cached = new java.lang.ref.WeakReference<>(null);
-    }
-
-    public static void showTool(android.content.Context context) {
-        LogFloatView view = cached.get();
-        if (view == null || view.getContext() != context) {
-            view = new LogFloatView(context);
-            cached = new java.lang.ref.WeakReference<>(view);
-        }
-        view.show();
-    }
-
-    // 直接打开某个任务的日志（蓝图顶栏用）
-    public static void showTool(android.content.Context context, Task task) {
-        LogFloatView view = new LogFloatView(context, task);
-        cached = new java.lang.ref.WeakReference<>(view);
-        view.show();
-    }
-
     private final FloatLogBinding binding;
     private final LogFloatViewAdapter adapter;
     private final String tag = LogFloatView.class.getName();
-    private int lastRootCount = 0;
-    // 是否跟随最新日志滚动；用户翻看或展开节点后暂停
-    private boolean autoFollow = true;
-    // 防止滚到顶部时连续触发"加载更多"
-    private boolean loadingMore = false;
 
     private final int minWidth, minHeight;
     private final int maxWidth, maxHeight;
@@ -102,35 +70,8 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
         maxWidth = size.getWidth();
         maxHeight = (int) (size.getHeight() * 0.8f);
 
-        // 直接使用传入上下文：来自 Activity 时主题里已含动态色/自定义色，二次包裹会覆盖用户选色
         binding = FloatLogBinding.inflate(LayoutInflater.from(context), this, true);
         adapter = new LogFloatViewAdapter();
-        // 手动展开/折叠后暂停自动跟随，避免正在看的分支被新日志顶走
-        adapter.setOnNodeToggled(() -> autoFollow = false);
-        binding.recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) autoFollow = false;
-                // 手动拖回底部后恢复跟随
-                if (newState == RecyclerView.SCROLL_STATE_IDLE && isNearBottom()) autoFollow = true;
-            }
-
-            @Override
-            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                // 滚到顶部时自动加载更早的日志（分页窗口）
-                if (dy < 0 && !loadingMore && recyclerView.getScrollState() == RecyclerView.SCROLL_STATE_DRAGGING) {
-                    RecyclerView.LayoutManager manager = recyclerView.getLayoutManager();
-                    if (manager instanceof LinearLayoutManager linear && linear.findFirstVisibleItemPosition() == 0) {
-                        loadingMore = true;
-                        postDelayed(() -> {
-                            loadingMore = false;
-                            adapter.loadMore();
-                        }, 200);
-                    }
-                }
-            }
-        });
-        initResizeHandle();
 
         binding.title.setOnClickListener(v -> {
             ListPopupWindow popup = new ListPopupWindow(context);
@@ -148,7 +89,7 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
             popup.setOnItemClickListener((parent, view, position, id) -> {
                 this.task = validTasks.get(position);
                 binding.title.setText(this.task.getTitle());
-                adapter.setTask(this.task.getId());
+                adapter.setLogSave(LogSaver.getInstance().getLogSave(this.task.getId()));
                 popup.dismiss();
             });
             popup.setModal(true);
@@ -161,10 +102,7 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
 
         binding.exportButton.setOnClickListener(v -> {
             StringBuilder builder = new StringBuilder();
-            // 并行分支的日志是各自独立的根节点，按时间排序导出才不会把分支块堆在最后
-            java.util.List<LogInfo> exportLogs = new java.util.ArrayList<>(adapter.getLogs());
-            exportLogs.sort((a, b) -> Long.compare(a.getTime(), b.getTime()));
-            for (LogInfo log : exportLogs) {
+            for (LogInfo log : adapter.getLogs()) {
                 builder.append("[").append(AppUtil.formatDateTime(context, log.getTime(), false, false)).append("] ");
                 if (log.getLogObject() instanceof ActionLog actionLog) {
                     builder.append("[").append(actionLog.isExecute() ? "->" : "<-").append("] ");
@@ -198,8 +136,7 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
                 params.width = binding.expandButton.getWidth();
                 params.height = binding.expandButton.getHeight();
                 binding.getRoot().setLayoutParams(params);
-                // 收起时显示本功能的图标，方便在桌面上认出是哪个窗口
-                binding.expandButton.setIconResource(R.drawable.icon_note_stack);
+                binding.expandButton.setIconResource(R.drawable.icon_zoom_out_map);
 
             }
             FloatWindow.updateLayoutParam(tag);
@@ -209,7 +146,7 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
 
         if (task != null) {
             binding.title.setText(task.getTitle());
-            adapter.setTask(task.getId());
+            adapter.setLogSave(LogSaver.getInstance().getLogSave(task.getId()));
             binding.recyclerView.scrollToPosition(adapter.getItemCount() - 1);
         }
 
@@ -226,8 +163,6 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
 
         binding.preButton.setOnClickListener(v -> searchLog(false));
         binding.nextButton.setOnClickListener(v -> searchLog(true));
-        // 搜索选项平时收起，点右侧按钮在窗口内展开，避免悬浮窗里的弹窗被裁到屏幕外
-        binding.menuButton.setOnClickListener(v -> toggleSearchOptions());
         binding.pinyinCheck.addOnCheckedChangeListener((buttonView, isChecked) -> SettingSaver.BLUEPRINT_SEARCH_WITH_PINYIN.set(isChecked));
         binding.pinyinCheck.setChecked(SettingSaver.BLUEPRINT_SEARCH_WITH_PINYIN.get());
         binding.posCheck.addOnCheckedChangeListener((buttonView, isChecked) -> SettingSaver.BLUEPRINT_SEARCH_WITH_POSITION.set(isChecked));
@@ -240,37 +175,16 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
         binding.clearButton.setOnClickListener(v -> {
             if (this.task == null) return;
             LogSaver.getInstance().clearLog(this.task.getId());
-            refreshLogs();
+            adapter.setLogSave(LogSaver.getInstance().getLogSave(this.task.getId()));
         });
-    }
-
-    // 搜索选项在窗口内展开/收起
-    private void toggleSearchOptions() {
-        boolean show = binding.searchOptionsBox.getVisibility() != View.VISIBLE;
-        if (show) {
-            AnimUtil.show(binding.searchOptionsBox, -8f);
-        } else {
-            AnimUtil.hide(binding.searchOptionsBox, -8f);
-        }
     }
 
     private void searchLog(boolean isNext) {
         String s = "";
         Editable text = binding.searchEdit.getText();
         if (text != null) s = text.toString();
-
-        // 没有搜索词时，上下箭头在当前展开块里跳：上箭头到首行，下箭头到末行
-        if (s.isEmpty()) {
-            int count = adapter.getItemCount();
-            if (count <= 0) return;
-            int edge = adapter.findExpandedEdge(isNext, getAnchorPosition());
-            if (edge < 0) edge = isNext ? count - 1 : 0;
-            binding.recyclerView.scrollToPosition(edge);
-            return;
-        }
-
         int index = adapter.searchLog(s, isNext);
-        if (index >= 0) binding.recyclerView.scrollToPosition(index);
+        if (index > 0) binding.recyclerView.scrollToPosition(index);
         else binding.recyclerView.scrollToPosition(adapter.getItemCount() - 1);
     }
 
@@ -301,7 +215,25 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
                 return super.onInterceptTouchEvent(event);
             }
 
+            location = new int[2];
+            binding.dragImage.getLocationOnScreen(location);
+            if (new RectF(location[0], location[1], location[0] + binding.dragImage.getWidth(), location[1] + binding.dragImage.getHeight()).contains(x, y)) {
+                FloatWindow.setDragAble(tag, false);
+                lastX = 0;
+                lastY = 0;
+                canDrag = true;
+                return super.onInterceptTouchEvent(event);
+            }
             FloatWindow.setDragAble(tag, true);
+        } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+            if (!canDrag) return false;
+            if ((lastX == 0 && lastY == 0) || (lastX == x && lastY == y)) {
+                lastX = x;
+                lastY = y;
+                return false;
+            }
+            dragging = true;
+            return true;
         }
         return super.onInterceptTouchEvent(event);
     }
@@ -309,202 +241,64 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        return super.onTouchEvent(event);
-    }
+        float x = event.getRawX();
+        float y = event.getRawY();
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_MOVE -> {
+                float dx = x - lastX;
+                float dy = y - lastY;
+                ViewGroup.LayoutParams params = binding.getRoot().getLayoutParams();
+                if (params.width <= 0) params.width = originWidth;
+                if (params.height <= 0) params.height = originHeight;
+                params.width += (int) dx;
+                params.height += (int) dy;
+                params.width = Math.clamp(params.width, minWidth, maxWidth);
+                params.height = Math.clamp(params.height, minHeight, maxHeight);
+                binding.getRoot().setLayoutParams(params);
+                FloatWindow.updateLayoutParam(tag);
+                lastX = x;
+                lastY = y;
+                return true;
+            }
 
-    // 缩放交给手柄自己处理：手柄贴在窗口右下角，父容器的拦截容易和子控件抢事件
-    private void initResizeHandle() {
-        binding.dragImage.setOnTouchListener((view, event) -> {
-            float x = event.getRawX();
-            float y = event.getRawY();
-            switch (event.getAction()) {
-                case MotionEvent.ACTION_DOWN -> {
-                    lastX = x;
-                    lastY = y;
-                    dragging = true;
-                    FloatWindow.setDragAble(tag, false);
-                    return true;
-                }
-                case MotionEvent.ACTION_MOVE -> {
-                    float dx = x - lastX;
-                    float dy = y - lastY;
-                    ViewGroup.LayoutParams params = binding.getRoot().getLayoutParams();
-                    if (params.width <= 0) params.width = originWidth;
-                    if (params.height <= 0) params.height = originHeight;
-                    params.width += (int) dx;
-                    params.height += (int) dy;
-                    params.width = Math.clamp(params.width, minWidth, maxWidth);
-                    params.height = Math.clamp(params.height, minHeight, maxHeight);
-                    binding.getRoot().setLayoutParams(params);
-                    FloatWindow.updateLayoutParam(tag);
-                    lastX = x;
-                    lastY = y;
-                    return true;
-                }
-                case MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+            case MotionEvent.ACTION_UP -> {
+                if (dragging) {
                     dragging = false;
                     FloatWindow.setDragAble(tag, true);
-                    return true;
                 }
+                return true;
             }
-            return false;
-        });
+        }
+        return false;
     }
 
     @Override
     public void show() {
-        // 无障碍服务没起来时加窗会抛 BadToken，还可能留下关不掉的幽灵窗口，直接提示
-        top.bogey.touch_tool.service.MainAccessibilityService service =
-                MainApplication.getInstance().getService();
-        if (service == null || !service.isConnected()) {
-            // 服务对象还在但没真正连上时，加窗会 BadToken 并留下僵尸窗口，先重建绑定
-            boolean reconnected = top.bogey.touch_tool.service.MainAccessibilityService.reconnectSelf(getContext());
-            Toast.makeText(getContext(),
-                    reconnected ? R.string.float_window_reconnect_tip : R.string.app_setting_enable_error,
-                    Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         Size size = DisplayUtil.getScreenSize(getContext());
-        boolean ok = FloatWindow.with(service)
+        FloatWindow.with(MainApplication.getInstance().getService())
                 .setLayout(this)
                 .setTag(tag)
                 .setSpecial(true)
                 .setLocation(EAnchor.BOTTOM_CENTER, 0, -size.getHeight() / 4)
                 .setExistEditText(true)
                 .show();
-        if (!ok) {
-            // 服务对象还在但窗口令牌已失效：重建一次无障碍绑定，让下次点击能正常开窗
-            boolean reconnected = top.bogey.touch_tool.service.MainAccessibilityService.reconnectSelf(getContext());
-            Toast.makeText(getContext(),
-                    reconnected ? R.string.float_window_reconnect_tip : R.string.app_setting_enable_error,
-                    Toast.LENGTH_SHORT).show();
-            return;
-        }
         LogSaver.getInstance().addListener(this);
-        postDelayed(pollRunnable, 500);
     }
 
     @Override
     public void dismiss() {
-        stopWatch();
+        LogSaver.getInstance().removeListener(this);
         FloatWindow.dismiss(tag);
     }
 
-    // 磁贴等外部路径直接 FloatWindow.dismiss 时不会走 dismiss()，这里兜底释放监听与轮询
     @Override
-    protected void onDetachedFromWindow() {
-        stopWatch();
-        super.onDetachedFromWindow();
-    }
-
-    private void stopWatch() {
-        removeCallbacks(pollRunnable);
-        LogSaver.getInstance().removeListener(this);
-    }
-
-    // 兜底轮询：只看根节点数量，漏了通知也能补上，且不做整表重建
-    private final Runnable pollRunnable = this::pollLogs;
-
-    private void pollLogs() {
+    public void onNewLog(LogSave logSave, LogInfo log) {
         if (task == null) return;
-        int count = top.bogey.touch_tool.bean.save.log.LogStore.getInstance().count(task.getId());
-        if (count != lastRootCount) {
-            lastRootCount = count;
-            adapter.syncFromStore(task.getId());
-            updateEmptyTips();
-        }
-        postDelayed(pollRunnable, 500);
-    }
-
-    // 首次加载/切换任务时重建列表
-    private void refreshLogs() {
-        if (task == null) return;
-        lastRootCount = top.bogey.touch_tool.bean.save.log.LogStore.getInstance().count(task.getId());
-        adapter.setTask(task.getId());
-        // 首次打开/切换任务时回到最新一条，并恢复跟随
-        autoFollow = true;
-        scrollToBottom();
-    }
-
-    // 当前视口的第一行，用作"所在层"的锚点
-    private int getAnchorPosition() {
-        RecyclerView.LayoutManager manager = binding.recyclerView.getLayoutManager();
-        if (manager instanceof LinearLayoutManager linearManager) {
-            int first = linearManager.findFirstVisibleItemPosition();
-            if (first != RecyclerView.NO_POSITION) return first;
-        }
-        return 0;
-    }
-
-    // 只有用户本来就在底部时才自动跟随；正在往上翻看时不要把人顶走
-    private boolean isNearBottom() {
-        RecyclerView recyclerView = binding.recyclerView;
-        RecyclerView.LayoutManager manager = recyclerView.getLayoutManager();
-        if (manager == null || manager.getItemCount() == 0) return true;
-        if (manager instanceof LinearLayoutManager linearManager) {
-            int last = linearManager.findLastVisibleItemPosition();
-            if (last == RecyclerView.NO_POSITION) return true;
-            return last >= manager.getItemCount() - 2;
-        }
-        return true;
-    }
-
-    private void scrollToBottom() {
-        int count = adapter.getItemCount();
-        if (count > 0) binding.recyclerView.scrollToPosition(count - 1);
-        updateEmptyTips();
-    }
-
-    // 没有日志时给一句提示，避免窗口中间一片空白
-    private void updateEmptyTips() {
-        boolean empty = adapter.getItemCount() == 0;
-        binding.emptyTips.setVisibility(empty ? View.VISIBLE : View.GONE);
-    }
-
-    @Override
-    public void onNewLog(String taskId, LogInfo log, String parentUid) {
-        if (task == null) return;
-        if (!taskId.equals(task.getId())) return;
-        // 只标记"有新日志"，结构由 syncFromStore 按库差额合并；150ms 内多次通知只合并一次
-        scheduleSync();
-    }
-
-    private boolean syncPosted = false;
-
-    private void scheduleSync() {
-        if (syncPosted) return;
-        syncPosted = true;
-        postDelayed(() -> {
-            syncPosted = false;
-            if (task == null) return;
-            boolean follow = autoFollow && isNearBottom();
-            adapter.syncFromStore(task.getId());
-            lastRootCount = top.bogey.touch_tool.bean.save.log.LogStore.getInstance().count(task.getId());
-            if (follow) scrollToBottom();
-            updateEmptyTips();
-        }, 150);
-    }
-
-    @Override
-    public void onNewLog(String taskId, LogInfo log) {
-        onNewLog(taskId, log, null);
-    }
-
-    // 日志可能成批到来：合并成最多每 150ms 重建一次，避免每条日志都整表重建把 UI 线程压死
-    private boolean rebuildPosted = false;
-
-    private void scheduleRebuild() {
-        if (rebuildPosted) return;
-        rebuildPosted = true;
-        postDelayed(() -> {
-            rebuildPosted = false;
-            if (task == null) return;
-            boolean follow = autoFollow && isNearBottom();
-            adapter.setTask(task.getId());
-            lastRootCount = top.bogey.touch_tool.bean.save.log.LogStore.getInstance().count(task.getId());
-            if (follow) scrollToBottom();
-            updateEmptyTips();
-        }, 150);
+        post(() -> {
+            if (logSave.getKey().equals(task.getId())) {
+                adapter.addLog(logSave, log);
+                binding.recyclerView.scrollToPosition(adapter.getItemCount() - 1);
+            }
+        });
     }
 }

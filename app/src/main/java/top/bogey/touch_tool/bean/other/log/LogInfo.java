@@ -25,8 +25,6 @@ public class LogInfo implements ILazyTreeNodeData {
     private final Log log;
     private final List<String> children = new ArrayList<>();
     private final transient List<LogInfo> childrenLog = new ArrayList<>();
-    // 是否已经作为根节点写过盘：运行中的动作节点先落盘再增量更新，避免重复写入
-    private transient boolean saved = false;
 
     public LogInfo(Log log) {
         uid = UUID.randomUUID().toString();
@@ -55,14 +53,6 @@ public class LogInfo implements ILazyTreeNodeData {
         this.uid = uid;
     }
 
-    public boolean isSaved() {
-        return saved;
-    }
-
-    public void setSaved(boolean saved) {
-        this.saved = saved;
-    }
-
     public long getTime() {
         return time;
     }
@@ -85,19 +75,12 @@ public class LogInfo implements ILazyTreeNodeData {
     }
 
     public void addChild(String child) {
-        // 并行分支会并发往同一个容器节点挂子节点
-        synchronized (children) {
-            // 同一子节点重复挂载会产生两条一样的日志，这里去重
-            if (children.contains(child)) return;
-            children.add(child);
-        }
+        children.add(child);
     }
 
     @Override
     public List<Object> getChildrenFlags() {
-        synchronized (children) {
-            return new ArrayList<>(children);
-        }
+        return new ArrayList<>(children);
     }
 
     public void addChild(LogInfo child) {

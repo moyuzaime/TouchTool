@@ -41,15 +41,6 @@ public class MainApplication extends Application implements Thread.UncaughtExcep
         SettingSaver.APP_RUN_TIMES.add();
         SettingSaver.getInstance().init(this);
 
-        // 旧 MMKV 日志存档一次性迁进 SQLite：放后台线程，迁完自动删旧文件
-        new Thread(() -> {
-            try {
-                top.bogey.touch_tool.bean.save.log.LegacyLogMigration.runOnce();
-            } catch (Throwable e) {
-                top.bogey.touch_tool.utils.AppLog.e("日志库", "启动迁移失败", e);
-            }
-        }, "legacy-log-migration").start();
-
         // 创建外部存储的应用专属目录，方便用户自行往里放文件
         AppUtil.initExternalDir(this);
 
