@@ -167,6 +167,14 @@
         <item>全展开</item>
     </string-array>
 
+    <string-array name="task_branch_limit">
+        <item>4</item>
+        <item>8</item>
+        <item>16</item>
+        <item>32</item>
+        <item>不限制</item>
+    </string-array>
+
     <string-array name="restart_type">
         <item>重新执行</item>
         <item>放弃执行</item>

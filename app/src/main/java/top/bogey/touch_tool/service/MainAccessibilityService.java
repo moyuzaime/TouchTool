@@ -82,6 +82,7 @@ import top.bogey.touch_tool.ui.play.PlayFloatView;
 import top.bogey.touch_tool.utils.AppLog;
 import top.bogey.touch_tool.utils.AppUtil;
 import top.bogey.touch_tool.utils.ThreadUtil;
+import top.bogey.touch_tool.utils.thread.BranchLimiter;
 import top.bogey.touch_tool.utils.callback.BooleanResultCallback;
 import top.bogey.touch_tool.utils.float_window_manager.FloatWindow;
 
@@ -365,6 +366,20 @@ public class MainAccessibilityService extends AccessibilityService {
         if (listener != null) runnable.addListener(listener);
 
         if (parent != null) {
+            TaskRunnable root = parent.getRoot();
+            runnable.setRoot(root);
+            // 每任务运行的分支上限：拿不到名额就按「未启动」返回，由调用方计数并写日志
+            if (!BranchLimiter.tryAcquire(root)) {
+                AppLog.e("线程", "runTask: 本任务运行的分支数已达上限，分支未启动");
+                return null;
+            }
+            runnable.addListener(new ITaskListener() {
+                @Override
+                public void onFinish(TaskRunnable run) {
+                    BranchLimiter.release(root);
+                }
+            });
+
             ITaskListener pauseBridge = new ITaskListener() {
                 @Override
                 public void onPauseChanged(TaskRunnable run, boolean paused) {
@@ -426,6 +441,8 @@ public class MainAccessibilityService extends AccessibilityService {
             // 线程池容量已满，任务没有真正提交，也就永远不会触发 onFinish，
             // 必须立刻从运行列表里移除，否则会被当成运行中的任务
             tasks.remove(runnable);
+            // 已经占用的分支名额也要还回去，否则这个任务运行会一直少一个名额
+            if (parent != null) BranchLimiter.release(runnable.getRoot());
             AppLog.e("线程", "runTask: 线程池已满，任务未能提交", e);
             return null;
         }

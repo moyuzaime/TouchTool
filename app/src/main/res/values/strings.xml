@@ -397,6 +397,9 @@
     <string name="task_setting_volume_button_exit">音量按键关闭任务</string>
     <string name="task_setting_volume_button_exit_desc">点击音量键可关闭运行中的任务；长按音量按键可开关软件功能</string>
 
+    <string name="task_setting_branch_limit">并行分支上限</string>
+    <string name="task_setting_branch_limit_desc">单次任务运行最多同时跑几条分支（并行/异步）。超出上限的分支按「未启动」处理并记入日志；选「不限制」则不拦截，只受线程池容量约束</string>
+
     <!-- 设置-蓝图设置 -->
     <string name="blueprint_setting">蓝图设置</string>
 

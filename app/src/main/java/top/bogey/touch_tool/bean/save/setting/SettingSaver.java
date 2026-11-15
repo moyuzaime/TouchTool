@@ -76,6 +76,8 @@ public class SettingSaver {
     public final static SettingSave<Boolean> TASK_RESET_DETAIL_LOG = new SettingSave<>("TASK_RESET_DETAIL_LOG", false);
     /// 是否启用音量键关闭任务
     public final static SettingSave<Boolean> TASK_VOLUME_KEY_STOP = new SettingSave<>("TASK_VOLUME_KEY_STOP", false);
+    /// 单次任务运行的并行分支上限（0 = 不限制）
+    public final static SettingSave<Integer> TASK_BRANCH_LIMIT = new SettingSave<>("TASK_BRANCH_LIMIT", 8);
 
     /// 蓝图设置
     /// 蓝图是否可编辑

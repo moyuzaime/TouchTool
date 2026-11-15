@@ -63,6 +63,9 @@ import top.bogey.touch_tool.utils.AppUtil;
 import top.bogey.touch_tool.utils.DisplayUtil;
 
 public class SettingView extends Fragment {
+    // 并行分支上限下拉项对应的实际取值，0 表示不限制
+    private static final int[] BRANCH_LIMITS = {4, 8, 16, 32, 0};
+
     private ViewSettingBinding binding;
 
     private final MenuProvider menuProvider = new MenuProvider() {
@@ -501,6 +504,14 @@ public class SettingView extends Fragment {
         binding.resetLogSwitch.setOnSwitchClickListener(v -> SettingSaver.TASK_RESET_DETAIL_LOG.set(binding.resetLogSwitch.isChecked()));
         binding.resetLogSwitch.setChecked(SettingSaver.TASK_RESET_DETAIL_LOG.get());
 
+        // 并行分支上限
+        binding.branchLimitSelect.setOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            if (!isChecked) return;
+            int index = group.indexOfChild(group.findViewById(checkedId));
+            if (index >= 0 && index < BRANCH_LIMITS.length) SettingSaver.TASK_BRANCH_LIMIT.set(BRANCH_LIMITS[index]);
+        });
+        binding.branchLimitSelect.checkIndex(branchLimitIndex(SettingSaver.TASK_BRANCH_LIMIT.get()));
+
         // 音量键退出
         binding.volumeButtonExitSwitch.setOnSwitchClickListener(v -> SettingSaver.TASK_VOLUME_KEY_STOP.set(binding.volumeButtonExitSwitch.isChecked()));
         binding.volumeButtonExitSwitch.setChecked(SettingSaver.TASK_VOLUME_KEY_STOP.get());
@@ -624,6 +635,14 @@ public class SettingView extends Fragment {
         top.bogey.touch_tool.utils.AppUtil.exportFile((top.bogey.touch_tool.ui.BaseActivity) requireActivity(),
                 fileName, builder.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
     }
+    // 当前上限值对应的下拉项下标，找不到时回到默认的 8
+    private int branchLimitIndex(int limit) {
+        for (int i = 0; i < BRANCH_LIMITS.length; i++) {
+            if (BRANCH_LIMITS[i] == limit) return i;
+        }
+        return 1;
+    }
+
     // 日志只有几条时按钮会跟着内容上移，把自定义视图补到标题与按钮之外的剩余高度，按钮始终贴底
     private void fillLogDialogHeight(AlertDialog dialog) {
         View panel = dialog.findViewById(androidx.appcompat.R.id.parentPanel);

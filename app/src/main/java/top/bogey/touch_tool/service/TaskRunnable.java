@@ -48,6 +48,8 @@ public class TaskRunnable implements Runnable {
     private final AtomicBoolean finished = new AtomicBoolean(false);
     // 完成信号：等待异步分支时直接等它，不用轮询
     private final CompletableFuture<Void> done = new CompletableFuture<>();
+    // 所属任务运行的根运行：分支共享同一个根，用于按任务运行限流与统计
+    private volatile TaskRunnable root;
 
     private boolean cacheLog = false;
     // 分支线程可能同时往父运行的缓存日志里追加，读的时候取快照
@@ -374,6 +376,14 @@ public class TaskRunnable implements Runnable {
 
     public boolean isStarted() {
         return started;
+    }
+
+    public TaskRunnable getRoot() {
+        return root == null ? this : root;
+    }
+
+    public void setRoot(TaskRunnable root) {
+        this.root = root;
     }
 
     public boolean isDebug() {
