@@ -45,8 +45,8 @@ public class AwaitAsyncAction extends ExecuteAction {
         TaskRunnable child = AsyncUtil.get(handle);
         try {
             if (child != null) {
-                // 等完成信号；子被停止时用停止信号提前退出，避免卡在不可中断的动作上
-                CompletableFuture<Object> waitFor = CompletableFuture.anyOf(child.getDone(), child.getStopSignal());
+                // 等「完成或停止」信号：子被停止时提前退出，避免卡在不可中断的动作上
+                CompletableFuture<Void> waitFor = child.getDoneOrStopped();
                 if (timeout > 0) {
                     waitFor.get(timeout, TimeUnit.MILLISECONDS);
                 } else {

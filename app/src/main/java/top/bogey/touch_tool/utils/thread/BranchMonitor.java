@@ -30,6 +30,8 @@ public class BranchMonitor {
 
     public static void removeRunning(String actionId) {
         if (actionId == null) return;
+        // 没有登记过就不通知，省掉一次空遍历
+        if (!COUNTS.containsKey(actionId)) return;
         AtomicInteger current = new AtomicInteger();
         COUNTS.computeIfPresent(actionId, (key, count) -> {
             int value = count.decrementAndGet();

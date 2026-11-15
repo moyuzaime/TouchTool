@@ -13,7 +13,7 @@ import top.bogey.touch_tool.utils.thread.TaskThreadPoolExecutor;
 
 public class ThreadUtil {
     private static final TaskThreadPoolExecutor executorService = new TaskThreadPoolExecutor("辅助线程池", 2, 10, 60, TimeUnit.SECONDS, new TaskQueue<>(10), "tt-aux-");
-    // 任务池按「每任务分支上限」留了余量：分支多了先在上限处拦，不靠把池子撑大
+    // 任务池上限 48 / 队列 32：池子只是兜底容量，分支行为由「每任务分支上限」控制（默认不限制）
     private static final TaskThreadPoolExecutor taskService = new TaskThreadPoolExecutor("任务线程池", 5, 48, 60, TimeUnit.SECONDS, new TaskQueue<>(32), "tt-pool-");
 
     // 发出即忘的辅助线程，调用方（删标签、自动备份、导入模型、整理布局等）不关心结果，

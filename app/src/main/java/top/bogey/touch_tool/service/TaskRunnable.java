@@ -52,6 +52,8 @@ public class TaskRunnable implements Runnable {
     private final CompletableFuture<Void> done = new CompletableFuture<>();
     // 「被停止」信号：等待方用它提前退出，不必等卡在不可中断动作里的分支真正跑完
     private final CompletableFuture<Void> stopSignal = new CompletableFuture<>();
+    // 「完成或停止」的合并信号，见 getDoneOrStopped()
+    private volatile CompletableFuture<Void> doneOrStopped;
     // 所属任务运行的根运行：分支共享同一个根，用于按任务运行限流与统计
     private volatile TaskRunnable root;
     // 停止后的宽限报告只排一次
@@ -134,7 +136,7 @@ public class TaskRunnable implements Runnable {
         for (ITaskListener listener : new ArrayList<>(listeners)) {
             if (listener == null) continue;
             // 先摘掉再回调：与 addListener 的「已收尾立即补一次」互斥，避免同一个监听被回调两次
-            listeners.remove(listener);
+            if (!listeners.remove(listener)) continue;
             try {
                 listener.onFinish(this);
             } catch (Throwable e) {
@@ -412,6 +414,19 @@ public class TaskRunnable implements Runnable {
     // 停止信号：任务被 stop() 时立即完成，等待方据此提前退出
     public CompletableFuture<Void> getStopSignal() {
         return stopSignal;
+    }
+
+    // 「完成或停止」二选一的等待信号：缓存在运行上，等待方不用每次新建依赖节点
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<Void> getDoneOrStopped() {
+        if (doneOrStopped == null) {
+            synchronized (this) {
+                if (doneOrStopped == null) {
+                    doneOrStopped = (CompletableFuture<Void>) (CompletableFuture<?>) CompletableFuture.anyOf(done, stopSignal);
+                }
+            }
+        }
+        return doneOrStopped;
     }
 
     public boolean isForcePaused() {

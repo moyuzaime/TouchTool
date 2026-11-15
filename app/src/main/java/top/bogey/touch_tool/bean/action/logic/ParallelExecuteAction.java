@@ -2,6 +2,8 @@ package top.bogey.touch_tool.bean.action.logic;
 
 import com.google.gson.JsonObject;
 
+import android.os.SystemClock;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -88,7 +90,7 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         LogInfo container = runnable.getCurrentLogInfo();
 
         // 超时从提交起算，提交本身花的时间（线程池满时会排队）单独记下来，便于判断「超时被排队吃掉」
-        long startTime = System.currentTimeMillis();
+        long startTime = SystemClock.uptimeMillis();
 
         for (Pin dynamicPin : validPins) {
             // 先记运行态再 runTask：分支可能瞬间就跑完，晚记会把「已结束」又加回来
@@ -145,18 +147,20 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         if (rejectedCount.get() > 0) {
             AppLog.e("并行执行", "分支未启动 " + rejectedCount.get() + " 个（线程池已满或服务不可用）");
         }
-        long submitCost = System.currentTimeMillis() - startTime;
+        long submitCost = SystemClock.uptimeMillis() - startTime;
         // 提交期间就达成完成数时，早停只覆盖了当时已经在列表里的分支；循环结束后补一次，
-        // 否则后提交的分支会继续跑，主流程要等满超时（超时设为 0 时直接卡死）
-        if (doneCount.get() >= need) stopBranches(runnableList);
+        // 否则后提交的分支会继续跑，主流程要等满超时（超时设为 0 时一直等）
+        boolean earlyStopped = doneCount.get() >= need;
+        if (earlyStopped) stopBranches(runnableList);
 
         long timeoutMs = timeout.intValue();
         try {
             if (timeoutMs <= 0) {
+                // 超时 <= 0 表示一直等；分支停止是协作式的，卡在不响应中断的动作里只能靠停止任务收场
                 latch.await();
             } else {
                 // 超时从提交起算，提交本身花掉的时间要从等待窗口里扣掉
-                long remain = timeoutMs - (System.currentTimeMillis() - startTime);
+                long remain = timeoutMs - (SystemClock.uptimeMillis() - startTime);
                 latch.await(Math.max(0, remain), TimeUnit.MILLISECONDS);
             }
         } catch (InterruptedException e) {
@@ -183,7 +187,8 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
                 + "，完成 " + doneCount.get()
                 + "，未启动 " + rejectedCount.get()
                 + "，停止 " + stoppedCount
-                + "，提交 " + submitCost + "ms，总用时 " + (System.currentTimeMillis() - startTime) + "ms");
+                + "，提前结束 " + (completed.get() ? "是" : "否")
+                + "，提交 " + submitCost + "ms，总用时 " + (SystemClock.uptimeMillis() - startTime) + "ms");
         executeNext(runnable, completePin);
     }
 
