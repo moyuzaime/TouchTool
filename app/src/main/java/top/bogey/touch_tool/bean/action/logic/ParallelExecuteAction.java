@@ -87,6 +87,9 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         // 并行节点自己的日志：分支日志统一挂到它下面，分支晚于主流程结束也不会脱层
         LogInfo container = runnable.getCurrentLogInfo();
 
+        // 超时从提交起算，提交本身花的时间（线程池满时会排队）单独记下来，便于判断「超时被排队吃掉」
+        long startTime = System.currentTimeMillis();
+
         for (Pin dynamicPin : validPins) {
             // 先记运行态再 runTask：分支可能瞬间就跑完，晚记会把「已结束」又加回来
             BranchMonitor.addRunning(getId());
@@ -137,6 +140,7 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         if (rejectedCount.get() > 0) {
             AppLog.e("并行执行", "分支未启动 " + rejectedCount.get() + " 个（线程池已满或服务不可用）");
         }
+        long submitCost = System.currentTimeMillis() - startTime;
 
         try {
             if (timeout.intValue() <= 0) {
@@ -167,7 +171,8 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         AppLog.d("并行执行", "分支 启动 " + runnableList.size() + "/" + total
                 + "，完成 " + doneCount.get()
                 + "，未启动 " + rejectedCount.get()
-                + "，停止 " + stoppedCount);
+                + "，停止 " + stoppedCount
+                + "，提交 " + submitCost + "ms，总用时 " + (System.currentTimeMillis() - startTime) + "ms");
         executeNext(runnable, completePin);
     }
 
