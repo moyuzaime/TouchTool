@@ -9,8 +9,9 @@ import top.bogey.touch_tool.utils.thread.TaskQueue;
 import top.bogey.touch_tool.utils.thread.TaskThreadPoolExecutor;
 
 public class ThreadUtil {
-    private static final ExecutorService executorService = new TaskThreadPoolExecutor(2, 10, 60, TimeUnit.SECONDS, new TaskQueue<>(10));
-    private static final ExecutorService taskService = new TaskThreadPoolExecutor(5, 30, 60, TimeUnit.SECONDS, new TaskQueue<>(20));
+    private static final ExecutorService executorService = new TaskThreadPoolExecutor(2, 10, 60, TimeUnit.SECONDS, new TaskQueue<>(10), "tt-aux-");
+    // 任务池按「每任务分支上限 8」留了余量：分支多了先在上限处拦，不靠把池子撑大
+    private static final ExecutorService taskService = new TaskThreadPoolExecutor(5, 48, 60, TimeUnit.SECONDS, new TaskQueue<>(32), "tt-pool-");
 
     // 发出即忘的辅助线程，调用方（删标签、自动备份、导入模型、整理布局等）不关心结果，
     // 池满时这里兜住拒绝异常，只记日志，不让它把 UI 线程炸掉

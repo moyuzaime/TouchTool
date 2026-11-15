@@ -69,38 +69,54 @@ public class TaskRunnable implements Runnable {
         if (startAction instanceof InnerStartAction) {
             cacheLog = true;
         }
+        // 线程名带上任务标题，logcat / ANR trace / dumpsys 里能对上号；跑完还原池线程原名
+        Thread thread = Thread.currentThread();
+        String oldThreadName = thread.getName();
+        thread.setName(buildThreadName());
         try {
-            if (SettingSaver.TASK_RESET_DETAIL_LOG.get()) {
-                LogSaver.getInstance().clearLog(task.getId());
-            }
-
-            task.execute(this, startAction, result -> {
-                if (result) listeners.stream().filter(Objects::nonNull).forEach(listener -> listener.onStart(this));
-            });
-        } catch (Exception e) {
-            AppLog.e(e);
-
-            String errorInfo = e.toString();
             try {
-                StringWriter stringWriter = new StringWriter();
-                PrintWriter printWriter = new PrintWriter(stringWriter);
-                e.printStackTrace(printWriter);
-                errorInfo = stringWriter.toString();
-            } catch (Exception ignored) {
-            }
-            addLog(errorInfo);
-        }
+                if (SettingSaver.TASK_RESET_DETAIL_LOG.get()) {
+                    LogSaver.getInstance().clearLog(task.getId());
+                }
 
-        try {
-            while (!logStack.isEmpty()) {
-                addLog(logStack.pop(), 0);
+                task.execute(this, startAction, result -> {
+                    if (result) listeners.stream().filter(Objects::nonNull).forEach(listener -> listener.onStart(this));
+                });
+            } catch (Exception e) {
+                AppLog.e(e);
+
+                String errorInfo = e.toString();
+                try {
+                    StringWriter stringWriter = new StringWriter();
+                    PrintWriter printWriter = new PrintWriter(stringWriter);
+                    e.printStackTrace(printWriter);
+                    errorInfo = stringWriter.toString();
+                } catch (Exception ignored) {
+                }
+                addLog(errorInfo);
             }
-            if (logged) addLog(new LogInfo(new DateTimeLog()), 0);
-        } catch (Exception e) {
-            AppLog.e(e);
+
+            try {
+                while (!logStack.isEmpty()) {
+                    addLog(logStack.pop(), 0);
+                }
+                if (logged) addLog(new LogInfo(new DateTimeLog()), 0);
+            } catch (Exception e) {
+                AppLog.e(e);
+            }
         } finally {
+            thread.setName(oldThreadName);
             finishOnce();
         }
+    }
+
+    private String buildThreadName() {
+        String prefix = startAction instanceof InnerStartAction ? "tt-branch-" : "tt-task-";
+        String title = task.getTitle();
+        if (title == null || title.isEmpty()) title = task.getId();
+        title = title.replaceAll("\\s+", "_");
+        if (title.length() > 12) title = title.substring(0, 12);
+        return prefix + title;
     }
 
     // 统一的收尾出口：正常跑完和「取消排队中的运行」都走这里，保证 onFinish 只触发一次
