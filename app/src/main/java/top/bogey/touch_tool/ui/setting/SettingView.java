@@ -45,6 +45,7 @@ import com.google.android.material.textview.MaterialTextView;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import top.bogey.touch_tool.MainApplication;
 import top.bogey.touch_tool.R;
@@ -201,10 +202,16 @@ public class SettingView extends Fragment {
             applySystemOption(widget, key, titleRes, enabled, command, superUser);
             return;
         }
-        // 首次使用还没初始化超级用户会话，初始化完再执行
+        // 首次使用还没初始化超级用户会话，初始化完再执行；初始化一直没有回调时按失败处理
+        AtomicBoolean handled = new AtomicBoolean(false);
+        binding.getRoot().postDelayed(() -> {
+            if (!isAdded() || !handled.compareAndSet(false, true)) return;
+            showSystemOptionCommand(widget, key, titleRes, command);
+        }, 3000);
         superUser.init(result -> {
             if (!isAdded()) return;
             requireActivity().runOnUiThread(() -> {
+                if (!handled.compareAndSet(false, true)) return;
                 if (result) applySystemOption(widget, key, titleRes, enabled, command, superUser);
                 else showSystemOptionCommand(widget, key, titleRes, command);
             });

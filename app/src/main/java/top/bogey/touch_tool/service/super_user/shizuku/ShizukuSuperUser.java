@@ -61,8 +61,11 @@ public class ShizukuSuperUser implements ISuperUser {
     public void init(BooleanResultCallback callback) {
         if (isValid()) {
             callback.onResult(true);
+        } else if (!existShizuku()) {
+            // Shizuku 没运行时要明确回报失败，否则调用方一直等不到回调
+            callback.onResult(false);
         } else {
-            if (existShizuku()) requestShizukuPermission(result -> {
+            requestShizukuPermission(result -> {
                 if (result) {
                     this.callback = callback;
                     bindShizukuService();

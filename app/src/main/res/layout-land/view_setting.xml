@@ -281,6 +281,19 @@
                         app:icon="@drawable/icon_refresh"
                         app:title="@string/task_setting_log_reset_on_start" />
 
+                    <top.bogey.touch_tool.ui.setting.widget.SettingWidgetSelect
+                        android:id="@+id/branchLimitSelect"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="?attr/defaultOffset"
+                        android:layout_marginTop="?attr/defaultOffset"
+                        app:collapsible="true"
+                        app:description="@string/task_setting_branch_limit_desc"
+                        app:icon="@drawable/icon_graph_2"
+                        app:options="@array/task_branch_limit"
+                        app:rowCorner="middle"
+                        app:title="@string/task_setting_branch_limit" />
+
                     <top.bogey.touch_tool.ui.setting.widget.SettingWidgetSwitch
                         android:id="@+id/volumeButtonExitSwitch"
                         android:layout_width="match_parent"
@@ -390,6 +403,17 @@
                         app:description="@string/permission_setting_bluetooth_desc"
                         app:icon="@drawable/icon_bluetooth"
                         app:title="@string/permission_setting_bluetooth" />
+
+                    <top.bogey.touch_tool.ui.setting.widget.SettingWidgetSwitch
+                        android:id="@+id/fileAccessSwitch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="?attr/defaultOffset"
+                        android:layout_marginTop="?attr/defaultOffset"
+                        app:rowCorner="middle"
+                        app:description="@string/permission_setting_file_access_desc"
+                        app:icon="@drawable/icon_folder"
+                        app:title="@string/permission_setting_file_access" />
 
                     <top.bogey.touch_tool.ui.setting.widget.SettingWidgetSwitch
                         android:id="@+id/locationSwitch"

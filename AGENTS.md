@@ -36,3 +36,5 @@
 - **并行执行的日志归属**：分支 runnable（`InnerStartAction`）的 `cacheLog` 为 true，日志只在 `onFinish` 里经 `saveLogs()` 落盘；此时主流程可能已经走完并行卡、主 runnable 的 `logStack` 已清空，再调 `runnable.addLog()` 会把分支写成新的根节点（日志窗里分支条目与并行节点同级甚至升到根级）。并行卡必须先取 `runnable.getCurrentLogInfo()` 作容器，分支结束时把分支日志节点挂到它下面并补写一次父节点，容器为空时（未开细节日志）才回退到 `addLog()`。日志树靠「节点出栈时整条重写」落盘，所以父节点的 children 必须在出栈前挂好。
 
 - **清理缓存与分享到的选项数组**：`SettingView` 的清理缓存对话框用 `setMultiChoiceItems`，条目来自 `R.array.cache_dir_name`，与 `AppUtil` 里实际清理的三个缓存目录（log/task/document）一一对应；多选列表的条目与勾选数组长度不一致时，AppCompat 测量列表会按条目下标取勾选状态而越界崩溃，改名字数组必须同步改目录列表。`R.array.share_type` 只有「文字 / 文件」两项，`ShareToAction` 按 index 0/1 分发，多出来的选项会发出没有 type 的 SEND intent。
+
+- **设置页的两套布局**：设置页同时有 `res/layout/view_setting.xml` 与 `res/layout-land/view_setting.xml`，`SettingView` 用 `ViewSettingBinding` 绑定每个行 id；只往一套里加行时，另一套创建页面会因绑定字段为 null 直接空指针崩溃（`fileAccessSwitch`、`branchLimitSelect` 都踩过），加行必须两边同步。
