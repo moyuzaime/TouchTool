@@ -440,6 +440,9 @@ public class TaskRunnable implements Runnable {
 
     public void setFuture(Future<?> future) {
         this.future = future;
+        if (future == null || !interrupt) return;
+        // 极端时序：提交后还没登记 future 就被 stop()，当时取消不掉；这里补一次取消与收尾
+        if (future.cancel(true) && !started) finishOnce();
     }
 
     private static class TaskContext {
