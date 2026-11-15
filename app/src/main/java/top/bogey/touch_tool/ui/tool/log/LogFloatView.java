@@ -136,7 +136,8 @@ public class LogFloatView extends FrameLayout implements FloatInterface, LogSave
                 params.width = binding.expandButton.getWidth();
                 params.height = binding.expandButton.getHeight();
                 binding.getRoot().setLayoutParams(params);
-                binding.expandButton.setIconResource(R.drawable.icon_zoom_out_map);
+                // 收起后只剩一个按钮，用「任务日志」的功能图标，别让人认不出这是什么窗口
+                binding.expandButton.setIconResource(R.drawable.icon_note_stack);
 
             }
             FloatWindow.updateLayoutParam(tag);
