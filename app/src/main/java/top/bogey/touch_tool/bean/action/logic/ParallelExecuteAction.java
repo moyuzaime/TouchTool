@@ -73,7 +73,7 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
         }
 
         int total = validPins.size();
-        // 完成数至少要 1，否则一有分支结束就会立刻停掉其余的
+        // 完成数按 1 起步：0 或负数按 1 处理
         int need = Math.max(1, count.intValue());
         CountDownLatch latch = new CountDownLatch(total);
         // 分支结束时会在自己的线程里遍历这个列表，而主线程可能还在往里加，必须用并发容器
@@ -146,12 +146,18 @@ public class ParallelExecuteAction extends ExecuteAction implements DynamicPinsA
             AppLog.e("并行执行", "分支未启动 " + rejectedCount.get() + " 个（线程池已满或服务不可用）");
         }
         long submitCost = System.currentTimeMillis() - startTime;
+        // 提交期间就达成完成数时，早停只覆盖了当时已经在列表里的分支；循环结束后补一次，
+        // 否则后提交的分支会继续跑，主流程要等满超时（超时设为 0 时直接卡死）
+        if (doneCount.get() >= need) stopBranches(runnableList);
 
+        long timeoutMs = timeout.intValue();
         try {
-            if (timeout.intValue() <= 0) {
+            if (timeoutMs <= 0) {
                 latch.await();
             } else {
-                latch.await(timeout.intValue(), TimeUnit.MILLISECONDS);
+                // 超时从提交起算，提交本身花掉的时间要从等待窗口里扣掉
+                long remain = timeoutMs - (System.currentTimeMillis() - startTime);
+                latch.await(Math.max(0, remain), TimeUnit.MILLISECONDS);
             }
         } catch (InterruptedException e) {
             AppLog.e(e);

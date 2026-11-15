@@ -33,8 +33,10 @@ public class MutexUtil {
         }
         Set<ReentrantLock> created = ConcurrentHashMap.newKeySet();
         Set<ReentrantLock> set = HELD.putIfAbsent(runnable, created);
-        if (set == null) {
-            set = created;
+        if (set == null) set = created;
+        // 先记锁再挂监听：监听对已收尾的运行会立即回调，锁必须已经在集合里才释放得到
+        set.add(lock);
+        if (set == created) {
             runnable.addListener(new ITaskListener() {
                 @Override
                 public void onFinish(TaskRunnable run) {
@@ -42,7 +44,6 @@ public class MutexUtil {
                 }
             });
         }
-        set.add(lock);
     }
 
     public static void forget(TaskRunnable runnable, ReentrantLock lock) {

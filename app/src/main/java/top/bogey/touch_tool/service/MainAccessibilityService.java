@@ -82,9 +82,9 @@ import top.bogey.touch_tool.ui.play.PlayFloatView;
 import top.bogey.touch_tool.utils.AppLog;
 import top.bogey.touch_tool.utils.AppUtil;
 import top.bogey.touch_tool.utils.ThreadUtil;
-import top.bogey.touch_tool.utils.thread.BranchLimiter;
 import top.bogey.touch_tool.utils.callback.BooleanResultCallback;
 import top.bogey.touch_tool.utils.float_window_manager.FloatWindow;
+import top.bogey.touch_tool.utils.thread.BranchLimiter;
 
 @SuppressLint("AccessibilityPolicy")
 public class MainAccessibilityService extends AccessibilityService {
@@ -379,22 +379,6 @@ public class MainAccessibilityService extends AccessibilityService {
                     BranchLimiter.release(root);
                 }
             });
-
-            ITaskListener pauseBridge = new ITaskListener() {
-                @Override
-                public void onPauseChanged(TaskRunnable run, boolean paused) {
-                    if (paused) runnable.forcePause();
-                    else runnable.forceResume();
-                }
-            };
-            parent.addListener(pauseBridge);
-            // 分支结束后把桥接监听摘掉，否则父运行会一直攒着监听
-            runnable.addListener(new ITaskListener() {
-                @Override
-                public void onFinish(TaskRunnable run) {
-                    parent.removeListener(pauseBridge);
-                }
-            });
         }
 
         runnable.addListener(new ITaskListener() {
@@ -447,6 +431,27 @@ public class MainAccessibilityService extends AccessibilityService {
             return null;
         }
         runnable.setFuture(future);
+
+        // 分支真正提交成功后再挂暂停桥接：提交失败时不用再回滚父运行上的监听
+        if (parent != null) {
+            ITaskListener pauseBridge = new ITaskListener() {
+                @Override
+                public void onPauseChanged(TaskRunnable run, boolean paused) {
+                    if (paused) runnable.forcePause();
+                    else runnable.forceResume();
+                }
+            };
+            parent.addListener(pauseBridge);
+            // 分支结束后把桥接监听摘掉，否则父运行会一直攒着监听
+            runnable.addListener(new ITaskListener() {
+                @Override
+                public void onFinish(TaskRunnable run) {
+                    parent.removeListener(pauseBridge);
+                }
+            });
+            // 分支建立前父运行可能已经处于暂停状态，这段窗口里要让分支也停住
+            if (parent.isForcePaused()) runnable.forcePause();
+        }
         return runnable;
     }
 

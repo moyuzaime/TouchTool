@@ -50,6 +50,8 @@ public class TaskRunnable implements Runnable {
     private final AtomicBoolean finished = new AtomicBoolean(false);
     // 完成信号：等待异步分支时直接等它，不用轮询
     private final CompletableFuture<Void> done = new CompletableFuture<>();
+    // 「被停止」信号：等待方用它提前退出，不必等卡在不可中断动作里的分支真正跑完
+    private final CompletableFuture<Void> stopSignal = new CompletableFuture<>();
     // 所属任务运行的根运行：分支共享同一个根，用于按任务运行限流与统计
     private volatile TaskRunnable root;
     // 停止后的宽限报告只排一次
@@ -271,6 +273,7 @@ public class TaskRunnable implements Runnable {
             needFinish = f != null && f.cancel(true) && !started;
             taskContextStack.forEach(taskContext -> taskContext.setInterrupt(true));
         }
+        stopSignal.complete(null);
         if (wasPaused) notifyPauseChanged(false);
         if (needFinish) finishOnce();
         // 根运行被停止后给分支一点宽限，仍未收尾的记一条日志，便于定位死循环分支
@@ -406,12 +409,17 @@ public class TaskRunnable implements Runnable {
         return done;
     }
 
-    public boolean isFinished() {
-        return finished.get();
+    // 停止信号：任务被 stop() 时立即完成，等待方据此提前退出
+    public CompletableFuture<Void> getStopSignal() {
+        return stopSignal;
     }
 
-    public boolean isStarted() {
-        return started;
+    public boolean isForcePaused() {
+        return forcePaused;
+    }
+
+    public boolean isFinished() {
+        return finished.get();
     }
 
     public TaskRunnable getRoot() {

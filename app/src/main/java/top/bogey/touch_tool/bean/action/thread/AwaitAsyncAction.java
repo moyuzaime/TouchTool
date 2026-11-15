@@ -2,6 +2,7 @@ package top.bogey.touch_tool.bean.action.thread;
 
 import com.google.gson.JsonObject;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -44,11 +45,12 @@ public class AwaitAsyncAction extends ExecuteAction {
         TaskRunnable child = AsyncUtil.get(handle);
         try {
             if (child != null) {
-                // 有句柄就等它的完成信号，不再按 50ms 轮询
+                // 等完成信号；子被停止时用停止信号提前退出，避免卡在不可中断的动作上
+                CompletableFuture<Object> waitFor = CompletableFuture.anyOf(child.getDone(), child.getStopSignal());
                 if (timeout > 0) {
-                    child.getDone().get(timeout, TimeUnit.MILLISECONDS);
+                    waitFor.get(timeout, TimeUnit.MILLISECONDS);
                 } else {
-                    child.getDone().get();
+                    waitFor.get();
                 }
             } else {
                 // 句柄为空或已结束：等本运行登记的全部异步分支，同样等完成信号
@@ -59,7 +61,7 @@ public class AwaitAsyncAction extends ExecuteAction {
         } catch (ExecutionException e) {
             AppLog.e(e);
         } catch (InterruptedException e) {
-            // 任务被停止时线程被中断，继续保持中断标记，后面不会再往下执行
+            // 任务被停止时线程被中断，保持中断标记，后面的 executeNext 会直接返回
             Thread.currentThread().interrupt();
         }
 

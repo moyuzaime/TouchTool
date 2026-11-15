@@ -68,7 +68,8 @@ import top.bogey.touch_tool.utils.DisplayUtil;
 import top.bogey.touch_tool.utils.ThreadUtil;
 
 public class SettingView extends Fragment {
-    // 并行分支上限下拉项对应的实际取值，0 表示不限制
+    // 并行分支上限下拉项对应的实际取值，0 表示不限制；顺序必须与 res/values/string_array.xml
+    // 的 task_branch_limit 一致
     private static final int[] BRANCH_LIMITS = {4, 8, 16, 32, 0};
 
     private ViewSettingBinding binding;
@@ -635,6 +636,7 @@ public class SettingView extends Fragment {
 
     // 线程状态弹窗：线程池活跃/排队/拒绝/排队等待，异步句柄与锁的登记情况
     private void showThreadStateDialog() {
+        if (!isAdded()) return;
         MaterialTextView textView = new MaterialTextView(requireContext());
         textView.setText(ThreadUtil.debugSnapshot());
         textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
@@ -654,7 +656,8 @@ public class SettingView extends Fragment {
     }
 
     // 导出应用内日志为 txt，走系统文件选择器保存
-    private void exportLogs() {        StringBuilder builder = new StringBuilder();
+    private void exportLogs() {
+        StringBuilder builder = new StringBuilder();
         for (AppLog.Entry entry : AppLog.getLogs()) {
             builder.append(entry.time()).append(" [").append(entry.category()).append("] ")
                     .append(entry.tag()).append(": ").append(entry.message()).append('\n');
@@ -663,12 +666,13 @@ public class SettingView extends Fragment {
         top.bogey.touch_tool.utils.AppUtil.exportFile((top.bogey.touch_tool.ui.BaseActivity) requireActivity(),
                 fileName, builder.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
     }
-    // 当前上限值对应的下拉项下标，找不到时回到默认的 8
+
+    // 当前上限值对应的下拉项下标，找不到时回到「不限制」
     private int branchLimitIndex(int limit) {
         for (int i = 0; i < BRANCH_LIMITS.length; i++) {
             if (BRANCH_LIMITS[i] == limit) return i;
         }
-        return 1;
+        return BRANCH_LIMITS.length - 1;
     }
 
     // 日志只有几条时按钮会跟着内容上移，把自定义视图补到标题与按钮之外的剩余高度，按钮始终贴底

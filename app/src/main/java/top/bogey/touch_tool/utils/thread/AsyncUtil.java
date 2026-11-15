@@ -123,14 +123,6 @@ public class AsyncUtil {
         return set == null ? 0 : set.size();
     }
 
-    public static int handleCount() {
-        return HANDLES.size();
-    }
-
-    public static int parentCount() {
-        return CHILDREN.size();
-    }
-
     // 调试用：句柄与父运行登记数量
     public static String debugSnapshot() {
         return "句柄 " + HANDLES.size() + "，登记父运行 " + CHILDREN.size();

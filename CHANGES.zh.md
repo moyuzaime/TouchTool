@@ -474,15 +474,15 @@ feat(thread): 分支进度角标与停止宽限提示
 ## 43. 任务执行期的多线程收尾与调度
 
 - 位置：`bean/action/logic/ParallelExecuteAction.java`、`bean/action/thread/AsyncAction.java`、`AwaitAsyncAction.java`、`CancelAsyncAction.java`、`service/TaskRunnable.java`、`service/MainAccessibilityService.java`、`utils/ThreadUtil.java`、`utils/thread/AsyncUtil.java`、`MutexUtil.java`、`BranchLimiter.java`、`BranchMonitor.java`、`TaskThreadPoolExecutor.java`、`bean/other/log/LogInfo.java`、`bean/save/log/LogSaver.java`
-- 超时收尾：并行卡在 `latch` 返回后停掉仍在跑的分支，再给 200ms 宽限；任务结束后不再有分支继续点屏、写日志，日志树也不会迟到冒出新条目。
+- 超时收尾：并行卡在 `latch` 返回后停掉仍在跑的分支，再给 200ms 宽限；超时/提前完成/任务停止后，分支不会再被当成还在正常执行，分支日志挂回并行节点而不是升到根级（忽略中断的动作仍可能再执行一小段，属尽力而为）。
 - 未启动计数：`runTask` 返回 `null`（池满/服务不可用/达分支上限）时计入「未启动」并推进计数，不再每次运行都等满超时，也不再出现对 `null` 调 `stop()` 的空指针。
 - 排队中取消：`TaskRunnable` 新增 `finishOnce()` 统一收尾出口；取消还没开始的任务时由 `stop()` 补一次 `onFinish`，并行 `latch`、异步句柄、分支名额都能归零。已在跑的任务仍走 `run()` 的 `finally`，不会提前触发。收尾时先把监听从集合摘掉再回调，补挂在已收尾运行上的监听只补一次；并行分支的日志挂载失败也照样推进计数。
-- 完成数：按实际完成的分支数判断（原实现会提前一个分支触发），达成后只停一次其余分支；结果针脚按是否达成赋值。
-- 异步等待：`AwaitAsync` 改用 `TaskRunnable.getDone()` 与 `AsyncUtil.awaitAll()`，去掉 50ms 轮询；取消句柄时同步清理父运行的子集合，`size(parent)` 能真正归零。
-- 暂停传播：`runTask(task, startAction, listener, parent)` 统一给分支挂暂停桥接，并行卡与异步卡语义一致，删掉并行卡里重复的实现。
-- 分支上限：`BranchLimiter` 按任务运行统计在跑的分支数，超过上限的分支按「未启动」处理（不阻塞等名额，避免与子分支互等）；上限默认 8，设置-任务设置可选 4/8/16/32/不限制；任务池同步调到 48 线程 / 32 队列。
+- 完成数：按实际完成的分支数判断（原实现会提前一个分支触发），达成后只停一次其余分支；结果针脚按是否达成赋值。提交期间就达成时，循环结束再补一次早停，避免后提交的分支白跑。
+- 异步等待：`AwaitAsync` 改用 `TaskRunnable.getDone()` / `getStopSignal()` 与 `AsyncUtil.awaitAll()`，去掉 50ms 轮询；子被停止或取消时立即退出，不会卡在不可中断的动作上；取消句柄时同步清理父运行的子集合，`size(parent)` 能真正归零。
+- 暂停传播：`runTask(task, startAction, listener, parent)` 在分支提交成功后给父运行挂暂停桥接，父运行暂停/恢复时同步传给分支，并行卡与异步卡语义一致，删掉并行卡里重复的实现。
+- 分支上限：`BranchLimiter` 按任务运行统计在跑的分支数，超过上限的分支按「未启动」处理（不阻塞等名额，避免与子分支互等）。默认「不限制」，设置-任务设置可选 4/8/16/32；选上限后并行、异步与嵌套分支共用同一名额；任务池同步调到 48 线程 / 32 队列。
 - 线程命名：池线程 `tt-aux-N` / `tt-pool-N`，运行期线程名 `tt-task-标题` / `tt-branch-标题`，结束后还原；核心线程允许超时回收。
-- 可观测性：线程池活跃/排队/拒绝/排队等待、异步句柄、锁与计数器汇总到「设置 → 长按版本号 → 线程状态」弹窗；并行卡写「启动/完成/未启动/停止」，异步卡记句柄、运行时长与取消原因。
+- 可观测性：线程池活跃/排队/拒绝/排队等待、异步句柄、锁与计数器汇总到「设置 → 长按版本号 → 线程状态」弹窗；并行卡写「启动/完成/未启动/停止 + 提交/总用时」，异步卡记句柄、运行时长与取消原因。
 - 日志并发：`LogInfo.children` 与 `LogSaver` 监听集合改为并发安全，分支线程挂子节点与主线程重写父节点不再互相丢项。
 - 体验：蓝图里并行/异步卡右上角显示「运行中 N」；根运行停止 200ms 后仍有分支未收尾时记一条「强制放弃 N 个分支」。
-- 待真机验证：超时收尾后的日志树结构、分支上限默认值是否适合现有任务、卡片角标位置（顶部针脚多的卡片可能与角标重叠）。
+- 待真机验证：超时收尾后的日志树结构、开启分支上限后现有任务是否够用、卡片角标位置（顶部针脚多的卡片可能与角标重叠）。

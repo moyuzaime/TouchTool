@@ -19,20 +19,24 @@ public class BranchMonitor {
 
     public static void addRunning(String actionId) {
         if (actionId == null) return;
-        AtomicInteger count = COUNTS.computeIfAbsent(actionId, key -> new AtomicInteger());
-        notifyListeners(actionId, count.incrementAndGet());
+        AtomicInteger current = new AtomicInteger();
+        COUNTS.compute(actionId, (key, count) -> {
+            if (count == null) count = new AtomicInteger();
+            current.set(count.incrementAndGet());
+            return count;
+        });
+        notifyListeners(actionId, current.get());
     }
 
     public static void removeRunning(String actionId) {
         if (actionId == null) return;
-        AtomicInteger count = COUNTS.get(actionId);
-        if (count == null) return;
-        int value = count.decrementAndGet();
-        if (value <= 0) {
-            COUNTS.remove(actionId, count);
-            value = 0;
-        }
-        notifyListeners(actionId, value);
+        AtomicInteger current = new AtomicInteger();
+        COUNTS.computeIfPresent(actionId, (key, count) -> {
+            int value = count.decrementAndGet();
+            current.set(value);
+            return value <= 0 ? null : count;
+        });
+        notifyListeners(actionId, Math.max(current.get(), 0));
     }
 
     public static int getRunning(String actionId) {

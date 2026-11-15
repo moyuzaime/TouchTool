@@ -30,7 +30,6 @@ import top.bogey.touch_tool.bean.action.ActionListener;
 import top.bogey.touch_tool.bean.pin.Pin;
 import top.bogey.touch_tool.bean.task.Task;
 import top.bogey.touch_tool.ui.blueprint.CardLayoutView;
-import top.bogey.touch_tool.utils.DisplayUtil;
 import top.bogey.touch_tool.ui.blueprint.pin.PinView;
 import top.bogey.touch_tool.utils.AppUtil;
 import top.bogey.touch_tool.utils.DisplayUtil;
@@ -89,10 +88,11 @@ public abstract class ActionCard extends MaterialCardView implements ActionListe
         if (branchListener != null) return;
         branchListener = (actionId, count) -> {
             if (!action.getId().equals(actionId)) return;
-            // 回调可能来自分支线程，切回 UI 线程再改状态
+            // 回调可能来自分支线程，切回 UI 线程再改状态；以回读到的计数为准，避免多次回调乱序
             post(() -> {
-                if (runningCount == count) return;
-                runningCount = count;
+                int current = BranchMonitor.getRunning(action.getId());
+                if (runningCount == current) return;
+                runningCount = current;
                 invalidate();
             });
         };
