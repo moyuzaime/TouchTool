@@ -53,8 +53,6 @@ public class GetNodeInfoAction extends CalculateAction {
         addPins(nodePin, clazzPin, idPin, textPin, descPin, areaPin, usablePin, visiblePin, pathPin,
                 packagePin, longClickablePin, scrollablePin, focusablePin, editablePin, selectedPin, checkedPin,
                 focusedPin, enabledPin, hintPin, depthPin, actionCountPin, windowIdPin, inputTypePin, indexPin, childCountPin);
-        // 扩展属性默认半展开：只显示常用输出，点眼睛切到全展开才出现全部
-        setExpandType(ExpandType.HALF);
     }
 
     public GetNodeInfoAction(JsonObject jsonObject) {

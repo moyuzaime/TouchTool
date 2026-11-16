@@ -39,4 +39,4 @@
 
 - **设置页的两套布局**：设置页同时有 `res/layout/view_setting.xml` 与 `res/layout-land/view_setting.xml`，`SettingView` 用 `ViewSettingBinding` 绑定每个行 id；只往一套里加行时，另一套创建页面会因绑定字段为 null 直接空指针崩溃（`fileAccessSwitch`、`branchLimitSelect` 都踩过），加行必须两边同步。
 
-- **按展开状态收起输出针脚**：要让一张卡默认少显示几个输出，直接给扩展针脚加 `hide`（`Pin(..., true, false, true)`），眼睛按钮的三态就变成「不展开=只剩已连线 / 半展开=非 hide 针脚 / 全展开=全部」；在动作构造里 `setExpandType(ExpandType.HALF)` 可让新卡默认半展开，老卡保留存档里的展开状态。`hide` 只影响显示，针脚本身、取值和已有连线都不受影响。
+- **按展开状态收起输出针脚**：要让一张卡默认少显示几个输出，直接给扩展针脚加 `hide`（`Pin(..., true, false, true)`），眼睛按钮的三态就变成「不展开=只剩已连线 / 半展开=非 hide 针脚 / 全展开=全部」；新卡默认展开状态跟随全局「卡片展开状态」设置，需要单卡紧凑就用眼睛切半展开（随卡片保存）。`hide` 只影响显示，针脚本身、取值和已有连线都不受影响。
