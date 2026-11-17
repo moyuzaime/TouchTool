@@ -24,6 +24,7 @@ import top.bogey.touch_tool.bean.action.Action;
 import top.bogey.touch_tool.bean.base.Identity;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinBase;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinMap;
+import top.bogey.touch_tool.bean.pin.pin_objects.PinObject;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinType;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_list.PinList;
 import top.bogey.touch_tool.bean.task.Task;
@@ -31,6 +32,8 @@ import top.bogey.touch_tool.utils.GsonUtil;
 
 public class Pin extends Identity {
     private PinBase value;
+    // 类型声明（Step 5.0），null 表示老任务：连线与编辑器走运行值回退
+    private PinTypeRef typeRef;
     private Map<String, String> links = new HashMap<>();
 
     private boolean out;
@@ -74,6 +77,7 @@ public class Pin extends Identity {
     public Pin(JsonObject jsonObject) {
         super(jsonObject);
         value = GsonUtil.getAsObject(jsonObject, "value", PinBase.class, null);
+        typeRef = GsonUtil.getAsObject(jsonObject, "typeRef", PinTypeRef.class, null);
         links = GsonUtil.getAsObject(jsonObject, "links", TypeToken.getParameterized(HashMap.class, String.class, String.class).getType(), new HashMap<>());
         out = GsonUtil.getAsBoolean(jsonObject, "out", false);
         dynamic = GsonUtil.getAsBoolean(jsonObject, "dynamic", false);
@@ -89,6 +93,7 @@ public class Pin extends Identity {
         // 值需要让他自己同步
         getValue().sync(pin.getValue());
         setLinks(pin.getLinks());
+        if (pin.typeRef != null) typeRef = pin.typeRef.copy();
 
         setOut(pin.isOut());
         setDynamic(pin.isDynamic());
@@ -211,7 +216,68 @@ public class Pin extends Identity {
         if (pin == null) return false;
         if (out == pin.isOut()) return false;
         if (Objects.equals(ownerId, pin.getOwnerId())) return false;
+        // 有类型声明时按声明判断（Step 5.0），否则回退到按运行值判断
+        Boolean declared = linkAbleByTypeRef(pin);
+        if (declared != null) return declared;
         return linkAble(pin.getValue());
+    }
+
+    /**
+     * 按 PinTypeRef 声明判断连线；任一侧没有声明时返回 null，走老任务的按值判断
+     * <p>
+     * UNKNOWN → 具体：允许（首连定型）；ANY → 具体：拒绝，必须先类型判断/转换；
+     * 具体 → ANY / UNKNOWN：允许；两侧都具体时比较模板类型。
+     */
+    private Boolean linkAbleByTypeRef(Pin pin) {
+        PinTypeRef from = out ? typeRef : pin.typeRef;
+        PinTypeRef to = out ? pin.typeRef : typeRef;
+        if (from == null || to == null) return null;
+
+        if (from.isUnknown()) return true;
+        if (from.isAny()) return !to.isConcrete();
+        if (to.isAny() || to.isUnknown()) return true;
+
+        PinObject source = from.getTemplate();
+        PinObject target = to.getTemplate();
+        if (source == null || target == null) return true;
+        return target.linkFromAble(source) || source.linkToAble(target);
+    }
+
+    public PinTypeRef getTypeRef() {
+        return typeRef;
+    }
+
+    public void setTypeRef(PinTypeRef typeRef) {
+        this.typeRef = typeRef;
+    }
+
+    public boolean isTypeAny() {
+        return typeRef != null && typeRef.isAny();
+    }
+
+    public boolean isTypeConcrete() {
+        return typeRef != null && typeRef.isConcrete();
+    }
+
+    public boolean isTypeUnknown() {
+        return typeRef != null && typeRef.isUnknown();
+    }
+
+    // 声明的元素 / 键 / 值模板，没有声明时返回 null
+    public PinObject getTypeTemplate() {
+        return typeRef == null ? null : typeRef.getTemplate();
+    }
+
+    public void markTypeAny() {
+        typeRef = PinTypeRef.any();
+    }
+
+    public void markTypeUnknown() {
+        typeRef = PinTypeRef.unknown();
+    }
+
+    public void markTypeConcrete(PinObject template) {
+        typeRef = PinTypeRef.concrete(template);
     }
 
     public boolean linkAble(PinBase value) {

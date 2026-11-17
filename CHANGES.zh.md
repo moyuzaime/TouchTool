@@ -670,6 +670,16 @@ feat(node): 获取控件信息默认收起扩展属性
 - **排序方式追加「按键降序」**：数组末尾新增（前 5 个下标不变，老任务不受影响），`sortByKey` 增加方向参数，「按字典键」走升序、「按键降序」走降序。
 - 仍未收的：编辑器值输入仍是文本行 + `cast()`，单选项元素只读；容器长度 `[n]`/`{n}` 在针脚标题上而不是 18dp 槽位内；真机运行结果（连接文本 / 去重 / 统计 / 转JSON / 筛选等）尚未实际验证。
 
+## 61. Step 5.0：Pin 级类型声明（PinTypeRef）
+
+- 位置：新增 `bean/pin/PinTypeRef.java`；改动 `bean/pin/Pin.java`、`utils/GsonUtil.java`
+- `PinTypeRef`：`kind`（`UNKNOWN` 未定型 / `CONCRETE` 具体类型 / `ANY` 显式任意）+ `template`（仅 CONCRETE 有效的元素类型模板），带 `copy` / `sync` / `equals` / `hashCode` 和自定义反序列化（`template` 走 `PinBase` 适配器，避免多态类型丢失）。
+- `Pin`：新增可空字段 `typeRef`，`sync` 与 Gson 往返都带上；**`typeRef` 为 null 时不写 JSON**，所以老任务与未声明针脚的保存格式完全不变。新增 `isTypeAny` / `isTypeConcrete` / `isTypeUnknown` / `getTypeTemplate` / `markTypeAny` / `markTypeUnknown` / `markTypeConcrete`。
+- 连线规则：`Pin.linkAble(Pin)` 先按声明判断，**任一侧没有声明就回退到按运行值判断**（老任务行为不变）。规则按方案 13.3：`UNKNOWN → 具体` 允许、`UNKNOWN → UNKNOWN` 允许、`ANY → ANY/UNKNOWN` 允许、`ANY → 具体` **拒绝**、`具体 → ANY/UNKNOWN` 允许、`具体 → 具体` 比较模板类型。`Action.check()` 走同一个 `linkAble`，校验结果自动跟随声明。
+- 现状与边界：目前还没有动作写 `typeRef`（5.1 起由新建列表/新建字典的类型模式针脚与 `LinkEventHandler` 写入），因此本轮行为与旧版一致，属纯增量。
+- **实现时发现的模型缺口（需要先定）**：方案 13.2 的 `template` 是单个 `PinObject`，但字典针脚的声明要同时表达「键类型」和「值类型」。建议二选一：`template` 存一个「键-值」模板 `PinMap`，或在 `PinTypeRef` 上再加 `keyTemplate` / `valueTemplate`。这一点定了 5.1 才好写。
+
+
 
 
 

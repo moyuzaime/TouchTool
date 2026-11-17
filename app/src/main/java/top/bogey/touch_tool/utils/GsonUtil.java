@@ -15,6 +15,7 @@ import top.bogey.touch_tool.bean.action.Action;
 import top.bogey.touch_tool.bean.other.log.Log;
 import top.bogey.touch_tool.bean.other.log.LogInfo;
 import top.bogey.touch_tool.bean.pin.Pin;
+import top.bogey.touch_tool.bean.pin.PinTypeRef;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinBase;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinBoolean;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinMap;
@@ -34,6 +35,7 @@ public class GsonUtil {
             .registerTypeAdapter(Variable.class, new Variable.VariableDeserialize())
             .registerTypeAdapter(Action.class, new Action.ActionDeserializer())
             .registerTypeAdapter(Pin.class, new Pin.PinDeserialize())
+            .registerTypeAdapter(PinTypeRef.class, new PinTypeRef.PinTypeRefDeserializer())
 
             .registerTypeAdapter(PinBase.class, new PinBase.PinBaseDeserializer())
             .registerTypeAdapter(PinList.class, new PinList.PinListSerializer())
