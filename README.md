@@ -248,49 +248,40 @@ TouchTool 采用直观的**蓝图式任务编辑器**，通过可视化节点连
 | 动作 | 功能说明 |
 |------|----------|
 | [新建列表](app/src/main/java/top/bogey/touch_tool/bean/action/list/MakeListAction.java) | 新建一个列表 |
-| [遍历列表](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListForeachAction.java) | 遍历列表中的每个元素（按进入循环时的快照遍历） |
-| [添加元素](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListAddAction.java) | 向列表中添加元素，可指定位置 |
+| [遍历列表](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListForeachAction.java) | 遍历列表中的每个元素 |
+| [添加元素](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListAddAction.java) | 向列表中添加元素 |
 | [获取元素](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListGetAction.java) | 从列表中获取元素 |
 | [手动选择元素](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListChoiceAction.java) | 弹出选择窗口供使用者选择列表的一项 |
 | [设置元素](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListSetAction.java) | 向列表中设置元素 |
 | [列表长度](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListSizeAction.java) | 获取列表长度 |
 | [列表是否为空](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListIsEmptyAction.java) | 判断列表是否为空 |
 | [是否包含元素](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListContainAction.java) | 判断列表是否包含元素 |
-| [移除元素](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListRemoveByAction.java) | 按索引或按对象移除元素（按索引时可输出被移除的对象） |
+| [移除索引元素](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListRemoveAction.java) | 按索引从列表中移除元素 |
+| [移除元素对象](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListRemoveObjectAction.java) | 按对象从列表中移除元素 |
 | [列表拼接](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListAppendAction.java) | 将两个列表拼接 |
 | [清空列表](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListClearAction.java) | 清空列表 |
 | [元素索引](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListIndexOfAction.java) | 获取元素在列表中的索引 |
 | [获取子列表](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListSubListAction.java) | 获取列表中指定范围的子列表 |
-| [列表排序](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListSortAction.java) | 按方式排序：升序 / 降序 / 按字典键 / 自定义比较 / 反转 |
-| [列表去重](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListDeduplicateAction.java) | 去掉重复元素并输出去重数量，可忽略文本大小写 |
-| [列表统计](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListStatisticsAction.java) | 对数字元素求和 / 最大 / 最小 / 平均 |
-| [列表连接文本](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListJoinAction.java) | 用分隔符把元素连接成文本 |
-| [列表筛选](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListFilterAction.java) | 每个元素跑一次条件流程，条件为真的保留 |
-| [列表映射](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListMapAction.java) | 每个元素跑一次映射流程，用结果组成新列表 |
-| [列表查找首个](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListFindFirstAction.java) | 找到第一个满足条件的元素，输出元素 / 索引 / 是否存在 |
-| [列表转JSON](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListToJsonAction.java) | 把列表转换成 JSON 文本 |
-| [JSON转列表](app/src/main/java/top/bogey/touch_tool/bean/action/list/JsonToListAction.java) | 把 JSON 数组文本解析成列表 |
+| [列表排序](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListSortAction.java) | 对列表中的元素进行排序 |
+| [列表翻转](app/src/main/java/top/bogey/touch_tool/bean/action/list/ListReverseAction.java) | 对列表中的元素进行翻转 |
 
 ### 字典类动作
 
 | 动作 | 功能说明 |
 |------|----------|
 | [新建字典](app/src/main/java/top/bogey/touch_tool/bean/action/map/MakeMapAction.java) | 新建一个字典 |
-| [遍历字典](app/src/main/java/top/bogey/touch_tool/bean/action/map/MapForeachAction.java) | 遍历字典中的每个键值对（按进入循环时的快照遍历） |
-| [获取值](app/src/main/java/top/bogey/touch_tool/bean/action/map/MapGetAction.java) | 从字典中获取值，未命中时输出默认值 |
+| [遍历字典](app/src/main/java/top/bogey/touch_tool/bean/action/map/MapForeachAction.java) | 遍历字典中的每个键值对 |
+| [获取值](app/src/main/java/top/bogey/touch_tool/bean/action/map/MapGetAction.java) | 从字典中获取值 |
 | [字典长度](app/src/main/java/top/bogey/touch_tool/bean/action/map/MapSizeAction.java) | 获取字典长度 |
 | [字典是否为空](app/src/main/java/top/bogey/touch_tool/bean/action/map/MapIsEmptyAction.java) | 判断字典是否为空 |
-| [字典是否包含](app/src/main/java/top/bogey/touch_tool/bean/action/map/MapContainByAction.java) | 判断字典是否包含指定的键或值 |
+| [字典是否包含键](app/src/main/java/top/bogey/touch_tool/bean/action/map/MapContainKeyAction.java) | 判断字典是否包含键 |
+| [字典是否包含值](app/src/main/java/top/bogey/touch_tool/bean/action/map/MapContainValueAction.java) | 判断字典是否包含值 |
 | [添加或替换值](app/src/main/java/top/bogey/touch_tool/bean/action/map/MapSetAction.java) | 向字典中添加或替换值 |
 | [移除键值对](app/src/main/java/top/bogey/touch_tool/bean/action/map/MapRemoveAction.java) | 从字典中移除键值对 |
 | [字典拼接](app/src/main/java/top/bogey/touch_tool/bean/action/map/MapAppendAction.java) | 将两个字典拼接 |
 | [清空字典](app/src/main/java/top/bogey/touch_tool/bean/action/map/MapClearAction.java) | 清空字典 |
-| [获取所有键或值](app/src/main/java/top/bogey/touch_tool/bean/action/map/MapKeysValuesAction.java) | 获取所有键、所有值，或键值对列表 |
-| [字典按键排序](app/src/main/java/top/bogey/touch_tool/bean/action/map/MapSortAction.java) | 按键升序或降序生成新字典 |
-| [字典键值互换](app/src/main/java/top/bogey/touch_tool/bean/action/map/MapInvertAction.java) | 键值互换生成新字典 |
-| [字典转JSON](app/src/main/java/top/bogey/touch_tool/bean/action/map/MapToJsonAction.java) | 把字典转换成 JSON 文本 |
-
-> 「移除索引元素」「移除元素对象」「字典是否包含键」「字典是否包含值」「获取所有键」「获取所有值」「列表翻转」已合并到上面的新卡片，旧卡片只在老任务里保留、不再出现在动作面板。
+| [获取所有键](app/src/main/java/top/bogey/touch_tool/bean/action/map/MapGetKeysAction.java) | 获取字典中的所有键 |
+| [获取所有值](app/src/main/java/top/bogey/touch_tool/bean/action/map/MapGetValuesAction.java) | 获取字典中的所有值 |
 
 ### 文件类动作
 

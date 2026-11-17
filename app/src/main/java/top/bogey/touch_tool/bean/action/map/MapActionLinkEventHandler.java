@@ -20,12 +20,6 @@ public class MapActionLinkEventHandler {
     }
 
     public static void onLinkedTo(List<Pin> pins, List<Pin> keyPins, List<Pin> valuePins, Task task, Pin origin, Pin to, boolean direct) {
-        // 来源是显式任意类型：本侧针脚也标记为任意，不做首连定型
-        if (to != null && to.isTypeAny()) {
-            origin.markTypeAny();
-            return;
-        }
-        if (origin.isTypeAny()) return;
         boolean keyFlag, valueFlag;
         if (direct && to.getValue() instanceof PinMap pinMap) {
             keyFlag = !pinMap.isDynamicKey();
@@ -96,14 +90,6 @@ public class MapActionLinkEventHandler {
         for (Pin pin : pins) {
             PinBase value = pin.getValue();
             boolean isDynamic = value.isDynamic();
-            // 首连定型的结果写进针脚声明（Step 5.2），字典容器同时带键值两个模板
-            if (keyFlag && valueFlag && value instanceof PinMap) {
-                pin.markTypeConcrete(new PinMap((PinObject) keyTemplate.copy(), (PinObject) valueTemplate.copy()));
-            } else if (keyFlag) {
-                pin.markTypeConcrete((PinObject) keyTemplate.copy());
-            } else if (valueFlag) {
-                pin.markTypeConcrete((PinObject) valueTemplate.copy());
-            }
 
             if (value instanceof PinAdd pinAdd) {
                 if (keyFlag) pinAdd.getPin(0).setValue(keyTemplate.copy());
@@ -164,8 +150,6 @@ public class MapActionLinkEventHandler {
         if (!keyFlag && !valueFlag) return;
 
         for (Pin pin : pins) {
-            // 全部断开后声明回到未定型
-            pin.markTypeUnknown();
             PinBase value = pin.getValue();
             if (value instanceof PinAdd pinAdd) {
                 if (keyFlag) pinAdd.getPin(0).setValue(new PinObject(PinSubType.DYNAMIC));

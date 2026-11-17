@@ -288,10 +288,7 @@ public abstract class Action extends Identity implements PinListener {
             if (!pin.isOut() && !pin.isVertical()) {
                 Pin linkedPin = pin.getLinkedPin(task);
                 if (linkedPin != null && !pin.linkAble(linkedPin)) {
-                    // 任意类型接具体类型时提示要先做类型判断 / 转换
-                    boolean needConvert = pin.isTypeAny() || linkedPin.isTypeAny();
-                    result.addResult(ActionCheckResult.ResultType.ERROR,
-                            needConvert ? R.string.check_pin_any_need_convert : R.string.check_pin_linkable_error);
+                    result.addResult(ActionCheckResult.ResultType.ERROR, R.string.check_pin_linkable_error);
                 }
             }
         });

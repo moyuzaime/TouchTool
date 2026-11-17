@@ -133,15 +133,6 @@ public enum ActionType {
     IS_OCR_TEXT_EXIST,
     PARSE_JSON,
     TO_JSON,
-
-    // 类型判断 / 转换
-    IS_TEXT,
-    IS_NUMBER,
-    IS_BOOLEAN,
-    IS_LIST,
-    IS_MAP,
-    TO_NUMBER,
-    TYPE_NAME,
     STRING_ENCODE,
     STRING_DECODE,
     STRING_ENCRYPT,
@@ -214,7 +205,6 @@ public enum ActionType {
     LIST_ADD,
     LIST_REMOVE,
     LIST_REMOVE_OBJECT,
-    LIST_REMOVE_BY,
     LIST_APPEND,
     LIST_CLEAR,
     LIST_GET,
@@ -225,14 +215,6 @@ public enum ActionType {
     LIST_FOREACH,
     LIST_SORT,
     LIST_REVERSE,
-    LIST_DEDUPLICATE,
-    LIST_STATISTICS,
-    LIST_JOIN,
-    LIST_FILTER,
-    LIST_MAP,
-    LIST_FIND_FIRST,
-    LIST_TO_JSON,
-    JSON_TO_LIST,
 
     // 字典
     MAP_MAKE,
@@ -240,7 +222,6 @@ public enum ActionType {
     MAP_IS_EMPTY,
     MAP_CONTAIN_KEY,
     MAP_CONTAIN_VALUE,
-    MAP_CONTAIN_BY,
     MAP_REMOVE,
     MAP_APPEND,
     MAP_CLEAR,
@@ -248,10 +229,6 @@ public enum ActionType {
     MAP_SET,
     MAP_KEYS,
     MAP_VALUES,
-    MAP_KEYS_VALUES,
-    MAP_SORT,
-    MAP_INVERT,
-    MAP_TO_JSON,
     MAP_FOREACH,
 
     // 文件

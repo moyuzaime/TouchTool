@@ -120,7 +120,6 @@
     <string name="bind_service_failed_tips">绑定服务失败</string>
 
     <string name="check_pin_linkable_error">针脚类型不匹配</string>
-    <string name="check_pin_any_need_convert">任意类型不能直接连具体类型，请先加「转文本」「转数字」或类型判断动作</string>
     <string name="check_need_super_user_error">需要超级用户权限</string>
     <string name="check_need_ocr_module_error">需要Ocr模型</string>
     <string name="check_not_exist_variable_error">引用的变量不存在</string>
@@ -137,7 +136,6 @@
     <string name="check_may_need_use_pos_pin_warning">可能需要使用位置针脚做偏移</string>
     <string name="check_need_notification_warning">需要开启通知权限</string>
     <string name="check_not_global_task_warning">非全局任务</string>
-    <string name="check_container_element_type_warning">元素类型与容器声明类型不一致</string>
 
 
     <!-- 任务 -->
@@ -156,25 +154,6 @@
     <string name="pin_multi_select">多选</string>
 
     <string name="pin_map">字典</string>
-
-    <!-- 列表 / 字典常量编辑器 -->
-    <string name="pin_container_count">共%d项</string>
-    <string name="pin_container_edit_list">编辑列表</string>
-    <string name="pin_container_edit_map">编辑字典</string>
-    <string name="pin_container_add">添加</string>
-    <string name="pin_container_key">键</string>
-    <string name="pin_container_value">值</string>
-    <string name="pin_container_clear">清空</string>
-    <string name="pin_container_type">元素类型</string>
-    <string name="pin_index_tip">从 1 开始，负数表示从末尾数，0 等同 1</string>
-    <string name="pin_container_empty">还没有内容</string>
-    <string name="pin_container_read_only">%1$s（只读）</string>
-    <string name="pin_container_hint">文本、数字、布尔可以直接改；其它类型只能用动作生成，这里只读</string>
-    <string name="pin_container_any_hint">任意类型：每行可以填不同类型，空行按文本书写</string>
-    <string name="pin_container_duplicate_title">键重复</string>
-    <string name="pin_container_duplicate_tip">有%d个键重复，覆盖保留后面的，跳过保留前面的</string>
-    <string name="pin_container_overwrite">覆盖</string>
-    <string name="pin_container_skip">跳过</string>
 
     <string name="pin_string">文本</string>
     <string name="pin_string_url">链接</string>

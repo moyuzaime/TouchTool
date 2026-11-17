@@ -12,10 +12,10 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Objects;
 
 import top.bogey.touch_tool.bean.pin.pin_objects.PinBase;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinObject;
@@ -53,12 +53,8 @@ public class PinList extends PinObject implements List<PinObject> {
 
     public PinList(JsonObject jsonObject) {
         super(jsonObject);
-        // 历史数据可能缺类型或写成 null，统一兜底成动态类型
-        PinObject valueType = (PinObject) GsonUtil.getAsObject(jsonObject, "valueType", PinBase.class, null);
-        this.valueType = valueType == null ? new PinObject(PinSubType.DYNAMIC) : valueType;
+        valueType = (PinObject) GsonUtil.getAsObject(jsonObject, "valueType", PinBase.class, new PinObject(PinSubType.DYNAMIC));
         values = GsonUtil.getAsObject(jsonObject, "values", TypeToken.getParameterized(ArrayList.class, PinBase.class).getType(), new ArrayList<>());
-        // 坏数据里的 null 元素无法参与取值和复制，直接丢弃
-        values.removeIf(Objects::isNull);
     }
 
     @Override
@@ -122,24 +118,24 @@ public class PinList extends PinObject implements List<PinObject> {
 
     @Override
     public boolean isDynamic() {
-        return valueType == null || valueType.isDynamic();
+        return valueType.isDynamic();
     }
 
-    // 类型对象按内容比较，否则两份结构相同的列表会判不相等
     @Override
     public final boolean equals(Object object) {
         if (this == object) return true;
         if (!(object instanceof PinList that)) return false;
         if (!super.equals(object)) return false;
 
-        return Objects.equals(getValueType(), that.getValueType()) && values.equals(that.values);
+        return isDynamic() == that.isDynamic() && getValueType() == that.getValueType() && values.equals(that.values);
     }
 
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + Objects.hashCode(getValueType());
+        result = 31 * result + getValueType().hashCode();
         result = 31 * result + values.hashCode();
+        result = 31 * result + Boolean.hashCode(isDynamic());
         return result;
     }
 
@@ -188,7 +184,7 @@ public class PinList extends PinObject implements List<PinObject> {
 
     @Override
     public boolean containsAll(@NonNull Collection<?> c) {
-        return values.containsAll(c);
+        return new HashSet<>(values).containsAll(c);
     }
 
     @Override

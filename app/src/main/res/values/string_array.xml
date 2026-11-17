@@ -458,56 +458,6 @@
         <item>不等于</item>
     </string-array>
 
-    <string-array name="list_sort_mode">
-        <item>升序</item>
-        <item>降序</item>
-        <item>按字典键</item>
-        <item>自定义比较</item>
-        <item>反转</item>
-        <item>按键降序</item>
-    </string-array>
-
-    <string-array name="pin_output_type">
-        <item>自动</item>
-        <item>文本</item>
-        <item>数字</item>
-        <item>布尔</item>
-        <item>任意对象</item>
-    </string-array>
-
-    <string-array name="container_type_mode">
-        <item>自动</item>
-        <item>任意类型</item>
-    </string-array>
-
-    <string-array name="list_remove_mode">
-        <item>按索引</item>
-        <item>按对象</item>
-    </string-array>
-
-    <string-array name="map_contain_mode">
-        <item>键</item>
-        <item>值</item>
-    </string-array>
-
-    <string-array name="map_keys_values_mode">
-        <item>键</item>
-        <item>值</item>
-        <item>键值对</item>
-    </string-array>
-
-    <string-array name="list_statistic_mode">
-        <item>求和</item>
-        <item>最大</item>
-        <item>最小</item>
-        <item>平均</item>
-    </string-array>
-
-    <string-array name="map_sort_order">
-        <item>升序</item>
-        <item>降序</item>
-    </string-array>
-
     <string-array name="file_write_mode">
         <item>覆盖整个文件</item>
         <item>追加一行</item>

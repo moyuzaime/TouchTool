@@ -5,7 +5,6 @@ import androidx.annotation.NonNull;
 import com.google.gson.JsonObject;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import top.bogey.touch_tool.R;
@@ -19,8 +18,8 @@ import top.bogey.touch_tool.service.TaskRunnable;
 
 public class ListSubListAction extends ListCalculateAction {
     private final transient Pin listPin = new Pin(new PinList());
-    private final transient Pin startIndexPin = Pin.withIndexTip(new Pin(new PinInteger(1), R.string.list_sublist_action_start));
-    private final transient Pin endIndexPin = Pin.withIndexTip(new Pin(new PinInteger(1), R.string.list_sublist_action_end));
+    private final transient Pin startIndexPin = new Pin(new PinInteger(1), R.string.list_sublist_action_start);
+    private final transient Pin endIndexPin = new Pin(new PinInteger(1), R.string.list_sublist_action_end);
     private final transient Pin resultPin = new Pin(new PinList(), R.string.pin_object, true);
 
     public ListSubListAction() {
@@ -59,13 +58,11 @@ public class ListSubListAction extends ListCalculateAction {
         int toIndex = end;
         List<PinObject> subList = list.subList(fromIndex, toIndex);
 
-        PinList result = new PinList((PinObject) list.getValueType().copy());
+        PinList result = new PinList();
         for (PinObject obj : subList) {
             result.add((PinObject) obj.copy());
         }
         resultPin.setValue(returnValue(result));
-        // 派生针脚的声明跟随源列表
-        resultPin.inheritType(Collections.singletonList(listPin));
     }
 
     @NonNull

@@ -113,7 +113,6 @@ public class ActionMap {
             ));
 
             case NUMBER -> list.addAll(Arrays.asList(
-                    ActionType.TO_NUMBER,
                     ActionType.NUMBER_ADD,
                     ActionType.NUMBER_SUB,
                     ActionType.NUMBER_MUL,
@@ -131,7 +130,6 @@ public class ActionMap {
             ));
 
             case STRING -> list.addAll(Arrays.asList(
-                    ActionType.TYPE_NAME,
                     ActionType.STRING_TO_NUMBER,
                     ActionType.STRING_APPEND,
                     ActionType.STRING_SUBSTRING,
@@ -151,12 +149,7 @@ public class ActionMap {
             ));
 
              case BOOLEAN -> list.addAll(Arrays.asList(
-                      ActionType.IS_TEXT,
-                    ActionType.IS_NUMBER,
-                    ActionType.IS_BOOLEAN,
-                    ActionType.IS_LIST,
-                    ActionType.IS_MAP,
-                    ActionType.BOOLEAN_AND,
+                      ActionType.BOOLEAN_AND,
                        ActionType.BOOLEAN_NOT
              ));
 
@@ -228,20 +221,14 @@ public class ActionMap {
                     ActionType.LIST_SIZE,
                     ActionType.LIST_IS_EMPTY,
                     ActionType.LIST_CONTAIN,
-                    ActionType.LIST_REMOVE_BY,
+                    ActionType.LIST_REMOVE,
+                    ActionType.LIST_REMOVE_OBJECT,
                     ActionType.LIST_APPEND,
                     ActionType.LIST_CLEAR,
                     ActionType.LIST_INDEX_OF,
                     ActionType.LIST_SUBLIST,
                     ActionType.LIST_SORT,
-                    ActionType.LIST_DEDUPLICATE,
-                    ActionType.LIST_STATISTICS,
-                    ActionType.LIST_JOIN,
-                    ActionType.LIST_FILTER,
-                    ActionType.LIST_MAP,
-                    ActionType.LIST_FIND_FIRST,
-                    ActionType.LIST_TO_JSON,
-                    ActionType.JSON_TO_LIST
+                    ActionType.LIST_REVERSE
             ));
 
             case MAP -> list.addAll(Arrays.asList(
@@ -250,15 +237,14 @@ public class ActionMap {
                     ActionType.MAP_GET,
                     ActionType.MAP_SIZE,
                     ActionType.MAP_IS_EMPTY,
-                    ActionType.MAP_CONTAIN_BY,
+                    ActionType.MAP_CONTAIN_KEY,
+                    ActionType.MAP_CONTAIN_VALUE,
                     ActionType.MAP_SET,
                     ActionType.MAP_REMOVE,
                     ActionType.MAP_APPEND,
                     ActionType.MAP_CLEAR,
-                    ActionType.MAP_KEYS_VALUES,
-                    ActionType.MAP_SORT,
-                    ActionType.MAP_INVERT,
-                    ActionType.MAP_TO_JSON
+                    ActionType.MAP_KEYS,
+                    ActionType.MAP_VALUES
             ));
 
             case THREAD -> list.addAll(Arrays.asList(

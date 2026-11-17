@@ -2,28 +2,19 @@ package top.bogey.touch_tool.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 
 import java.lang.reflect.Type;
-import java.util.Map;
 
 import top.bogey.touch_tool.bean.action.Action;
 import top.bogey.touch_tool.bean.other.log.Log;
 import top.bogey.touch_tool.bean.other.log.LogInfo;
 import top.bogey.touch_tool.bean.pin.Pin;
-import top.bogey.touch_tool.bean.pin.PinTypeRef;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinBase;
-import top.bogey.touch_tool.bean.pin.pin_objects.PinBoolean;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinMap;
-import top.bogey.touch_tool.bean.pin.pin_objects.PinObject;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_list.PinApplications;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_list.PinList;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_list.PinMultiSelect;
-import top.bogey.touch_tool.bean.pin.pin_objects.pin_number.PinNumber;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_scale_able.PinImage;
 import top.bogey.touch_tool.bean.save.model.LiteRTModel;
 import top.bogey.touch_tool.bean.task.Task;
@@ -35,7 +26,6 @@ public class GsonUtil {
             .registerTypeAdapter(Variable.class, new Variable.VariableDeserialize())
             .registerTypeAdapter(Action.class, new Action.ActionDeserializer())
             .registerTypeAdapter(Pin.class, new Pin.PinDeserialize())
-            .registerTypeAdapter(PinTypeRef.class, new PinTypeRef.PinTypeRefDeserializer())
 
             .registerTypeAdapter(PinBase.class, new PinBase.PinBaseDeserializer())
             .registerTypeAdapter(PinList.class, new PinList.PinListSerializer())
@@ -61,32 +51,6 @@ public class GsonUtil {
 
     public static String toJson(Object src) {
         return gson.toJson(src);
-    }
-
-    // 针脚值转 JSON 元素：列表转数组、字典转对象、数字与布尔按基本类型、其余按文本
-    public static JsonElement toJsonElement(PinBase value) {
-        if (value == null) return JsonNull.INSTANCE;
-        if (value instanceof PinList list) {
-            JsonArray array = new JsonArray();
-            for (PinObject element : list) {
-                array.add(toJsonElement(element));
-            }
-            return array;
-        }
-        if (value instanceof PinMap map) {
-            JsonObject object = new JsonObject();
-            for (Map.Entry<PinObject, PinObject> entry : map.entrySet()) {
-                object.add(entry.getKey().toString(), toJsonElement(entry.getValue()));
-            }
-            return object;
-        }
-        if (value instanceof PinNumber<?> number && number.getValue() != null) {
-            return new JsonPrimitive(number.getValue());
-        }
-        if (value instanceof PinBoolean bool) {
-            return new JsonPrimitive(bool.getValue());
-        }
-        return new JsonPrimitive(value.toString());
     }
 
     public static <T> T getAsObject(JsonObject jsonObject, String key, Class<T> clazz, T defaultValue) {

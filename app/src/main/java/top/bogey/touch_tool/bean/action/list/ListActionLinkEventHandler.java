@@ -19,12 +19,6 @@ public class ListActionLinkEventHandler {
     }
 
     public static void onLinkedTo(List<Pin> valuePins, Task task, Pin origin, Pin to, boolean direct) {
-        // 来源是显式任意类型：本侧针脚也标记为任意，不做首连定型
-        if (to != null && to.isTypeAny()) {
-            origin.markTypeAny();
-            return;
-        }
-        if (origin.isTypeAny()) return;
         if (!direct) {
             // 判断当前连接的针脚是否可以确定动态针脚类型
             int count = 0;
@@ -57,8 +51,6 @@ public class ListActionLinkEventHandler {
         for (Pin pin : valuePins) {
             PinBase value = pin.getValue();
 
-            // 首连定型的结果写进针脚声明（Step 5.2）
-            pin.markTypeConcrete((PinObject) template.copy());
             if (value instanceof PinAdd pinAdd) {
                 Pin addPin = pinAdd.getPin();
                 PinBase addValue = addPin.getValue();
@@ -105,8 +97,6 @@ public class ListActionLinkEventHandler {
             return;
         }
         for (Pin pin : valuePins) {
-            // 全部断开后声明回到未定型
-            pin.markTypeUnknown();
             PinBase value = pin.getValue();
             if (value instanceof PinAdd pinAdd) {
                 Pin addPin = pinAdd.getPin();

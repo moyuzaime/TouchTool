@@ -4,7 +4,6 @@ import androidx.annotation.NonNull;
 
 import com.google.gson.JsonObject;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -15,7 +14,6 @@ import top.bogey.touch_tool.bean.pin.Pin;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinObject;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinSubType;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinExecute;
-import top.bogey.touch_tool.bean.task.Task;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_list.PinList;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_number.PinInteger;
 import top.bogey.touch_tool.service.TaskRunnable;
@@ -24,7 +22,7 @@ public class ListForeachAction extends ListExecuteAction {
     private final transient Pin breakPin = new Pin(new PinExecute(), R.string.list_foreach_action_break);
     private final transient Pin listPin = new Pin(new PinList());
     private final transient Pin elementPin = new Pin(new PinObject(PinSubType.DYNAMIC), R.string.pin_object, true);
-    private final transient Pin indexPin = Pin.withIndexTip(new Pin(new PinInteger(), R.string.list_action_index, true));
+    private final transient Pin indexPin = new Pin(new PinInteger(), R.string.list_action_index, true);
     private final transient Pin completePin = new Pin(new PinExecute(), R.string.for_loop_action_complete, true);
 
     private transient boolean isBreak = false;
@@ -47,13 +45,11 @@ public class ListForeachAction extends ListExecuteAction {
             isBreak = false;
             Action startAction = runnable.getAction();
             PinList list = getPinValue(runnable, listPin);
-            // 按进入循环时的快照遍历，循环体内增删列表不会跳过或错位
-            List<PinObject> snapshot = new ArrayList<>(list);
-            for (int i = 0; i < snapshot.size(); i++) {
+            for (int i = 0; i < list.size(); i++) {
                 if (runnable.isCurrentInterrupt()) return;
                 if (!startAction.equals(runnable.getAction())) return;
                 if (isBreak) break;
-                elementPin.setValue(returnValue(snapshot.get(i)));
+                elementPin.setValue(returnValue(list.get(i)));
                 indexPin.getValue(PinInteger.class).setValue(i + 1);
                 executeNext(runnable, outPin);
             }
@@ -75,15 +71,6 @@ public class ListForeachAction extends ListExecuteAction {
     public void resetReturnValue(TaskRunnable runnable, Pin pin) {
         if (pin == inPin) {
             super.resetReturnValue(runnable, pin);
-        }
-    }
-
-    @Override
-    protected void handleLinkTo(Task task, Pin origin, Pin to) {
-        super.handleLinkTo(task, origin, to);
-        // 来源是显式任意类型时，元素针脚跟着任意
-        if (origin == listPin && to != null && to.isTypeAny()) {
-            elementPin.markTypeAny();
         }
     }
 

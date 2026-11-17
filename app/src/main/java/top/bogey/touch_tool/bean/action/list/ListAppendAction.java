@@ -12,7 +12,6 @@ import top.bogey.touch_tool.bean.action.ActionType;
 import top.bogey.touch_tool.bean.action.parent.DynamicPinsAction;
 import top.bogey.touch_tool.bean.pin.Pin;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinAdd;
-import top.bogey.touch_tool.bean.pin.pin_objects.PinObject;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinExecute;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_list.PinList;
 import top.bogey.touch_tool.service.TaskRunnable;
@@ -39,20 +38,12 @@ public class ListAppendAction extends ListExecuteAction implements DynamicPinsAc
     @Override
     public void execute(TaskRunnable runnable, Pin pin) {
         PinList result = resultPin.getValue(PinList.class);
-        boolean typed = false;
         for (Pin p : getDynamicPins()) {
             PinList list = getPinValue(runnable, p);
             if (list != null) {
-                // 结果列表继承第一个非空输入的元素类型
-                if (!typed) {
-                    result.setValueType((PinObject) list.getValueType().copy());
-                    typed = true;
-                }
                 result.addAll(list);
             }
         }
-        // 结果声明由各输入列表传播
-        resultPin.inheritType(getDynamicPins());
         executeNext(runnable, outPin);
     }
 

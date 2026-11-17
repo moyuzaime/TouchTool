@@ -6,7 +6,6 @@ import com.google.gson.JsonObject;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,7 +17,6 @@ import top.bogey.touch_tool.bean.pin.pin_objects.PinMap;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinObject;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinSubType;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinExecute;
-import top.bogey.touch_tool.bean.task.Task;
 import top.bogey.touch_tool.service.TaskRunnable;
 
 public class MapForeachAction extends MapExecuteAction {
@@ -49,9 +47,7 @@ public class MapForeachAction extends MapExecuteAction {
             isBreak = false;
             Action startAction = runnable.getAction();
             PinMap map = getPinValue(runnable, mapPin);
-            // 按进入循环时的快照遍历，循环体内增删字典不会中断遍历
-            Map<PinObject, PinObject> snapshot = new LinkedHashMap<>(map);
-            for (Map.Entry<PinObject, PinObject> entry : snapshot.entrySet()) {
+            for (Map.Entry<PinObject, PinObject> entry : map.entrySet()) {
                 if (runnable.isCurrentInterrupt()) return;
                 if (!startAction.equals(runnable.getAction())) return;
                 if (isBreak) break;
@@ -77,16 +73,6 @@ public class MapForeachAction extends MapExecuteAction {
     public void resetReturnValue(TaskRunnable runnable, Pin pin) {
         if (pin == inPin) {
             super.resetReturnValue(runnable, pin);
-        }
-    }
-
-    @Override
-    protected void handleLinkTo(Task task, Pin origin, Pin to) {
-        super.handleLinkTo(task, origin, to);
-        // 来源是显式任意类型时，键值针脚跟着任意
-        if (origin == mapPin && to != null && to.isTypeAny()) {
-            keyPin.markTypeAny();
-            valuePin.markTypeAny();
         }
     }
 

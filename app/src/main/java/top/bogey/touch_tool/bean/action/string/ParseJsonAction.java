@@ -39,18 +39,28 @@ public class ParseJsonAction extends CalculateAction implements SyncAction {
         PinObject json = getPinValue(runnable, jsonPin);
         String jsonString = json.toString();
         Gson gson = new Gson();
-        // 按开头字符决定是字典还是列表，与 sync() 保持一致（原来动态结果只认「{」）
-        try {
-            if (jsonString.startsWith("{")) {
+        if (resultPin.getValue().isDynamic()) {
+            if (jsonString.startsWith("{") && resultPin.getValue() instanceof PinMap) {
                 Map<String, Object> map = gson.fromJson(jsonString, new TypeToken<Map<String, Object>>() {
                 }.getType());
-                resultPin.setValue(PinBase.parseValue(map));
-            } else if (jsonString.startsWith("[")) {
-                List<Object> list = gson.fromJson(jsonString, new TypeToken<List<Object>>() {
-                }.getType());
-                resultPin.setValue(PinBase.parseValue(list));
+                PinBase pinBase = PinBase.parseValue(map);
+                resultPin.setValue(pinBase);
             }
-        } catch (Exception ignored) {
+        } else {
+            try {
+                if (jsonString.startsWith("{")) {
+                    Map<String, Object> map = gson.fromJson(jsonString, new TypeToken<Map<String, Object>>() {
+                    }.getType());
+                    PinBase pinBase = PinBase.parseValue(map);
+                    resultPin.setValue(pinBase);
+                } else if (jsonString.startsWith("[")) {
+                    List<Object> list = gson.fromJson(jsonString, new TypeToken<List<Object>>() {
+                    }.getType());
+                    PinBase pinBase = PinBase.parseValue(list);
+                    resultPin.setValue(pinBase);
+                }
+            } catch (Exception ignored) {
+            }
         }
     }
 

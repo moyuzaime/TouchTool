@@ -469,14 +469,6 @@
     <string name="parse_json_action">JSON解析</string>
     <string name="parse_json_action_desc">解析JSON字符串</string>
 
-    <string name="list_to_json_action">列表转JSON</string>
-    <string name="list_to_json_action_desc">把列表转换成 JSON 文本，可被「JSON解析」还原</string>
-    <string name="list_to_json_action_result">JSON文本</string>
-
-    <string name="json_to_list_action">JSON转列表</string>
-    <string name="json_to_list_action_desc">把 JSON 数组文本解析成列表，与「列表转JSON」配对</string>
-    <string name="json_to_list_action_result">结果列表</string>
-
     <string name="string_to_single_select_action">新建单选</string>
     <string name="string_to_single_select_action_desc">创建一个自定义单选</string>
     <string name="string_to_single_select_action_options">选项(可为空)</string>
@@ -730,26 +722,6 @@
 
     <string name="list_make_action">新建列表</string>
     <string name="list_make_action_desc">新建一个列表</string>
-    <string name="container_type_mode_pin">类型模式</string>
-    <string name="pin_output_type">输出类型</string>
-
-    <string name="is_text_action">是否为文本</string>
-    <string name="is_text_action_desc">判断值是否为文本</string>
-    <string name="is_number_action">是否为数字</string>
-    <string name="is_number_action_desc">判断值是否为数字（整数 / 浮点 / 长整都算数字）</string>
-    <string name="is_boolean_action">是否为布尔</string>
-    <string name="is_boolean_action_desc">判断值是否为布尔</string>
-    <string name="is_list_action">是否为列表</string>
-    <string name="is_list_action_desc">判断值是否为列表</string>
-    <string name="is_map_action">是否为字典</string>
-    <string name="is_map_action_desc">判断值是否为字典</string>
-    <string name="to_number_action">转数字</string>
-    <string name="to_number_action_desc">把文本 / 布尔 / 数字转成数字，失败输出 0 并置成功为 false</string>
-    <string name="to_number_action_result">数字</string>
-    <string name="to_number_action_success">是否成功</string>
-    <string name="type_name_action">取类型名</string>
-    <string name="type_name_action_desc">输出值的类型名：TEXT / NUMBER / BOOLEAN / LIST / MAP / OBJECT</string>
-    <string name="type_name_action_result">类型名</string>
 
     <string name="list_size_action">列表长度</string>
     <string name="list_size_action_desc">获取列表长度</string>
@@ -762,18 +734,13 @@
 
     <string name="list_add_action">添加元素</string>
     <string name="list_add_action_desc">向列表中添加元素</string>
-    <string name="list_add_action_index">位置</string>
+    <string name="list_add_action_index">元素位置</string>
 
     <string name="list_remove_action">移除索引元素</string>
     <string name="list_remove_action_desc">按索引从列表中移除元素</string>
 
     <string name="list_remove_object_action">移除元素对象</string>
     <string name="list_remove_object_action_desc">按对象从列表中移除元素</string>
-
-    <string name="list_remove_by_action">移除元素</string>
-    <string name="list_remove_by_action_desc">按索引或按对象移除列表中的元素</string>
-    <string name="list_remove_by_action_mode">移除方式</string>
-    <string name="list_remove_by_action_object">移除的对象</string>
 
     <string name="list_append_action">列表拼接</string>
     <string name="list_append_action_desc">将两个列表拼接</string>
@@ -809,51 +776,9 @@
     <string name="list_sort_action_desc">对列表中的元素进行排序</string>
     <string name="list_sort_action_compare">比较</string>
     <string name="list_sort_action_result">比较结果</string>
-    <string name="list_sort_action_mode">排序方式</string>
-    <string name="list_sort_action_key">比较键</string>
-    <string name="list_sort_action_failed">排序已中止，保留原顺序</string>
-    <string name="list_sort_action_key_empty">按字典键排序前需要在「比较键」里填写键名</string>
-    <string name="list_sort_action_too_many">比较次数超过上限，排序已中止</string>
 
     <string name="list_reverse_action">列表翻转</string>
     <string name="list_reverse_action_desc">对列表中的元素进行翻转</string>
-
-    <string name="list_deduplicate_action">列表去重</string>
-    <string name="list_deduplicate_action_desc">去掉列表中重复的元素，保持首次出现的顺序</string>
-    <string name="list_deduplicate_action_ignore_case">忽略大小写</string>
-    <string name="list_deduplicate_action_result">结果列表</string>
-    <string name="list_deduplicate_action_count">去重数量</string>
-
-    <string name="list_statistics_action">列表统计</string>
-    <string name="list_statistics_action_desc">对列表中的数字元素求和、最大、最小或平均，非数字元素跳过</string>
-    <string name="list_statistics_action_mode">统计方式</string>
-    <string name="list_statistics_action_result">统计结果</string>
-    <string name="list_statistics_action_count">数字个数</string>
-
-    <string name="list_join_action">列表连接文本</string>
-    <string name="list_join_action_desc">把列表元素用分隔符连接成文本</string>
-    <string name="list_join_action_separator">分隔符</string>
-    <string name="list_join_action_result">连接结果</string>
-
-    <string name="list_filter_action">列表筛选</string>
-    <string name="list_filter_action_desc">每个元素跑一次条件流程，条件为真的元素保留</string>
-    <string name="list_filter_action_flow">条件</string>
-    <string name="list_filter_action_condition">条件结果</string>
-    <string name="list_filter_action_result">结果列表</string>
-
-    <string name="list_map_action">列表映射</string>
-    <string name="list_map_action_desc">每个元素跑一次映射流程，用流程给出的值组成新列表</string>
-    <string name="list_map_action_flow">映射</string>
-    <string name="list_map_action_value">映射结果</string>
-    <string name="list_map_action_result">结果列表</string>
-
-    <string name="list_find_first_action">列表查找首个</string>
-    <string name="list_find_first_action_desc">找到第一个满足条件的元素就停止</string>
-    <string name="list_find_first_action_flow">条件</string>
-    <string name="list_find_first_action_condition">条件结果</string>
-    <string name="list_find_first_action_result">元素</string>
-    <string name="list_find_first_action_index">索引</string>
-    <string name="list_find_first_action_exist">是否存在</string>
 
 
     <!-- 动作-Map -->
@@ -875,10 +800,6 @@
     <string name="map_contain_value_action">字典是否包含值</string>
     <string name="map_contain_value_action_desc">判断字典是否包含值</string>
 
-    <string name="map_contain_by_action">字典是否包含</string>
-    <string name="map_contain_by_action_desc">判断字典是否包含指定的键或值</string>
-    <string name="map_contain_by_action_mode">判断方式</string>
-
 
     <string name="map_remove_action">移除键值对</string>
     <string name="map_remove_action_desc">从字典中移除键值对</string>
@@ -892,7 +813,6 @@
 
     <string name="map_get_action">获取值</string>
     <string name="map_get_action_desc">从字典中获取值</string>
-    <string name="map_get_action_default">默认值</string>
 
     <string name="map_set_action">添加或替换值</string>
     <string name="map_set_action_desc">向字典中添加或替换值</string>
@@ -902,24 +822,6 @@
 
     <string name="map_values_action">获取所有值</string>
     <string name="map_values_action_desc">获取字典中的所有值</string>
-
-    <string name="map_keys_values_action">获取所有键或值</string>
-    <string name="map_keys_values_action_desc">获取字典中的所有键或所有值</string>
-    <string name="map_keys_values_action_mode">获取方式</string>
-    <string name="map_keys_values_action_result">结果列表</string>
-
-    <string name="map_sort_action">字典按键排序</string>
-    <string name="map_sort_action_desc">按键的升序或降序生成新字典</string>
-    <string name="map_sort_action_order">排序方式</string>
-    <string name="map_sort_action_result">新字典</string>
-
-    <string name="map_invert_action">字典键值互换</string>
-    <string name="map_invert_action_desc">把字典的键和值互换，值需要能作为键</string>
-    <string name="map_invert_action_result">新字典</string>
-
-    <string name="map_to_json_action">字典转JSON</string>
-    <string name="map_to_json_action_desc">把字典转换成 JSON 文本，可被「JSON解析」还原</string>
-    <string name="map_to_json_action_result">JSON文本</string>
 
     <string name="map_foreach_action">遍历字典</string>
     <string name="map_foreach_action_desc">遍历字典中的每个键值对</string>

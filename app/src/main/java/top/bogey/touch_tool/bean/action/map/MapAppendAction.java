@@ -13,7 +13,6 @@ import top.bogey.touch_tool.bean.action.parent.DynamicPinsAction;
 import top.bogey.touch_tool.bean.pin.Pin;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinAdd;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinMap;
-import top.bogey.touch_tool.bean.pin.pin_objects.PinObject;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinExecute;
 import top.bogey.touch_tool.service.TaskRunnable;
 
@@ -39,21 +38,12 @@ public class MapAppendAction extends MapExecuteAction implements DynamicPinsActi
     @Override
     public void execute(TaskRunnable runnable, Pin pin) {
         PinMap result = resultPin.getValue(PinMap.class);
-        boolean typed = false;
         for (Pin p : getDynamicPins()) {
             PinMap map = getPinValue(runnable, p);
             if (map != null) {
-                // 结果字典继承第一个非空输入的键值类型
-                if (!typed) {
-                    result.setKeyType((PinObject) map.getKeyType().copy());
-                    result.setValueType((PinObject) map.getValueType().copy());
-                    typed = true;
-                }
                 result.putAll(map);
             }
         }
-        // 结果声明由各输入字典传播
-        resultPin.inheritType(getDynamicPins());
         executeNext(runnable, outPin);
     }
 
