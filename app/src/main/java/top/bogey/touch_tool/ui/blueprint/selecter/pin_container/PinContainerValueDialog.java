@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
@@ -23,7 +24,10 @@ import top.bogey.touch_tool.bean.pin.PinInfo;
 import top.bogey.touch_tool.bean.pin.PinTypeRef;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinMap;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinObject;
+import top.bogey.touch_tool.bean.pin.pin_objects.PinBoolean;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinValueUtil;
+import top.bogey.touch_tool.bean.pin.pin_objects.pin_number.PinInteger;
+import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinString;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_list.PinList;
 import top.bogey.touch_tool.databinding.DialogPinContainerValueBinding;
 import top.bogey.touch_tool.databinding.ItemPinValueRowBinding;
@@ -87,6 +91,31 @@ public class PinContainerValueDialog extends FrameLayout {
         buildRows();
     }
 
+    // 任意类型容器：逐行切换元素类型，按原文本尝试转换
+    private void showTypePicker(int index) {
+        String[] titles = {
+                getContext().getString(R.string.pin_string),
+                getContext().getString(R.string.pin_number_integer),
+                getContext().getString(R.string.pin_boolean_condition)
+        };
+        new MaterialAlertDialogBuilder(getContext())
+                .setTitle(R.string.pin_container_type)
+                .setItems(titles, (dialog, which) -> {
+                    PinObject template = switch (which) {
+                        case 1 -> new PinInteger();
+                        case 2 -> new PinBoolean();
+                        default -> new PinString();
+                    };
+                    Row row = rows.get(index);
+                    PinObject converted = PinValueUtil.convertTo(row.value(), template);
+                    if (converted == null) converted = PinValueUtil.newValue(template);
+                    rows.set(index, new Row(row.key(), converted));
+                    buildRows();
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
     // 声明优先：具体类型用模板，任意 / 未定型回退到运行值的类型
     private PinObject resolveType(PinTypeRef typeRef, PinObject fallback) {
         if (typeRef != null && typeRef.isConcrete() && typeRef.getTemplate() != null) return typeRef.getTemplate();
@@ -135,6 +164,14 @@ public class PinContainerValueDialog extends FrameLayout {
         }
         rowBinding.valueText.setText(PinValueUtil.getText(row.value()));
         bindText(rowBinding.valueText, row.value(), valueType);
+
+        // 任意类型容器：每行可以单独切换元素类型
+        if (anyType) {
+            rowBinding.typeButton.setVisibility(VISIBLE);
+            rowBinding.typeButton.setOnClickListener(v -> showTypePicker(index));
+        } else {
+            rowBinding.typeButton.setVisibility(GONE);
+        }
 
         binding.rowBox.addView(rowBinding.getRoot());
     }

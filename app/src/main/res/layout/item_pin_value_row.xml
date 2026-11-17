@@ -22,6 +22,12 @@
             android:textAppearance="@style/TextAppearance.Material3.LabelSmall" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/typeButton"
+            style="?attr/iconButton"
+            android:visibility="gone"
+            app:icon="@drawable/icon_swap_horiz" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/upButton"
             style="?attr/iconButton"
             app:icon="@drawable/icon_keyboard_arrow_up" />
