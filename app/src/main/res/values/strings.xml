@@ -91,6 +91,13 @@
     <string name="task_capture_generating">正在按原始尺寸生成截图…</string>
     <string name="task_capture_failed">截图生成失败</string>
 
+    <string name="task_code">任务代码</string>
+    <string name="task_code_tips">动作清单（JSON）：可直接改动作、针脚与连线，保存后回写画布；连线要两端都写回 links，改坏时点取消。</string>
+    <string name="task_code_format">格式化</string>
+    <string name="task_code_applied">任务代码已应用</string>
+    <string name="task_code_error_action">第 %1$d 个动作：%2$s</string>
+    <string name="task_code_failed">应用失败：%1$s</string>
+
     <string name="select_action_group_global">全局</string>
     <string name="select_action_group_private">自有</string>
 

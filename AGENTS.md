@@ -40,3 +40,5 @@
 - **设置页的两套布局**：设置页同时有 `res/layout/view_setting.xml` 与 `res/layout-land/view_setting.xml`，`SettingView` 用 `ViewSettingBinding` 绑定每个行 id；只往一套里加行时，另一套创建页面会因绑定字段为 null 直接空指针崩溃（`fileAccessSwitch`、`branchLimitSelect` 都踩过），加行必须两边同步。
 
 - **按展开状态收起输出针脚**：要让一张卡默认少显示几个输出，直接给扩展针脚加 `hide`（`Pin(..., true, false, true)`），眼睛按钮的三态就变成「不展开=只剩已连线 / 半展开=非 hide 针脚 / 全展开=全部」；新卡默认展开状态跟随全局「卡片展开状态」设置，需要单卡紧凑就用眼睛切半展开（随卡片保存）。`hide` 只影响显示，针脚本身、取值和已有连线都不受影响。
+
+- **任务代码**：文本是 `task.getActions()` 的缩进 JSON，只含动作，不含任务标题、标签与变量；`TaskCode.apply()` 先整体校验（类型已注册、动作与针脚 id 唯一、针脚有 `value`、连线两端成对且方向相反），通过后才清空旧动作写入重新解析的动作，并按针脚 id 再核对一次——文本里有而被动作丢掉的、动作补出来的默认针脚都判失败；调用方成功后用 `CardLayoutView.setTask()` 重载画布再 `save()`。`MakeListAction`/`MakeMapAction` 构造时会把「添加针脚」`PinAdd` 里的针脚换成新对象，所以这两处针脚 id 每次保存都会变（与存档加载一致），在文本里改它没有意义；图片针脚的值是 base64。

@@ -557,3 +557,13 @@ feat(node): 获取控件信息默认收起扩展属性
 - 16 个扩展属性针脚标记 `hide`，只在全展开或已连线时显示；新建卡片跟随全局「卡片展开状态」设置（全展开就全展开、半展开只显示常用），老卡片保留自己保存的展开状态。
 - 顺带把上游标了 `hide` 的 控件ID / 描述 / 是否可用 / 是否可见 / 控件身份 改成半展开也显示，半展开的常用集合与改造前一致。
 - 真机验证：新建卡片跟随全局「全展开」显示 24 个输出；点眼睛切到半展开是 8 个输出 + 控件输入，状态随卡片保存。
+
+## 51. 任务代码：把动作清单当 JSON 文本编辑
+
+- 位置：`ui/blueprint/code/TaskCode.java`、`ui/blueprint/code/TaskCodeDialog.java`、`res/layout/dialog_task_code.xml`、`res/layout/popup_blueprint_menu.xml`、`ui/blueprint/BlueprintView.java`、`utils/GsonUtil.java`、`res/values/strings.xml`
+- 任务菜单新增「任务代码」：把当前任务的动作清单（`ActionManager.actions`）缩进成 JSON 放进编辑框，等宽字体、可滚动、窗口铺满，右上「格式化」按钮按 JSON 重新缩进。
+- 保存时先整体校验再替换：JSON 语法、最外层必须是动作数组、动作 `type` 必须已注册、动作与针脚 id 全局唯一、针脚必须有 `value`、连线必须指向存在的针脚且两端方向相反并互相写回。校验全部通过才清空旧动作、写入重新反序列化的动作；任何一步失败任务保持原样，红字提示到第几个动作。
+- 反序列化后再核对一次针脚 id：文本里有而动作没接受的（类不匹配会被静默丢弃）、动作补出来的默认针脚，都按失败处理；针脚连线也要与文本一致，避免静默丢数据。文本自带 `uid`/`id`，复用存档格式，动作类里非 transient 的字段（如 `ShowTextAction.size`）一并保留。
+- 保存成功后按解析结果重载画布（`CardLayoutView.setTask`）并落盘，Toast 提示「任务代码已应用」；`GsonUtil` 拆出 `builder()`，新增 `prettyGson` 与 `toPrettyJson()` 供缩进输出。
+- 真机验证：6 张卡的任务 dump 出来 796 行；把第一个动作的 `expandType` 改成 `NONE` 保存后卡片收成三态里的不展开，改回 `FULL` 后恢复；在文本里多插一个 `[` 再保存，红字提示 `JSON 语法错误：End of input at line 796 column 2 path $[1]`，任务与画布不变；强杀应用重进，任务卡片与针脚值都在。
+- 已知限制：文本只含动作清单，不含任务标题、标签与变量；图片针脚的值是 base64，会整段出现在文本里。

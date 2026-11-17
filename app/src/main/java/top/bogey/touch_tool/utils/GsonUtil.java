@@ -21,25 +21,31 @@ import top.bogey.touch_tool.bean.task.Task;
 import top.bogey.touch_tool.bean.task.Variable;
 
 public class GsonUtil {
-    public static final Gson gson = new GsonBuilder()
-            .registerTypeAdapter(Task.class, new Task.TaskDeserialize())
-            .registerTypeAdapter(Variable.class, new Variable.VariableDeserialize())
-            .registerTypeAdapter(Action.class, new Action.ActionDeserializer())
-            .registerTypeAdapter(Pin.class, new Pin.PinDeserialize())
+    // 普通与缩进输出共用同一套适配器，避免两处注册顺序不一致
+    private static GsonBuilder builder() {
+        return new GsonBuilder()
+                .registerTypeAdapter(Task.class, new Task.TaskDeserialize())
+                .registerTypeAdapter(Variable.class, new Variable.VariableDeserialize())
+                .registerTypeAdapter(Action.class, new Action.ActionDeserializer())
+                .registerTypeAdapter(Pin.class, new Pin.PinDeserialize())
 
-            .registerTypeAdapter(PinBase.class, new PinBase.PinBaseDeserializer())
-            .registerTypeAdapter(PinList.class, new PinList.PinListSerializer())
-            .registerTypeAdapter(PinApplications.class, new PinList.PinListSerializer())
-            .registerTypeAdapter(PinMultiSelect.class, new PinList.PinListSerializer())
-            .registerTypeAdapter(PinMap.class, new PinMap.PinMapSerializer())
-            .registerTypeAdapter(PinImage.class, new PinImage.PinImageSerializer())
+                .registerTypeAdapter(PinBase.class, new PinBase.PinBaseDeserializer())
+                .registerTypeAdapter(PinList.class, new PinList.PinListSerializer())
+                .registerTypeAdapter(PinApplications.class, new PinList.PinListSerializer())
+                .registerTypeAdapter(PinMultiSelect.class, new PinList.PinListSerializer())
+                .registerTypeAdapter(PinMap.class, new PinMap.PinMapSerializer())
+                .registerTypeAdapter(PinImage.class, new PinImage.PinImageSerializer())
 
-            .registerTypeAdapter(LogInfo.class, new LogInfo.LogInfoDeserialize())
-            .registerTypeAdapter(Log.class, new Log.LogDeserialize())
+                .registerTypeAdapter(LogInfo.class, new LogInfo.LogInfoDeserialize())
+                .registerTypeAdapter(Log.class, new Log.LogDeserialize())
 
-            .registerTypeAdapter(LiteRTModel.class, new LiteRTModel.LiteRTModelDeserializer())
+                .registerTypeAdapter(LiteRTModel.class, new LiteRTModel.LiteRTModelDeserializer());
+    }
 
-            .create();
+    public static final Gson gson = builder().create();
+
+    // 带缩进，用于任务代码等给人看的文本
+    public static final Gson prettyGson = builder().setPrettyPrinting().create();
 
     public static <T> T copy(T src, Class<T> clazz) {
         return gson.fromJson(gson.toJson(src), clazz);
@@ -51,6 +57,10 @@ public class GsonUtil {
 
     public static String toJson(Object src) {
         return gson.toJson(src);
+    }
+
+    public static String toPrettyJson(Object src) {
+        return prettyGson.toJson(src);
     }
 
     public static <T> T getAsObject(JsonObject jsonObject, String key, Class<T> clazz, T defaultValue) {

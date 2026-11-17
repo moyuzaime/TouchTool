@@ -55,6 +55,7 @@ import top.bogey.touch_tool.databinding.PopupBlueprintMenuBinding;
 import top.bogey.touch_tool.databinding.ViewBlueprintBinding;
 import top.bogey.touch_tool.ui.MainActivity;
 import top.bogey.touch_tool.ui.blueprint.card.ActionCard;
+import top.bogey.touch_tool.ui.blueprint.code.TaskCodeDialog;
 import top.bogey.touch_tool.ui.blueprint.selecter.select_action.SelectActionDialog;
 import top.bogey.touch_tool.ui.tool.log.LogFloatView;
 import top.bogey.touch_tool.utils.AppLog;
@@ -265,6 +266,15 @@ public class BlueprintView extends Fragment {
         menu.rowTaskCapture.setOnClickListener(v -> {
             dismissPopup(menu.getRoot());
             showTaskCapture();
+        });
+        // 任务代码：把当前任务的动作清单当文本（JSON）编辑，保存后整表替换并重载画布
+        menu.rowTaskCode.setOnClickListener(v -> {
+            dismissPopup(menu.getRoot());
+            TaskCodeDialog.show(requireContext(), currTask, () -> {
+                currTask.save();
+                binding.cardLayout.setTask(currTask);
+                Toast.makeText(requireContext(), R.string.task_code_applied, Toast.LENGTH_SHORT).show();
+            });
         });
 
         // 记录日志细节：只有顶层任务能改，卡片里打开的子任务不显示这一行

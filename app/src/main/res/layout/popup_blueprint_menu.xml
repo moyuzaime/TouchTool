@@ -41,6 +41,20 @@
                 android:text="@string/task_capture" />
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/rowTaskCode"
+            style="@style/Theme.TouchTool.PopupMenuRow">
+
+            <ImageView
+                style="@style/Theme.TouchTool.PopupMenuIcon"
+                android:importantForAccessibility="no"
+                android:src="@drawable/icon_function" />
+
+            <TextView
+                style="@style/Theme.TouchTool.PopupMenuText"
+                android:text="@string/task_code" />
+        </LinearLayout>
+
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
