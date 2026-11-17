@@ -55,6 +55,20 @@
                 android:text="@string/task_code" />
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/rowTaskCardCode"
+            style="@style/Theme.TouchTool.PopupMenuRow">
+
+            <ImageView
+                style="@style/Theme.TouchTool.PopupMenuIcon"
+                android:importantForAccessibility="no"
+                android:src="@drawable/icon_gesture" />
+
+            <TextView
+                style="@style/Theme.TouchTool.PopupMenuText"
+                android:text="@string/task_code_card_code" />
+        </LinearLayout>
+
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"

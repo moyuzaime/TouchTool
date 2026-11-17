@@ -104,6 +104,16 @@
                 android:text="@string/task_code_field_action"
                 app:ensureMinTouchTargetSize="false" />
 
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipLocate"
+                style="@style/Widget.Material3.Chip.Assist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:checkable="false"
+                android:text="@string/task_code_field_locate"
+                app:ensureMinTouchTargetSize="false" />
+
         </LinearLayout>
     </HorizontalScrollView>
 

@@ -268,13 +268,19 @@ public class BlueprintView extends Fragment {
             showTaskCapture();
         });
         // 任务代码：把整个任务（标题、标签、变量、子任务、动作清单）当文本（JSON）编辑，保存后回写并重载画布
+        Runnable onCodeApplied = () -> {
+            currTask.save();
+            setTask(currTask);
+            Toast.makeText(requireContext(), R.string.task_code_applied, Toast.LENGTH_SHORT).show();
+        };
         menu.rowTaskCode.setOnClickListener(v -> {
             dismissPopup(menu.getRoot());
-            TaskCodeDialog.show(requireContext(), currTask, () -> {
-                currTask.save();
-                setTask(currTask);
-                Toast.makeText(requireContext(), R.string.task_code_applied, Toast.LENGTH_SHORT).show();
-            });
+            TaskCodeDialog.show(requireContext(), currTask, onCodeApplied);
+        });
+        // 卡片代码：先选一张卡片，再打开任务代码并定位到它的代码段
+        menu.rowTaskCardCode.setOnClickListener(v -> {
+            dismissPopup(menu.getRoot());
+            TaskCodeDialog.showCardPicker(requireContext(), currTask, onCodeApplied);
         });
 
         // 记录日志细节：只有顶层任务能改，卡片里打开的子任务不显示这一行

@@ -3,6 +3,7 @@ package top.bogey.touch_tool.ui.blueprint.code;
 import android.content.Context;
 import android.graphics.Point;
 import android.text.Editable;
+import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import top.bogey.touch_tool.R;
+import top.bogey.touch_tool.bean.action.Action;
 import top.bogey.touch_tool.bean.action.ActionInfo;
 import top.bogey.touch_tool.bean.action.ActionType;
 import top.bogey.touch_tool.bean.save.TagSaver;
@@ -44,6 +46,11 @@ public class TaskCodeDialog {
 
     // 顶层任务：保存时写回真实任务
     public static void show(Context context, Task task, Runnable onApplied) {
+        show(context, task, null, onApplied);
+    }
+
+    // focusActionId 不为空时，打开后直接滚到该卡片的代码
+    public static void show(Context context, Task task, String focusActionId, Runnable onApplied) {
         if (task == null) return;
         String code;
         try {
@@ -52,18 +59,54 @@ public class TaskCodeDialog {
             Toast.makeText(context, context.getString(R.string.task_code_failed, String.valueOf(e.getMessage())), Toast.LENGTH_SHORT).show();
             return;
         }
-        showText(context, R.string.task_code, code, text -> TaskCode.apply(task, text), onApplied);
+        showText(context, R.string.task_code, code, focusActionId, text -> TaskCode.apply(task, text), onApplied);
+    }
+
+    // 先在画布侧选卡片，再打开代码并定位到它
+    public static void showCardPicker(Context context, Task task, Runnable onApplied) {
+        if (task == null) return;
+
+        List<Action> actions = new ArrayList<>(task.getActions());
+        actions.sort((left, right) -> {
+            Point leftPos = left.getPos();
+            Point rightPos = right.getPos();
+            if (leftPos.y != rightPos.y) return Integer.compare(leftPos.y, rightPos.y);
+            return Integer.compare(leftPos.x, rightPos.x);
+        });
+        if (actions.isEmpty()) {
+            Toast.makeText(context, R.string.task_code_action_empty, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        List<CharSequence> items = new ArrayList<>();
+        for (Action action : actions) items.add(cardLabel(action));
+        new MaterialAlertDialogBuilder(context)
+                .setTitle(R.string.task_code_card_pick)
+                .setItems(items.toArray(new CharSequence[0]), (dialog, which) -> {
+                    if (which < 0 || which >= actions.size()) return;
+                    show(context, task, actions.get(which).getId(), onApplied);
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
+    private static String cardLabel(Action action) {
+        ActionInfo info = ActionInfo.getActionInfo(action.getType());
+        String typeTitle = info == null ? action.getType().name() : displayTitle(info, action.getType().name());
+        String custom = action.getTitle();
+        if (custom == null || custom.isEmpty() || custom.equals(typeTitle)) return typeTitle;
+        return custom + "（" + typeTitle + "）";
     }
 
     // 局部编辑：保存时只校验这一段并回吐对象，由调用方合并回上层文本
     public static void showDocument(Context context, JsonObject document, DocumentResult result) {
-        showText(context, R.string.task_code_subtask_code, TaskCode.writeDocument(document), text -> {
+        showText(context, R.string.task_code_subtask_code, TaskCode.writeDocument(document), null, text -> {
             JsonObject edited = TaskCode.validateDocument(text);
             if (result != null) result.onResult(edited);
         }, null);
     }
 
-    private static void showText(Context context, int titleRes, String code, DocumentListener listener, Runnable onSaved) {
+    private static void showText(Context context, int titleRes, String code, String focusActionId, DocumentListener listener, Runnable onSaved) {
         DialogTaskCodeBinding binding = DialogTaskCodeBinding.inflate(LayoutInflater.from(context));
         binding.codeEdit.setText(code);
         binding.codeEdit.setSelection(0);
@@ -76,6 +119,7 @@ public class TaskCodeDialog {
         binding.chipVariable.setOnClickListener(v -> editVariables(context, binding));
         binding.chipSubtask.setOnClickListener(v -> editSubtasks(context, binding));
         binding.chipAction.setOnClickListener(v -> editActions(context, binding));
+        binding.chipLocate.setOnClickListener(v -> locateCard(context, binding));
 
         AlertDialog dialog = new MaterialAlertDialogBuilder(context)
                 .setTitle(titleRes)
@@ -107,6 +151,10 @@ public class TaskCodeDialog {
         });
 
         dialog.show();
+
+        if (focusActionId != null) {
+            binding.codeEdit.post(() -> jumpToActionId(context, binding, focusActionId));
+        }
     }
 
     // 标题、描述：普通文本输入
@@ -357,11 +405,15 @@ public class TaskCodeDialog {
         new MaterialAlertDialogBuilder(context)
                 .setTitle(actionLabel(actions.get(index)))
                 .setItems(new CharSequence[]{
+                        context.getString(R.string.task_code_locate_action),
                         context.getString(R.string.task_code_move_up),
                         context.getString(R.string.task_code_move_down),
                         context.getString(R.string.task_code_action_delete)}, (dialog, which) -> {
-                    if (which == 0) moveAction(context, binding, document, index, -1);
-                    else if (which == 1) moveAction(context, binding, document, index, 1);
+                    if (which == 0) {
+                        String actionId = getString(actions.get(index).getAsJsonObject(), "id");
+                        if (actionId != null) jumpToActionId(context, binding, actionId);
+                    } else if (which == 1) moveAction(context, binding, document, index, -1);
+                    else if (which == 2) moveAction(context, binding, document, index, 1);
                     else deleteAction(context, binding, document, index);
                 })
                 .setNegativeButton(R.string.cancel, null)
@@ -434,6 +486,111 @@ public class TaskCodeDialog {
             }
         }
         applyDocument(binding, document);
+    }
+
+    // 定位：先列出现有卡片，选中后滚到它的代码
+    private static void locateCard(Context context, DialogTaskCodeBinding binding) {
+        JsonObject document = readDocument(context, binding);
+        if (document == null) return;
+
+        JsonArray actions = getArray(document, "actions");
+        if (actions.isEmpty()) {
+            Toast.makeText(context, R.string.task_code_action_empty, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        List<Integer> order = sortedActionIndexes(actions);
+        List<CharSequence> items = new ArrayList<>();
+        for (int index : order) items.add(actionLabel(actions.get(index)));
+
+        new MaterialAlertDialogBuilder(context)
+                .setTitle(R.string.task_code_locate)
+                .setItems(items.toArray(new CharSequence[0]), (dialog, which) -> {
+                    if (which < 0 || which >= order.size()) return;
+                    JsonObject action = actions.get(order.get(which)).getAsJsonObject();
+                    String actionId = getString(action, "id");
+                    if (actionId != null) jumpToActionId(context, binding, actionId);
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
+    // 按动作 id 找到它在文本里的位置，选中并滚到整段代码的开头
+    private static void jumpToActionId(Context context, DialogTaskCodeBinding binding, String actionId) {
+        CharSequence textValue = binding.codeEdit.getText();
+        String text = textValue == null ? "" : textValue.toString();
+        int index = findIdFieldIndex(text, actionId);
+        if (index < 0) {
+            Toast.makeText(context, R.string.task_code_locate_missing, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        int[] span = findEnclosingObjectSpan(text, index);
+        int start = span == null ? index : span[0];
+
+        binding.codeEdit.requestFocus();
+        binding.codeEdit.setSelection(start);
+        binding.codeEdit.post(() -> {
+            Layout layout = binding.codeEdit.getLayout();
+            if (layout == null) {
+                binding.codeEdit.bringPointIntoView(start);
+                return;
+            }
+            int top = layout.getLineTop(layout.getLineForOffset(start));
+            int padding = binding.codeEdit.getPaddingTop() + binding.codeEdit.getPaddingBottom();
+            int height = Math.max(1, binding.codeEdit.getHeight() - padding);
+            binding.codeEdit.scrollTo(0, Math.max(0, top - height / 3));
+        });
+    }
+
+    // 找出形如 "id": "<actionId>" 的键位置（连线的值也含动作 id，不能直接 indexOf）
+    private static int findIdFieldIndex(String text, String actionId) {
+        int from = 0;
+        while (true) {
+            int key = text.indexOf("\"id\"", from);
+            if (key < 0) return -1;
+            int i = key + 4;
+            while (i < text.length() && Character.isWhitespace(text.charAt(i))) i++;
+            if (i < text.length() && text.charAt(i) == ':') {
+                i++;
+                while (i < text.length() && Character.isWhitespace(text.charAt(i))) i++;
+                if (i < text.length() && text.charAt(i) == '"') {
+                    int end = text.indexOf('"', i + 1);
+                    if (end > i && text.substring(i + 1, end).equals(actionId)) return key;
+                }
+            }
+            from = key + 4;
+        }
+    }
+
+    // 从位置往外找最小的完整 JSON 对象范围，用于选中整张卡片的代码
+    private static int[] findEnclosingObjectSpan(String text, int index) {
+        int bestStart = -1;
+        int bestEnd = -1;
+        List<Integer> stack = new ArrayList<>();
+        boolean inString = false;
+        boolean escaped = false;
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (inString) {
+                if (escaped) escaped = false;
+                else if (c == '\\') escaped = true;
+                else if (c == '"') inString = false;
+                continue;
+            }
+            if (c == '"') {
+                inString = true;
+            } else if (c == '{') {
+                stack.add(i);
+            } else if (c == '}' && !stack.isEmpty()) {
+                int start = stack.remove(stack.size() - 1);
+                if (start <= index && index <= i && start > bestStart) {
+                    bestStart = start;
+                    bestEnd = i + 1;
+                }
+            }
+        }
+        return bestStart < 0 ? null : new int[]{bestStart, bestEnd};
     }
 
     private static List<Integer> sortedActionIndexes(JsonArray actions) {

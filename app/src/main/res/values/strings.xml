@@ -140,6 +140,12 @@
     <string name="task_code_variable_element_type">元素类型</string>
     <string name="task_code_variable_type_reset">改类型会重置变量当前的值</string>
     <string name="task_code_variable_type_error">该类型的变量不支持切换到这个类型</string>
+    <string name="task_code_field_locate">定位</string>
+    <string name="task_code_locate">定位卡片代码</string>
+    <string name="task_code_locate_action">定位到代码</string>
+    <string name="task_code_locate_missing">文本里找不到这张卡片的代码</string>
+    <string name="task_code_card_code">卡片代码</string>
+    <string name="task_code_card_pick">选择卡片</string>
 
     <string name="select_action_group_global">全局</string>
     <string name="select_action_group_private">自有</string>

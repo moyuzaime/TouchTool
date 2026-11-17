@@ -597,3 +597,12 @@ feat(node): 获取控件信息默认收起扩展属性
 - 动作标题不可改：基类 `Action.getTitle()` 直接返回 `ActionInfo` 的标题，只有「执行任务 / 获取变量 / 设置变量 / 获取或设置变量」四类会读自定义 title，所以管理面板只提供移动与删除。
 - 子任务：子任务列表新增「编辑子任务代码」，把该子树当临时任务单独打开同一个代码编辑器；保存时 `TaskCode.validateDocument()` 用临时 `Task` 跑一遍 `apply` 校验并 `dumpTask` 规范化后回传，合并回上层文本；上层保存时再整体校验一次。
 - 真机验证：临时任务上把变量 v1 改成列表（元素文本）；新建子任务 sub1 后用局部编辑改成 sub2；插入两个「延时」后在管理动作里上移一个、删除一个；保存后画布只剩一张延时卡，重开文本看到变量 LIST、子任务 sub2、动作 1 个；测试任务已删除。
+
+## 55. 卡片代码快捷跳转
+
+- 位置：`ui/blueprint/code/TaskCodeDialog.java`、`res/layout/dialog_task_code.xml`、`res/layout/popup_blueprint_menu.xml`、`ui/blueprint/BlueprintView.java`、`res/values/strings.xml`
+- 任务菜单新增「卡片代码」：先按坐标顺序列出当前任务的卡片，选一张后打开任务代码并直接滚到该卡片的代码段（`TaskCodeDialog.show(...focusActionId...)`）。
+- 编辑框工具条新增「定位」Chip：列出文本里的卡片，选中后滚到对应代码并选中整段 JSON。
+- 「管理动作」的单项菜单新增「定位到代码」，与上面走同一个 `jumpToActionId`。
+- 定位算法：不能直接 `indexOf(动作id)`，因为连线的值里也有动作 id；先找形如 `"id": "<id>"` 的键，再从该位置扫描花括号（跳过字符串）取包含它的最小对象范围，选中范围起点并滚动到可视区上方约 1/3。
+- 真机验证：在 12 张卡的任务上，从任务菜单「卡片代码」选「并行执行」打开即停在该卡片的代码段；编辑器里「定位」选最后一个「延时」，滚动到 `VALUE_AREA 300/300` 与 `pos 29,143` 所在的延时卡片；只选中/滚动，不改文本，取消后任务不变。
