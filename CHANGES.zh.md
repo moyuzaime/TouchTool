@@ -729,6 +729,16 @@ feat(node): 获取控件信息默认收起扩展属性
 - 这些动作独立于容器基类，不参与 `typeRef` 声明，可先于 Step 5 其余部分单独使用。
 - 至此 5.3 完成。剩余 5.4：编辑器与槽位改读 `typeRef`（`[n*]` / `[n?]`）、ANY 容器逐行不同类型 + 类型徽标、`ANY → 具体` 被拒时的提示文案。
 
+## 67. Step 5.4：编辑器与摘要读类型声明
+
+- 位置：`ui/blueprint/pin/PinView.java`、`ui/blueprint/selecter/pin_container/PinContainerValueDialog.java`、`ui/blueprint/pin_widget/PinWidgetListValue.java`、`PinWidgetMapValue.java`、`bean/action/Action.java`、`res/values/strings.xml`
+- **摘要按声明区分**：容器针脚标题后的计数标记改为「具体类型 `[n]`/`{n}`、任意类型 `[n*]`/`{n*}`、未定型 `[n?]`/`{n?}`」，条数仍是运行值条数，后缀来自 `Pin.typeRef`。
+- **编辑器读声明**：`PinContainerValueDialog` 现在接收针脚本身，元素 / 键 / 值类型按「`CONCRETE` 用模板、`ANY` / `UNKNOWN` 回退运行值类型」解析；任意类型容器的提示文案换成「任意类型：每行可以填不同类型」，具体类型容器的约束沿用模板。
+- **`ANY → 具体` 的提示**：`Action.check()` 发现「任一侧是任意类型且连不上」时改用专门文案「任意类型不能直接连具体类型，请先加『转文本』『转数字』或类型判断动作」，与普通「针脚类型不匹配」区分。
+- 编辑器仍只对「输入、未连接」针脚显示（既有行为，方案 13.6.2）。
+- **Step 5 收尾**。仍未做（方案里明确列为后续 / 待决）：ANY 容器每行的**类型徽标与控件级类型选择**（当前每行按文本填写，类型由输入内容推断）、嵌套容器的声明传播（13.11 待决 1、2）、`PinTypeRef` 用于变量等其它跨动作传递场景（13.11 待决 5）。
+
+
 
 
 

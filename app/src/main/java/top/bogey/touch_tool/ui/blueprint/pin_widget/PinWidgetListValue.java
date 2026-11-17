@@ -49,7 +49,7 @@ public class PinWidgetListValue extends PinWidget<PinList> {
     }
 
     private void showEditor() {
-        PinContainerValueDialog dialog = new PinContainerValueDialog(getContext(), pinBase);
+        PinContainerValueDialog dialog = new PinContainerValueDialog(getContext(), pinBase, pinView.getPin());
         new MaterialAlertDialogBuilder(getContext())
                 .setTitle(R.string.pin_container_edit_list)
                 .setView(dialog)

@@ -23,6 +23,7 @@ import top.bogey.touch_tool.bean.action.Action;
 import top.bogey.touch_tool.bean.pin.Pin;
 import top.bogey.touch_tool.bean.pin.PinInfo;
 import top.bogey.touch_tool.bean.pin.PinListener;
+import top.bogey.touch_tool.bean.pin.PinTypeRef;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinBase;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinMap;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinObject;
@@ -207,12 +208,21 @@ public abstract class PinView extends FrameLayout implements PinListener {
         }
     }
 
-    // 列表显示 [n]、字典显示 {n}，空容器不显示
+    // 列表显示 [n]、字典显示 {n}；声明为任意类型用 *、未定型用 ?，空容器不显示
     private String getContainerCount() {
         PinBase value = pin.getValue();
-        if (value instanceof PinList list) return list.isEmpty() ? "" : "[" + list.size() + "]";
-        if (value instanceof PinMap map) return map.isEmpty() ? "" : "{" + map.size() + "}";
-        return "";
+        boolean list = value instanceof PinList;
+        if (!list && !(value instanceof PinMap)) return "";
+        int size = list ? ((PinList) value).size() : ((PinMap) value).size();
+        if (size == 0) return "";
+
+        String mark = "";
+        PinTypeRef typeRef = pin.getTypeRef();
+        if (typeRef != null) {
+            if (typeRef.isAny()) mark = "*";
+            else if (typeRef.isUnknown()) mark = "?";
+        }
+        return list ? "[" + size + mark + "]" : "{" + size + mark + "}";
     }
 
     public void refreshCopyButton() {        MaterialButton button = (MaterialButton) getCopyAndPasteButton();

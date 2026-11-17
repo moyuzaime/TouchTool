@@ -18,7 +18,9 @@ import java.util.Map;
 import java.util.Set;
 
 import top.bogey.touch_tool.R;
+import top.bogey.touch_tool.bean.pin.Pin;
 import top.bogey.touch_tool.bean.pin.PinInfo;
+import top.bogey.touch_tool.bean.pin.PinTypeRef;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinMap;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinObject;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinValueUtil;
@@ -37,27 +39,34 @@ public class PinContainerValueDialog extends FrameLayout {
     private final List<Row> rows = new ArrayList<>();
 
     private final boolean mapMode;
+    // 容器声明是显式任意类型：每行可以不同类型，提示文案也不同
+    private final boolean anyType;
     private final PinObject keyType;
     private final PinObject valueType;
 
-    public PinContainerValueDialog(@NonNull Context context, PinList pinList) {
+    public PinContainerValueDialog(@NonNull Context context, PinList pinList, Pin pin) {
         super(context);
         binding = DialogPinContainerValueBinding.inflate(LayoutInflater.from(context), this, true);
         mapMode = false;
         keyType = null;
-        valueType = pinList.getValueType();
+        anyType = pin != null && pin.isTypeAny();
+        PinTypeRef ref = pin == null ? null : pin.getTypeRef();
+        valueType = resolveType(ref, pinList.getValueType());
         for (PinObject value : pinList) {
             rows.add(new Row(null, (PinObject) value.copy()));
         }
         init();
     }
 
-    public PinContainerValueDialog(@NonNull Context context, PinMap pinMap) {
+    public PinContainerValueDialog(@NonNull Context context, PinMap pinMap, Pin pin) {
         super(context);
         binding = DialogPinContainerValueBinding.inflate(LayoutInflater.from(context), this, true);
         mapMode = true;
-        keyType = pinMap.getKeyType();
-        valueType = pinMap.getValueType();
+        anyType = pin != null && pin.isTypeAny();
+        PinObject keyTemplate = pin == null ? null : pin.getTypeKeyTemplate();
+        keyType = resolveType(keyTemplate, pinMap.getKeyType());
+        PinObject valueTemplate = pin == null ? null : pin.getTypeValueTemplate();
+        valueType = resolveType(valueTemplate, pinMap.getValueType());
         for (Map.Entry<PinObject, PinObject> entry : pinMap.entrySet()) {
             rows.add(new Row((PinObject) entry.getKey().copy(), (PinObject) entry.getValue().copy()));
         }
@@ -65,7 +74,7 @@ public class PinContainerValueDialog extends FrameLayout {
     }
 
     private void init() {
-        binding.hint.setText(R.string.pin_container_hint);
+        binding.hint.setText(anyType ? R.string.pin_container_any_hint : R.string.pin_container_hint);
         binding.addButton.setOnClickListener(v -> {
             rows.add(new Row(mapMode ? newRowValue(keyType) : null, newRowValue(valueType)));
             buildRows();
@@ -76,6 +85,17 @@ public class PinContainerValueDialog extends FrameLayout {
             buildRows();
         });
         buildRows();
+    }
+
+    // 声明优先：具体类型用模板，任意 / 未定型回退到运行值的类型
+    private PinObject resolveType(PinTypeRef typeRef, PinObject fallback) {
+        if (typeRef != null && typeRef.isConcrete() && typeRef.getTemplate() != null) return typeRef.getTemplate();
+        return fallback;
+    }
+
+    // 字典声明里的键 / 值模板不是 PinTypeRef，单独重载
+    private PinObject resolveType(PinObject template, PinObject fallback) {
+        return template == null ? fallback : template;
     }
 
     private void buildRows() {
