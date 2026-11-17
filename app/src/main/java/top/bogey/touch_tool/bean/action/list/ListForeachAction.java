@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 import com.google.gson.JsonObject;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -45,11 +46,13 @@ public class ListForeachAction extends ListExecuteAction {
             isBreak = false;
             Action startAction = runnable.getAction();
             PinList list = getPinValue(runnable, listPin);
-            for (int i = 0; i < list.size(); i++) {
+            // 按进入循环时的快照遍历，循环体内增删列表不会跳过或错位
+            List<PinObject> snapshot = new ArrayList<>(list);
+            for (int i = 0; i < snapshot.size(); i++) {
                 if (runnable.isCurrentInterrupt()) return;
                 if (!startAction.equals(runnable.getAction())) return;
                 if (isBreak) break;
-                elementPin.setValue(returnValue(list.get(i)));
+                elementPin.setValue(returnValue(snapshot.get(i)));
                 indexPin.getValue(PinInteger.class).setValue(i + 1);
                 executeNext(runnable, outPin);
             }

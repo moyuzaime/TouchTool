@@ -458,6 +458,13 @@
         <item>不等于</item>
     </string-array>
 
+    <string-array name="list_sort_mode">
+        <item>升序</item>
+        <item>降序</item>
+        <item>按字典键</item>
+        <item>自定义比较</item>
+    </string-array>
+
     <string-array name="file_write_mode">
         <item>覆盖整个文件</item>
         <item>追加一行</item>

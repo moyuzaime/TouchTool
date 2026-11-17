@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -47,7 +48,9 @@ public class MapForeachAction extends MapExecuteAction {
             isBreak = false;
             Action startAction = runnable.getAction();
             PinMap map = getPinValue(runnable, mapPin);
-            for (Map.Entry<PinObject, PinObject> entry : map.entrySet()) {
+            // 按进入循环时的快照遍历，循环体内增删字典不会中断遍历
+            Map<PinObject, PinObject> snapshot = new LinkedHashMap<>(map);
+            for (Map.Entry<PinObject, PinObject> entry : snapshot.entrySet()) {
                 if (runnable.isCurrentInterrupt()) return;
                 if (!startAction.equals(runnable.getAction())) return;
                 if (isBreak) break;

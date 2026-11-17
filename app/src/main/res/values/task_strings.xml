@@ -776,6 +776,11 @@
     <string name="list_sort_action_desc">对列表中的元素进行排序</string>
     <string name="list_sort_action_compare">比较</string>
     <string name="list_sort_action_result">比较结果</string>
+    <string name="list_sort_action_mode">排序方式</string>
+    <string name="list_sort_action_key">比较键</string>
+    <string name="list_sort_action_failed">排序已中止，保留原顺序</string>
+    <string name="list_sort_action_key_empty">按字典键排序前需要在「比较键」里填写键名</string>
+    <string name="list_sort_action_too_many">比较次数超过上限，排序已中止</string>
 
     <string name="list_reverse_action">列表翻转</string>
     <string name="list_reverse_action_desc">对列表中的元素进行翻转</string>
