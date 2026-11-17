@@ -92,6 +92,14 @@ public class MapActionLinkEventHandler {
         for (Pin pin : pins) {
             PinBase value = pin.getValue();
             boolean isDynamic = value.isDynamic();
+            // 首连定型的结果写进针脚声明（Step 5.2），字典容器同时带键值两个模板
+            if (keyFlag && valueFlag && value instanceof PinMap) {
+                pin.markTypeConcrete(new PinMap((PinObject) keyTemplate.copy(), (PinObject) valueTemplate.copy()));
+            } else if (keyFlag) {
+                pin.markTypeConcrete((PinObject) keyTemplate.copy());
+            } else if (valueFlag) {
+                pin.markTypeConcrete((PinObject) valueTemplate.copy());
+            }
 
             if (value instanceof PinAdd pinAdd) {
                 if (keyFlag) pinAdd.getPin(0).setValue(keyTemplate.copy());
@@ -152,6 +160,8 @@ public class MapActionLinkEventHandler {
         if (!keyFlag && !valueFlag) return;
 
         for (Pin pin : pins) {
+            // 全部断开后声明回到未定型
+            pin.markTypeUnknown();
             PinBase value = pin.getValue();
             if (value instanceof PinAdd pinAdd) {
                 if (keyFlag) pinAdd.getPin(0).setValue(new PinObject(PinSubType.DYNAMIC));

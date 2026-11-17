@@ -53,6 +53,8 @@ public class ListActionLinkEventHandler {
         for (Pin pin : valuePins) {
             PinBase value = pin.getValue();
 
+            // 首连定型的结果写进针脚声明（Step 5.2）
+            pin.markTypeConcrete((PinObject) template.copy());
             if (value instanceof PinAdd pinAdd) {
                 Pin addPin = pinAdd.getPin();
                 PinBase addValue = addPin.getValue();
@@ -99,6 +101,8 @@ public class ListActionLinkEventHandler {
             return;
         }
         for (Pin pin : valuePins) {
+            // 全部断开后声明回到未定型
+            pin.markTypeUnknown();
             PinBase value = pin.getValue();
             if (value instanceof PinAdd pinAdd) {
                 Pin addPin = pinAdd.getPin();

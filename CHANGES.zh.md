@@ -701,6 +701,16 @@ feat(node): 获取控件信息默认收起扩展属性
 - 声明写入：选定具体类型时 `resultPin.markTypeConcrete(模板)`，任意对象时 `markTypeAny()`；选回自动不改声明。`onValueUpdated` 里跟随选择变化重写。
 - 待续（5.2 其余）：`MapGet` 的同款输出类型、`ListForeach`/`MapForeach` 元素针脚声明传播、`ListSubList`/`ListAppend`/`MapAppend`/`MapGetKeys`/`MapGetValues` 的「任一 ANY → ANY，全具体一致 → 该类型，否则 UNKNOWN」，以及自动模式首连定型把结果写回 `CONCRETE`。
 
+## 64. Step 5.2（二）：首连定型写回针脚声明
+
+- 位置：`bean/action/list/ListActionLinkEventHandler.java`、`bean/action/map/MapActionLinkEventHandler.java`
+- `onLinkedTo`：算出定型模板后，除了原有的「改运行值类型」，同时把模板写进针脚声明（列表：容器与元素针脚都是该元素类型；字典：键针脚写键模板、值针脚写值模板，字典容器写「键-值」`PinMap` 模板）。
+- `onUnLinkedFrom`：全部断开、值恢复动态后，声明同步回到 `UNKNOWN`，避免残留旧类型让之后连不上别的类型。
+- 显式任意类型依旧整段跳过定型（5.1 加的守卫），所以声明不会被自动改回具体类型。
+- 老任务：`typeRef` 为 null 时这些写入会在首次连线事件后开始生效——即老任务一旦重新连线，就按新规则拿到声明；不连线则保持 null 兼容回退。
+- 待续：`MapGet` 输出类型、`ListForeach`/`MapForeach` 元素声明传播、派生动作（`ListSubList`/`ListAppend`/`MapAppend`/`MapGetKeys`/`MapGetValues`）的输出声明。
+
+
 
 
 
