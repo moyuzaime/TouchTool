@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import top.bogey.touch_tool.R;
 import top.bogey.touch_tool.bean.action.ActionType;
@@ -23,6 +24,7 @@ import top.bogey.touch_tool.service.TaskRunnable;
  */
 public class MapKeysValuesAction extends MapCalculateAction {
     private static final int MODE_KEY = 0;
+    private static final int MODE_PAIR = 2;
 
     private final transient Pin mapPin = new Pin(new PinMap());
     private final transient Pin modePin = new NotLinkAblePin(new PinSingleSelect(R.array.map_keys_values_mode), R.string.map_keys_values_action_mode);
@@ -43,6 +45,17 @@ public class MapKeysValuesAction extends MapCalculateAction {
     @Override
     public void calculate(TaskRunnable runnable, Pin pin) {
         PinMap map = getPinValue(runnable, mapPin);
+        if (isPairs()) {
+            // 键值对列表：每个元素是一个只含一对键值的字典
+            PinList pairs = new PinList(new PinMap((PinObject) map.getKeyType().copy(), (PinObject) map.getValueType().copy()));
+            for (Map.Entry<PinObject, PinObject> entry : map.entrySet()) {
+                PinMap pair = new PinMap((PinObject) map.getKeyType().copy(), (PinObject) map.getValueType().copy());
+                pair.put(entry.getKey(), entry.getValue());
+                pairs.add(pair);
+            }
+            resultPin.setValue(pairs);
+            return;
+        }
         boolean keys = isKeys();
         // 结果列表继承字典的键类型或值类型
         PinList list = new PinList((PinObject) (keys ? map.getKeyType() : map.getValueType()).copy());
@@ -70,10 +83,14 @@ public class MapKeysValuesAction extends MapCalculateAction {
     @NonNull
     @Override
     public List<Pin> getDynamicValueTypePins() {
-        return isKeys() ? Collections.emptyList() : Collections.singletonList(resultPin);
+        return isKeys() || isPairs() ? Collections.emptyList() : Collections.singletonList(resultPin);
     }
 
     private boolean isKeys() {
         return modePin.getValue(PinSingleSelect.class).getIndex() == MODE_KEY;
+    }
+
+    private boolean isPairs() {
+        return modePin.getValue(PinSingleSelect.class).getIndex() == MODE_PAIR;
     }
 }

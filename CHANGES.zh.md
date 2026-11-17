@@ -629,6 +629,16 @@ feat(node): 获取控件信息默认收起扩展属性
 - 未做：列表 / 字典转 JSON、JSON 转列表 / 字典、字典转列表（键值对列表）。
 - 待真机验证：空列表 / 单元素 / 全不满足条件；条件流程里改列表；映射容器元素（列表里放列表）；查找首个的命中与未命中；子流程里停止任务、跳出、抛异常时的表现。
 
+## 57. 列表字典转 JSON、JSON 解析支持数组、键值对列表（方案 Step 4 后半之三）
+
+- 位置：新增 `bean/action/string/ToJsonAction.java`；改动 `bean/action/ActionInfo.java`、`ActionMap.java`、`bean/action/map/MapKeysValuesAction.java`、`bean/action/string/ParseJsonAction.java`、`res/values/string_array.xml`、`res/values/task_strings.xml`
+- 列表字典转 JSON（`TO_JSON`，枚举本来就有但一直没注册）：输入任意对象，列表转数组、字典转对象、数字与布尔按 JSON 基本类型、其它类型按文本；输出文本可被「JSON解析」还原，两者配对。
+- JSON 解析补数组：原来 `calculate()` 在结果针脚是动态类型时只处理 `{...}`，`[...]` 解析不出任何东西（`sync()` 却两种都处理）；改为按开头字符决定数组还是对象。
+- 字典转列表：并入「获取所有键或值」的第三种方式「键值对」，每个元素是一个只含一对键值的字典，结果列表的元素类型是「键-值」字典；不新增独立动作，避免和键 / 值列表重复。
+- 版本兼容：`TO_JSON` 是本次新注册的动作类型，旧版本 App 打不开含该卡的任务；`PARSE_JSON` / `MAP_KEYS_VALUES` 的针脚与类型没变，旧任务照常加载。
+- 待真机验证：容器 → JSON → 解析 JSON 的往返（含嵌套列表 / 字典、数字、布尔、空容器）；旧任务里「JSON解析」卡原来对 `[...]` 解析为空，现在会得到列表；键值对列表的遍历与 `MapGet` 取值。
+
+
 
 
 

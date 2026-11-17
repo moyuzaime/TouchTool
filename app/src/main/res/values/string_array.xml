@@ -479,6 +479,7 @@
     <string-array name="map_keys_values_mode">
         <item>键</item>
         <item>值</item>
+        <item>键值对</item>
     </string-array>
 
     <string-array name="list_statistic_mode">
