@@ -726,7 +726,7 @@
     <string name="touch_color_action_touch_interval">点击间隔(ms)</string>
 
     <!-- 动作-List -->
-    <string name="list_action_index">索引(1起，负数倒数)</string>
+    <string name="list_action_index">索引</string>
 
     <string name="list_make_action">新建列表</string>
     <string name="list_make_action_desc">新建一个列表</string>
@@ -742,7 +742,7 @@
 
     <string name="list_add_action">添加元素</string>
     <string name="list_add_action_desc">向列表中添加元素</string>
-    <string name="list_add_action_index">位置(1起，负数倒数)</string>
+    <string name="list_add_action_index">位置</string>
 
     <string name="list_remove_action">移除索引元素</string>
     <string name="list_remove_action_desc">按索引从列表中移除元素</string>
@@ -778,8 +778,8 @@
 
     <string name="list_sublist_action">获取子列表</string>
     <string name="list_sublist_action_desc">获取列表中指定范围的子列表</string>
-    <string name="list_sublist_action_start">起始索引(1起，负数倒数)</string>
-    <string name="list_sublist_action_end">结束索引(1起，负数倒数)</string>
+    <string name="list_sublist_action_start">起始索引</string>
+    <string name="list_sublist_action_end">结束索引</string>
 
     <string name="list_foreach_action">遍历列表</string>
     <string name="list_foreach_action_desc">遍历列表中的每个元素</string>

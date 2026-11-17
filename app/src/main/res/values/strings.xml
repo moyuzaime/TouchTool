@@ -163,6 +163,8 @@
     <string name="pin_container_add">添加</string>
     <string name="pin_container_key">键</string>
     <string name="pin_container_value">值</string>
+    <string name="pin_container_clear">清空</string>
+    <string name="pin_index_tip">从 1 开始，负数表示从末尾数，0 等同 1</string>
     <string name="pin_container_empty">还没有内容</string>
     <string name="pin_container_read_only">%1$s（只读）</string>
     <string name="pin_container_hint">文本、数字、布尔可以直接改；其它类型只能用动作生成，这里只读</string>

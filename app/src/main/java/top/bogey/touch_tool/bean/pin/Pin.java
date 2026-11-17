@@ -337,6 +337,12 @@ public class Pin extends Identity {
         return MainApplication.getInstance().getString(titleId);
     }
 
+    // 索引类针脚统一说明取值规则：从 1 开始，负数从末尾数，0 等同 1
+    public static <T extends Pin> T withIndexTip(T pin) {
+        pin.setDescription(MainApplication.getInstance().getString(R.string.pin_index_tip));
+        return pin;
+    }
+
     @Override
     public void setTitle(String title) {
         super.setTitle(title);

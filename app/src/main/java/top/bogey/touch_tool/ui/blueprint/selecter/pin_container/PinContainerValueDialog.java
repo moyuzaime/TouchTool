@@ -70,6 +70,11 @@ public class PinContainerValueDialog extends FrameLayout {
             rows.add(new Row(mapMode ? newRowValue(keyType) : null, newRowValue(valueType)));
             buildRows();
         });
+        // 清空只清副本，取消仍然不改原值
+        binding.clearButton.setOnClickListener(v -> {
+            rows.clear();
+            buildRows();
+        });
         buildRows();
     }
 

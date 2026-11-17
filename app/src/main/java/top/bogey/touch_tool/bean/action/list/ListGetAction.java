@@ -20,7 +20,7 @@ import top.bogey.touch_tool.service.TaskRunnable;
 
 public class ListGetAction extends ListCalculateAction {
     private final transient Pin listPin = new Pin(new PinList());
-    private final transient Pin indexPin = new Pin(new PinInteger(-1), R.string.list_action_index);
+    private final transient Pin indexPin = Pin.withIndexTip(new Pin(new PinInteger(-1), R.string.list_action_index));
     private final transient Pin resultPin = new Pin(new PinObject(PinSubType.DYNAMIC), R.string.pin_object, true);
     private final transient Pin existPin = new Pin(new PinBoolean(), R.string.pin_boolean_result, true);
 

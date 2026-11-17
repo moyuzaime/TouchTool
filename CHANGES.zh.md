@@ -662,6 +662,15 @@ feat(node): 获取控件信息默认收起扩展属性
   - 方案 Step 3 可选项「针脚长按菜单增加清空 / 复制为常量」未做。
   - 排序「按字典键」只有升序一种方向（方案里该方式本身没区分升降序）。
 
+## 60. 收尾：索引提示走针脚说明、编辑器清空、按键降序
+
+- 位置：`bean/pin/Pin.java`（新增 `withIndexTip`）、`ui/blueprint/pin/PinView.java`、`res/values/strings.xml`、`res/values/task_strings.xml`、`res/layout/dialog_pin_container_value.xml`、`ui/blueprint/selecter/pin_container/PinContainerValueDialog.java`、`res/values/string_array.xml`、`bean/action/list/ListSortAction.java`，以及 `ListGetAction` / `ListSetAction` / `ListAddAction` / `ListRemoveByAction` / `ListSubListAction` / `ListForeachAction` 的索引针脚
+- **索引规则改走 `Pin.description`**：`PinView.refreshPin` 把针脚说明挂到标题的长按提示（`setTooltipText`），索引针脚标题还原成「索引 / 位置 / 起始索引 / 结束索引」，规则文字「从 1 开始，负数表示从末尾数，0 等同 1」由 `Pin.withIndexTip` 统一写进说明。卡片不再被长标题撑宽，说明也有了显示入口。
+- **编辑器加「清空」**：与「添加」并排，只清编辑副本，点「取消」仍然不改原值。方案里的「复制为常量」由针脚自带的复制 / 粘贴按钮承担，没有另外做长按菜单。
+- **排序方式追加「按键降序」**：数组末尾新增（前 5 个下标不变，老任务不受影响），`sortByKey` 增加方向参数，「按字典键」走升序、「按键降序」走降序。
+- 仍未收的：编辑器值输入仍是文本行 + `cast()`，单选项元素只读；容器长度 `[n]`/`{n}` 在针脚标题上而不是 18dp 槽位内；真机运行结果（连接文本 / 去重 / 统计 / 转JSON / 筛选等）尚未实际验证。
+
+
 
 
 

@@ -169,6 +169,9 @@ public abstract class PinView extends FrameLayout implements PinListener {
             title = title + getContainerCount();
             textView.setVisibility(VISIBLE);
             textView.setText(title);
+            // 针脚说明以长按提示显示
+            String description = pin.getDescription();
+            textView.setTooltipText(description == null || description.isEmpty() ? null : description);
             if (title.isEmpty()) {
                 if (pin.isVertical()) {
                     textView.setText(R.string.pin_execute);

@@ -464,6 +464,7 @@
         <item>按字典键</item>
         <item>自定义比较</item>
         <item>反转</item>
+        <item>按键降序</item>
     </string-array>
 
     <string-array name="list_remove_mode">

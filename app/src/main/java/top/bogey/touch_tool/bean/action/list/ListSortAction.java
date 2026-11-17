@@ -33,6 +33,7 @@ public class ListSortAction extends ListExecuteAction {
     public static final int MODE_KEY = 2;
     public static final int MODE_CUSTOM = 3;
     public static final int MODE_REVERSE = 4;
+    public static final int MODE_KEY_DESC = 5;
     // 自定义比较的次数上限，超出后中止排序，避免逐对跑子流程把任务拖死
     private static final int MAX_COMPARE_COUNT = 20000;
 
@@ -70,7 +71,8 @@ public class ListSortAction extends ListExecuteAction {
         switch (mode) {
             case MODE_ASC -> sortBySelf(runnable, list, 1);
             case MODE_DESC -> sortBySelf(runnable, list, -1);
-            case MODE_KEY -> sortByKey(runnable, list);
+            case MODE_KEY -> sortByKey(runnable, list, 1);
+            case MODE_KEY_DESC -> sortByKey(runnable, list, -1);
             case MODE_REVERSE -> Collections.reverse(list);
             default -> sortByCompare(runnable, list);
         }
@@ -90,14 +92,17 @@ public class ListSortAction extends ListExecuteAction {
         if (!sorted) runnable.addLog(getString(R.string.list_sort_action_failed));
     }
 
-    // 按指定键比较字典列表里的值
-    private void sortByKey(TaskRunnable runnable, PinList list) {
+    // 按指定键比较字典列表里的值，direction 为 1 升序、-1 降序
+    private void sortByKey(TaskRunnable runnable, PinList list, int direction) {
         String key = keyPin.getValue(PinString.class).getValue();
         if (key == null || key.isEmpty()) {
             runnable.addLog(getString(R.string.list_sort_action_key_empty));
             return;
         }
-        boolean sorted = trySort(list, (first, second) -> compareValue(getMapValue(first, key), getMapValue(second, key)));
+        boolean sorted = trySort(list, (first, second) -> {
+            int result = compareValue(getMapValue(first, key), getMapValue(second, key));
+            return direction > 0 ? result : -result;
+        });
         if (!sorted) runnable.addLog(getString(R.string.list_sort_action_failed));
     }
 

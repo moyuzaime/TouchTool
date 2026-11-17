@@ -18,8 +18,8 @@ import top.bogey.touch_tool.service.TaskRunnable;
 
 public class ListSubListAction extends ListCalculateAction {
     private final transient Pin listPin = new Pin(new PinList());
-    private final transient Pin startIndexPin = new Pin(new PinInteger(1), R.string.list_sublist_action_start);
-    private final transient Pin endIndexPin = new Pin(new PinInteger(1), R.string.list_sublist_action_end);
+    private final transient Pin startIndexPin = Pin.withIndexTip(new Pin(new PinInteger(1), R.string.list_sublist_action_start));
+    private final transient Pin endIndexPin = Pin.withIndexTip(new Pin(new PinInteger(1), R.string.list_sublist_action_end));
     private final transient Pin resultPin = new Pin(new PinList(), R.string.pin_object, true);
 
     public ListSubListAction() {

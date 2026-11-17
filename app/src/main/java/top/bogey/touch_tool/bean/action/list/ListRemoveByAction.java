@@ -29,7 +29,7 @@ public class ListRemoveByAction extends ListExecuteAction {
 
     private final transient Pin listPin = new Pin(new PinList());
     private final transient Pin modePin = new NotLinkAblePin(new PinSingleSelect(R.array.list_remove_mode), R.string.list_remove_by_action_mode);
-    private final transient Pin indexPin = new Pin(new PinInteger(-1), R.string.list_action_index);
+    private final transient Pin indexPin = Pin.withIndexTip(new Pin(new PinInteger(-1), R.string.list_action_index));
     private final transient Pin objectPin = new Pin(new PinObject(PinSubType.DYNAMIC), R.string.pin_object);
     private final transient Pin removedPin = new Pin(new PinObject(PinSubType.DYNAMIC), R.string.list_remove_by_action_object, true);
     private final transient Pin resultPin = new Pin(new PinBoolean(), R.string.pin_boolean_result, true);

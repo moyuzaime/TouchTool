@@ -22,7 +22,7 @@ import top.bogey.touch_tool.service.TaskRunnable;
 
 public class ListSetAction extends ListExecuteAction {
     private final transient Pin listPin = new Pin(new PinList());
-    private final transient Pin indexPin = new Pin(new PinInteger(-1), R.string.list_action_index);
+    private final transient Pin indexPin = Pin.withIndexTip(new Pin(new PinInteger(-1), R.string.list_action_index));
     private final transient Pin elementPin = new Pin(new PinObject(PinSubType.DYNAMIC), R.string.pin_object);
     private final transient Pin resultPin = new Pin(new PinObject(), R.string.list_set_action_value, true);
 

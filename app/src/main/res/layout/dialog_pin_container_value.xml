@@ -29,13 +29,31 @@
 
     </ScrollView>
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/addButton"
-        style="?attr/iconButtonOutlined"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="?attr/defaultPadding"
-        android:text="@string/pin_container_add"
-        app:icon="@drawable/icon_add" />
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/addButton"
+            style="?attr/iconButtonOutlined"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/pin_container_add"
+            app:icon="@drawable/icon_add" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/clearButton"
+            style="?attr/iconButtonOutlined"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="?attr/defaultOffset"
+            android:layout_weight="1"
+            android:text="@string/pin_container_clear"
+            app:icon="@drawable/icon_delete" />
+
+    </LinearLayout>
 
 </LinearLayout>
