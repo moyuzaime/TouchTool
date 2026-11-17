@@ -42,6 +42,8 @@ public class MapGetValuesAction extends MapCalculateAction {
         PinList list = new PinList((PinObject) map.getValueType().copy());
         list.addAll(map.values());
         values.setValue(list);
+        // 派生针脚的声明跟随字典
+        values.inheritType(Collections.singletonList(mapPin));
     }
 
     @NonNull

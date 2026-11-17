@@ -18,6 +18,7 @@ import top.bogey.touch_tool.bean.pin.pin_objects.PinMap;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinObject;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinSubType;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinExecute;
+import top.bogey.touch_tool.bean.task.Task;
 import top.bogey.touch_tool.service.TaskRunnable;
 
 public class MapForeachAction extends MapExecuteAction {
@@ -76,6 +77,16 @@ public class MapForeachAction extends MapExecuteAction {
     public void resetReturnValue(TaskRunnable runnable, Pin pin) {
         if (pin == inPin) {
             super.resetReturnValue(runnable, pin);
+        }
+    }
+
+    @Override
+    protected void handleLinkTo(Task task, Pin origin, Pin to) {
+        super.handleLinkTo(task, origin, to);
+        // 来源是显式任意类型时，键值针脚跟着任意
+        if (origin == mapPin && to != null && to.isTypeAny()) {
+            keyPin.markTypeAny();
+            valuePin.markTypeAny();
         }
     }
 

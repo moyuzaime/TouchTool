@@ -52,6 +52,8 @@ public class MapAppendAction extends MapExecuteAction implements DynamicPinsActi
                 result.putAll(map);
             }
         }
+        // 结果声明由各输入字典传播
+        resultPin.inheritType(getDynamicPins());
         executeNext(runnable, outPin);
     }
 

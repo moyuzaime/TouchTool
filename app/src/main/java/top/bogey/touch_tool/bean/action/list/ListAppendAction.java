@@ -51,6 +51,8 @@ public class ListAppendAction extends ListExecuteAction implements DynamicPinsAc
                 result.addAll(list);
             }
         }
+        // 结果声明由各输入列表传播
+        resultPin.inheritType(getDynamicPins());
         executeNext(runnable, outPin);
     }
 

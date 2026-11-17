@@ -37,6 +37,8 @@ public class MapGetKeysAction extends MapCalculateAction {
         PinList list = new PinList((PinObject) map.getKeyType().copy());
         list.addAll(map.keySet());
         keysPin.setValue(list);
+        // 派生针脚的声明跟随字典
+        keysPin.inheritType(Collections.singletonList(mapPin));
     }
 
     @Override

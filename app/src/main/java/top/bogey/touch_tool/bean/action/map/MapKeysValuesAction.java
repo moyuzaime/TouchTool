@@ -45,6 +45,8 @@ public class MapKeysValuesAction extends MapCalculateAction {
     @Override
     public void calculate(TaskRunnable runnable, Pin pin) {
         PinMap map = getPinValue(runnable, mapPin);
+        // 派生针脚的声明跟随字典
+        resultPin.inheritType(Collections.singletonList(mapPin));
         if (isPairs()) {
             // 键值对列表：每个元素是一个只含一对键值的字典
             PinList pairs = new PinList(new PinMap((PinObject) map.getKeyType().copy(), (PinObject) map.getValueType().copy()));

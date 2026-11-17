@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import com.google.gson.JsonObject;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import top.bogey.touch_tool.R;
@@ -63,6 +64,8 @@ public class ListSubListAction extends ListCalculateAction {
             result.add((PinObject) obj.copy());
         }
         resultPin.setValue(returnValue(result));
+        // 派生针脚的声明跟随源列表
+        resultPin.inheritType(Collections.singletonList(listPin));
     }
 
     @NonNull

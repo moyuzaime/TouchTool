@@ -710,6 +710,16 @@ feat(node): 获取控件信息默认收起扩展属性
 - 老任务：`typeRef` 为 null 时这些写入会在首次连线事件后开始生效——即老任务一旦重新连线，就按新规则拿到声明；不连线则保持 null 兼容回退。
 - 待续：`MapGet` 输出类型、`ListForeach`/`MapForeach` 元素声明传播、派生动作（`ListSubList`/`ListAppend`/`MapAppend`/`MapGetKeys`/`MapGetValues`）的输出声明。
 
+## 65. Step 5.2（三）：MapGet 输出类型、遍历与派生动作的声明传播
+
+- 位置：`bean/action/map/MapGetAction.java`、`bean/pin/Pin.java`（新增 `inheritType`）、`MapGetKeysAction`、`MapGetValuesAction`、`MapKeysValuesAction`、`bean/action/list/ListSubListAction.java`、`ListAppendAction`、`MapAppendAction`、`ListForeachAction`、`MapForeachAction`
+- **`MapGet` 输出类型**：与 `ListGet` 同款的「输出类型」针脚（追加在默认值之后）。未命中时先看默认值、不参与转换；命中但转换失败时输出该类型默认值并把「结果」标志置 false；任意对象原样输出。
+- **`Pin.inheritType(sources)`**：派生针脚的声明传播规则——任一来源 `ANY` → `ANY`；来源全部具体且一致 → 该类型；其余（含来源未定型 / 类型不一致）→ `UNKNOWN`。
+- 接入位置：`MapGetKeys` / `MapGetValues` / `MapKeysValues`（跟随字典）、`ListSubList`（跟随源列表）、`ListAppend` / `MapAppend`（跟随各输入）。声明写在 `Pin` 上，`resetReturnValue` 重建运行值不会丢。
+- **遍历的任意类型传播**：`ListForeach` / `MapForeach` 在容器来源是显式任意类型时，元素 / 键 / 值针脚跟着 `markTypeAny()`；具体类型的首连定型仍由 `LinkEventHandler` 写入。
+- 至此 5.2 完成。下一步 5.3：类型判断（是否文本/数字/布尔/列表/字典）与转换（转文本 / 转数字 / 取类型名）动作。
+
+
 
 
 

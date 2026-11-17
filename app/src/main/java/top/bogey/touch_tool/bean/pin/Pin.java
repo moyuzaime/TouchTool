@@ -291,6 +291,42 @@ public class Pin extends Identity {
         typeRef = PinTypeRef.concrete(template);
     }
 
+    /**
+     * 派生针脚的声明传播：任一来源 ANY → ANY；来源全部具体且一致 → 该类型；否则 UNKNOWN
+     */
+    public void inheritType(List<Pin> sources) {
+        boolean any = false;
+        boolean consistent = true;
+        PinObject concrete = null;
+        for (Pin source : sources) {
+            if (source == null) continue;
+            PinTypeRef sourceRef = source.getTypeRef();
+            if (sourceRef == null || sourceRef.isUnknown()) {
+                consistent = false;
+                continue;
+            }
+            if (sourceRef.isAny()) {
+                any = true;
+                continue;
+            }
+            PinObject template = sourceRef.getTemplate();
+            if (template == null) {
+                consistent = false;
+            } else if (concrete == null) {
+                concrete = template;
+            } else if (!concrete.equals(template)) {
+                consistent = false;
+            }
+        }
+        if (any) {
+            markTypeAny();
+        } else if (consistent && concrete != null) {
+            markTypeConcrete(concrete);
+        } else {
+            markTypeUnknown();
+        }
+    }
+
     public boolean linkAble(PinBase value) {
         if (value == null || this.value == null) return false;
         if (out) return this.value.linkToAble(value) || value.linkFromAble(this.value);

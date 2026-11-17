@@ -15,6 +15,7 @@ import top.bogey.touch_tool.bean.pin.Pin;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinObject;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinSubType;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_execute.PinExecute;
+import top.bogey.touch_tool.bean.task.Task;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_list.PinList;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_number.PinInteger;
 import top.bogey.touch_tool.service.TaskRunnable;
@@ -74,6 +75,15 @@ public class ListForeachAction extends ListExecuteAction {
     public void resetReturnValue(TaskRunnable runnable, Pin pin) {
         if (pin == inPin) {
             super.resetReturnValue(runnable, pin);
+        }
+    }
+
+    @Override
+    protected void handleLinkTo(Task task, Pin origin, Pin to) {
+        super.handleLinkTo(task, origin, to);
+        // 来源是显式任意类型时，元素针脚跟着任意
+        if (origin == listPin && to != null && to.isTypeAny()) {
+            elementPin.markTypeAny();
         }
     }
 
