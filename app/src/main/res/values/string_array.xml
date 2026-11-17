@@ -481,6 +481,18 @@
         <item>值</item>
     </string-array>
 
+    <string-array name="list_statistic_mode">
+        <item>求和</item>
+        <item>最大</item>
+        <item>最小</item>
+        <item>平均</item>
+    </string-array>
+
+    <string-array name="map_sort_order">
+        <item>升序</item>
+        <item>降序</item>
+    </string-array>
+
     <string-array name="file_write_mode">
         <item>覆盖整个文件</item>
         <item>追加一行</item>

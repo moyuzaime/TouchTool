@@ -607,5 +607,17 @@ feat(node): 获取控件信息默认收起扩展属性
 - 版本兼容：合并卡是新 `ActionType`，用旧版本 App 打开含新卡的任务会加载不出该卡；旧卡在新版不受影响。
 - 待真机验证：三个合并卡的两种方式各自的运行结果；按索引移除时「移除的对象」输出正确；排序卡「反转」与旧「列表翻转」结果一致；老任务里的旧卡仍能加载、运行、导出再导入；动作选择面板只剩合并后的卡。
 
+## 55. 新增列表 / 字典计算动作（方案 Step 4 后半之一）
+
+- 位置：新增 `bean/action/list/ListDeduplicateAction.java`、`ListStatisticsAction.java`、`ListJoinAction.java`、`bean/action/map/MapSortAction.java`、`MapInvertAction.java`；改动 `bean/action/ActionType.java`、`ActionInfo.java`、`ActionMap.java`、`res/values/string_array.xml`、`res/values/task_strings.xml`
+- 列表去重（`LIST_DEDUPLICATE`）：输入列表 +「忽略大小写」，输出结果列表与去重数量；保持首次出现的顺序；忽略大小写只对文本元素生效，其它类型按自身比较（容器的 `equals` 沿用 Step 1 的内容比较）。
+- 列表统计（`LIST_STATISTICS`）：方式「求和 / 最大 / 最小 / 平均」，输出统计结果与参与统计的数字个数；非数字元素直接跳过（不计入个数）。
+- 列表连接文本（`LIST_JOIN`）：列表 + 分隔符 → 文本，元素逐个 `toString`。
+- 字典按键排序（`MAP_SORT`）：方式「升序 / 降序」→ 新字典；键比较按「类型序号 + 值」给出全序（同类型内数字按数值、文本按字符），混合类型也不会触发排序契约异常。
+- 字典键值互换（`MAP_INVERT`）：→ 新字典，互换后键类型取原值类型、值类型取原键类型，值需要能作为键。
+- 结果容器都继承输入的类型（沿用 Step 1 的类型继承），输出的列表 / 字典在卡片上显示具体元素类型。
+- 待真机验证：去重的空列表 / 全重复 / 含数字与文本混合 / 忽略大小写；统计的空列表与全是非数字（结果 0、个数 0）；连接文本的空元素与分隔符为空；按键排序的混合类型键；键值互换后 `MapGet` 命中、原字典不被动过。
+
+
 
 

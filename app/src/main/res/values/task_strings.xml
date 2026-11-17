@@ -790,6 +790,23 @@
     <string name="list_reverse_action">列表翻转</string>
     <string name="list_reverse_action_desc">对列表中的元素进行翻转</string>
 
+    <string name="list_deduplicate_action">列表去重</string>
+    <string name="list_deduplicate_action_desc">去掉列表中重复的元素，保持首次出现的顺序</string>
+    <string name="list_deduplicate_action_ignore_case">忽略大小写</string>
+    <string name="list_deduplicate_action_result">结果列表</string>
+    <string name="list_deduplicate_action_count">去重数量</string>
+
+    <string name="list_statistics_action">列表统计</string>
+    <string name="list_statistics_action_desc">对列表中的数字元素求和、最大、最小或平均，非数字元素跳过</string>
+    <string name="list_statistics_action_mode">统计方式</string>
+    <string name="list_statistics_action_result">统计结果</string>
+    <string name="list_statistics_action_count">数字个数</string>
+
+    <string name="list_join_action">列表连接文本</string>
+    <string name="list_join_action_desc">把列表元素用分隔符连接成文本</string>
+    <string name="list_join_action_separator">分隔符</string>
+    <string name="list_join_action_result">连接结果</string>
+
 
     <!-- 动作-Map -->
     <string name="map_action_key">键</string>
@@ -842,6 +859,15 @@
     <string name="map_keys_values_action_desc">获取字典中的所有键或所有值</string>
     <string name="map_keys_values_action_mode">获取方式</string>
     <string name="map_keys_values_action_result">结果列表</string>
+
+    <string name="map_sort_action">字典按键排序</string>
+    <string name="map_sort_action_desc">按键的升序或降序生成新字典</string>
+    <string name="map_sort_action_order">排序方式</string>
+    <string name="map_sort_action_result">新字典</string>
+
+    <string name="map_invert_action">字典键值互换</string>
+    <string name="map_invert_action_desc">把字典的键和值互换，值需要能作为键</string>
+    <string name="map_invert_action_result">新字典</string>
 
     <string name="map_foreach_action">遍历字典</string>
     <string name="map_foreach_action_desc">遍历字典中的每个键值对</string>

@@ -48,10 +48,12 @@ import top.bogey.touch_tool.bean.action.list.ListAppendAction;
 import top.bogey.touch_tool.bean.action.list.ListChoiceAction;
 import top.bogey.touch_tool.bean.action.list.ListClearAction;
 import top.bogey.touch_tool.bean.action.list.ListContainAction;
+import top.bogey.touch_tool.bean.action.list.ListDeduplicateAction;
 import top.bogey.touch_tool.bean.action.list.ListForeachAction;
 import top.bogey.touch_tool.bean.action.list.ListGetAction;
 import top.bogey.touch_tool.bean.action.list.ListIndexOfAction;
 import top.bogey.touch_tool.bean.action.list.ListIsEmptyAction;
+import top.bogey.touch_tool.bean.action.list.ListJoinAction;
 import top.bogey.touch_tool.bean.action.list.ListRemoveAction;
 import top.bogey.touch_tool.bean.action.list.ListRemoveByAction;
 import top.bogey.touch_tool.bean.action.list.ListRemoveObjectAction;
@@ -59,6 +61,7 @@ import top.bogey.touch_tool.bean.action.list.ListReverseAction;
 import top.bogey.touch_tool.bean.action.list.ListSetAction;
 import top.bogey.touch_tool.bean.action.list.ListSizeAction;
 import top.bogey.touch_tool.bean.action.list.ListSortAction;
+import top.bogey.touch_tool.bean.action.list.ListStatisticsAction;
 import top.bogey.touch_tool.bean.action.list.ListSubListAction;
 import top.bogey.touch_tool.bean.action.list.MakeListAction;
 import top.bogey.touch_tool.bean.action.logic.ChoiceExecuteAction;
@@ -80,11 +83,13 @@ import top.bogey.touch_tool.bean.action.map.MapForeachAction;
 import top.bogey.touch_tool.bean.action.map.MapGetAction;
 import top.bogey.touch_tool.bean.action.map.MapGetKeysAction;
 import top.bogey.touch_tool.bean.action.map.MapGetValuesAction;
+import top.bogey.touch_tool.bean.action.map.MapInvertAction;
 import top.bogey.touch_tool.bean.action.map.MapKeysValuesAction;
 import top.bogey.touch_tool.bean.action.map.MapIsEmptyAction;
 import top.bogey.touch_tool.bean.action.map.MapRemoveAction;
 import top.bogey.touch_tool.bean.action.map.MapSetAction;
 import top.bogey.touch_tool.bean.action.map.MapSizeAction;
+import top.bogey.touch_tool.bean.action.map.MapSortAction;
 import top.bogey.touch_tool.bean.action.node.CheckNodeValidAction;
 import top.bogey.touch_tool.bean.action.node.EditTextInputAction;
 import top.bogey.touch_tool.bean.action.node.EditTextPasteAction;
@@ -430,6 +435,9 @@ public class ActionInfo {
     private final static ActionInfo LIST_FOREACH_INFO = new ActionInfo(ActionType.LIST_FOREACH, ListForeachAction.class, R.drawable.icon_repeat, R.string.list_foreach_action, R.string.list_foreach_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo LIST_SORT_INFO = new ActionInfo(ActionType.LIST_SORT, ListSortAction.class, R.drawable.icon_swap_horiz, R.string.list_sort_action, R.string.list_sort_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo LIST_REVERSE_INFO = new ActionInfo(ActionType.LIST_REVERSE, ListReverseAction.class, R.drawable.icon_swap_horiz, R.string.list_reverse_action, R.string.list_reverse_action_desc, 0, NormalActionCard.class);
+    private final static ActionInfo LIST_DEDUPLICATE_INFO = new ActionInfo(ActionType.LIST_DEDUPLICATE, ListDeduplicateAction.class, R.drawable.icon_data_array, R.string.list_deduplicate_action, R.string.list_deduplicate_action_desc, 0, NormalActionCard.class);
+    private final static ActionInfo LIST_STATISTICS_INFO = new ActionInfo(ActionType.LIST_STATISTICS, ListStatisticsAction.class, R.drawable.icon_123, R.string.list_statistics_action, R.string.list_statistics_action_desc, 0, NormalActionCard.class);
+    private final static ActionInfo LIST_JOIN_INFO = new ActionInfo(ActionType.LIST_JOIN, ListJoinAction.class, R.drawable.icon_text_fields, R.string.list_join_action, R.string.list_join_action_desc, 0, NormalActionCard.class);
 
 
     // Map操作
@@ -447,6 +455,8 @@ public class ActionInfo {
     private final static ActionInfo MAP_KEYS_INFO = new ActionInfo(ActionType.MAP_KEYS, MapGetKeysAction.class, R.drawable.icon_data_array, R.string.map_keys_action, R.string.map_keys_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo MAP_VALUES_INFO = new ActionInfo(ActionType.MAP_VALUES, MapGetValuesAction.class, R.drawable.icon_data_array, R.string.map_values_action, R.string.map_values_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo MAP_KEYS_VALUES_INFO = new ActionInfo(ActionType.MAP_KEYS_VALUES, MapKeysValuesAction.class, R.drawable.icon_data_array, R.string.map_keys_values_action, R.string.map_keys_values_action_desc, 0, NormalActionCard.class);
+    private final static ActionInfo MAP_SORT_INFO = new ActionInfo(ActionType.MAP_SORT, MapSortAction.class, R.drawable.icon_swap_horiz, R.string.map_sort_action, R.string.map_sort_action_desc, 0, NormalActionCard.class);
+    private final static ActionInfo MAP_INVERT_INFO = new ActionInfo(ActionType.MAP_INVERT, MapInvertAction.class, R.drawable.icon_swap_horiz, R.string.map_invert_action, R.string.map_invert_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo MAP_FOREACH_INFO = new ActionInfo(ActionType.MAP_FOREACH, MapForeachAction.class, R.drawable.icon_repeat, R.string.map_foreach_action, R.string.map_foreach_action_desc, 0, NormalActionCard.class);
 
     private final static ActionInfo WRITE_FILE_LINE_INFO = new ActionInfo(ActionType.WRITE_FILE_LINE, WriteFileLineAction.class, R.drawable.icon_save, R.string.file_action_write_line, R.string.file_action_write_line_desc, 0, NormalActionCard.class);
@@ -667,6 +677,9 @@ public class ActionInfo {
             case LIST_FOREACH -> LIST_FOREACH_INFO;
             case LIST_SORT -> LIST_SORT_INFO;
             case LIST_REVERSE -> LIST_REVERSE_INFO;
+            case LIST_DEDUPLICATE -> LIST_DEDUPLICATE_INFO;
+            case LIST_STATISTICS -> LIST_STATISTICS_INFO;
+            case LIST_JOIN -> LIST_JOIN_INFO;
 
 
             case MAP_MAKE -> MAP_MAKE_INFO;
@@ -683,6 +696,8 @@ public class ActionInfo {
             case MAP_KEYS -> MAP_KEYS_INFO;
             case MAP_VALUES -> MAP_VALUES_INFO;
             case MAP_KEYS_VALUES -> MAP_KEYS_VALUES_INFO;
+            case MAP_SORT -> MAP_SORT_INFO;
+            case MAP_INVERT -> MAP_INVERT_INFO;
             case MAP_FOREACH -> MAP_FOREACH_INFO;
 
             case WRITE_FILE_LINE -> WRITE_FILE_LINE_INFO;

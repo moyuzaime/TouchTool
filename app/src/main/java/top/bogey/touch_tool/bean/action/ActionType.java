@@ -216,6 +216,9 @@ public enum ActionType {
     LIST_FOREACH,
     LIST_SORT,
     LIST_REVERSE,
+    LIST_DEDUPLICATE,
+    LIST_STATISTICS,
+    LIST_JOIN,
 
     // 字典
     MAP_MAKE,
@@ -232,6 +235,8 @@ public enum ActionType {
     MAP_KEYS,
     MAP_VALUES,
     MAP_KEYS_VALUES,
+    MAP_SORT,
+    MAP_INVERT,
     MAP_FOREACH,
 
     // 文件

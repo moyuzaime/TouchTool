@@ -226,7 +226,10 @@ public class ActionMap {
                     ActionType.LIST_CLEAR,
                     ActionType.LIST_INDEX_OF,
                     ActionType.LIST_SUBLIST,
-                    ActionType.LIST_SORT
+                    ActionType.LIST_SORT,
+                    ActionType.LIST_DEDUPLICATE,
+                    ActionType.LIST_STATISTICS,
+                    ActionType.LIST_JOIN
             ));
 
             case MAP -> list.addAll(Arrays.asList(
@@ -240,7 +243,9 @@ public class ActionMap {
                     ActionType.MAP_REMOVE,
                     ActionType.MAP_APPEND,
                     ActionType.MAP_CLEAR,
-                    ActionType.MAP_KEYS_VALUES
+                    ActionType.MAP_KEYS_VALUES,
+                    ActionType.MAP_SORT,
+                    ActionType.MAP_INVERT
             ));
 
             case THREAD -> list.addAll(Arrays.asList(
