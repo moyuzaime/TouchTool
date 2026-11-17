@@ -229,7 +229,10 @@ public class ActionMap {
                     ActionType.LIST_SORT,
                     ActionType.LIST_DEDUPLICATE,
                     ActionType.LIST_STATISTICS,
-                    ActionType.LIST_JOIN
+                    ActionType.LIST_JOIN,
+                    ActionType.LIST_FILTER,
+                    ActionType.LIST_MAP,
+                    ActionType.LIST_FIND_FIRST
             ));
 
             case MAP -> list.addAll(Arrays.asList(

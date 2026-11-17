@@ -807,6 +807,26 @@
     <string name="list_join_action_separator">分隔符</string>
     <string name="list_join_action_result">连接结果</string>
 
+    <string name="list_filter_action">列表筛选</string>
+    <string name="list_filter_action_desc">每个元素跑一次条件流程，条件为真的元素保留</string>
+    <string name="list_filter_action_flow">条件</string>
+    <string name="list_filter_action_condition">条件结果</string>
+    <string name="list_filter_action_result">结果列表</string>
+
+    <string name="list_map_action">列表映射</string>
+    <string name="list_map_action_desc">每个元素跑一次映射流程，用流程给出的值组成新列表</string>
+    <string name="list_map_action_flow">映射</string>
+    <string name="list_map_action_value">映射结果</string>
+    <string name="list_map_action_result">结果列表</string>
+
+    <string name="list_find_first_action">列表查找首个</string>
+    <string name="list_find_first_action_desc">找到第一个满足条件的元素就停止</string>
+    <string name="list_find_first_action_flow">条件</string>
+    <string name="list_find_first_action_condition">条件结果</string>
+    <string name="list_find_first_action_result">元素</string>
+    <string name="list_find_first_action_index">索引</string>
+    <string name="list_find_first_action_exist">是否存在</string>
+
 
     <!-- 动作-Map -->
     <string name="map_action_key">键</string>

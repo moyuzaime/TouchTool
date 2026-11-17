@@ -219,6 +219,9 @@ public enum ActionType {
     LIST_DEDUPLICATE,
     LIST_STATISTICS,
     LIST_JOIN,
+    LIST_FILTER,
+    LIST_MAP,
+    LIST_FIND_FIRST,
 
     // 字典
     MAP_MAKE,

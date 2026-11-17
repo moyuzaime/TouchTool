@@ -49,11 +49,14 @@ import top.bogey.touch_tool.bean.action.list.ListChoiceAction;
 import top.bogey.touch_tool.bean.action.list.ListClearAction;
 import top.bogey.touch_tool.bean.action.list.ListContainAction;
 import top.bogey.touch_tool.bean.action.list.ListDeduplicateAction;
+import top.bogey.touch_tool.bean.action.list.ListFilterAction;
+import top.bogey.touch_tool.bean.action.list.ListFindFirstAction;
 import top.bogey.touch_tool.bean.action.list.ListForeachAction;
 import top.bogey.touch_tool.bean.action.list.ListGetAction;
 import top.bogey.touch_tool.bean.action.list.ListIndexOfAction;
 import top.bogey.touch_tool.bean.action.list.ListIsEmptyAction;
 import top.bogey.touch_tool.bean.action.list.ListJoinAction;
+import top.bogey.touch_tool.bean.action.list.ListMapAction;
 import top.bogey.touch_tool.bean.action.list.ListRemoveAction;
 import top.bogey.touch_tool.bean.action.list.ListRemoveByAction;
 import top.bogey.touch_tool.bean.action.list.ListRemoveObjectAction;
@@ -438,6 +441,9 @@ public class ActionInfo {
     private final static ActionInfo LIST_DEDUPLICATE_INFO = new ActionInfo(ActionType.LIST_DEDUPLICATE, ListDeduplicateAction.class, R.drawable.icon_data_array, R.string.list_deduplicate_action, R.string.list_deduplicate_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo LIST_STATISTICS_INFO = new ActionInfo(ActionType.LIST_STATISTICS, ListStatisticsAction.class, R.drawable.icon_123, R.string.list_statistics_action, R.string.list_statistics_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo LIST_JOIN_INFO = new ActionInfo(ActionType.LIST_JOIN, ListJoinAction.class, R.drawable.icon_text_fields, R.string.list_join_action, R.string.list_join_action_desc, 0, NormalActionCard.class);
+    private final static ActionInfo LIST_FILTER_INFO = new ActionInfo(ActionType.LIST_FILTER, ListFilterAction.class, R.drawable.icon_check_circle, R.string.list_filter_action, R.string.list_filter_action_desc, 0, NormalActionCard.class);
+    private final static ActionInfo LIST_MAP_INFO = new ActionInfo(ActionType.LIST_MAP, ListMapAction.class, R.drawable.icon_swap_horiz, R.string.list_map_action, R.string.list_map_action_desc, 0, NormalActionCard.class);
+    private final static ActionInfo LIST_FIND_FIRST_INFO = new ActionInfo(ActionType.LIST_FIND_FIRST, ListFindFirstAction.class, R.drawable.icon_search, R.string.list_find_first_action, R.string.list_find_first_action_desc, 0, NormalActionCard.class);
 
 
     // Map操作
@@ -680,6 +686,9 @@ public class ActionInfo {
             case LIST_DEDUPLICATE -> LIST_DEDUPLICATE_INFO;
             case LIST_STATISTICS -> LIST_STATISTICS_INFO;
             case LIST_JOIN -> LIST_JOIN_INFO;
+            case LIST_FILTER -> LIST_FILTER_INFO;
+            case LIST_MAP -> LIST_MAP_INFO;
+            case LIST_FIND_FIRST -> LIST_FIND_FIRST_INFO;
 
 
             case MAP_MAKE -> MAP_MAKE_INFO;
