@@ -49,9 +49,16 @@ public class PinValueUtil {
         return value.toString();
     }
 
+    // 把任意值转成指定类型的新值，转换失败返回 null
+    public static PinObject convertTo(PinBase value, PinObject type) {
+        if (value == null || type == null) return null;
+        PinObject target = newValue(type);
+        if (!setText(target, value.toString())) return null;
+        return target;
+    }
+
     // 用文本更新值，返回是否成功
-    public static boolean setText(PinObject value, String text) {
-        if (value == null || value instanceof PinSingleSelect) return false;
+    public static boolean setText(PinObject value, String text) {        if (value == null || value instanceof PinSingleSelect) return false;
         if (value instanceof PinString string) {
             string.setValue(text);
             return true;

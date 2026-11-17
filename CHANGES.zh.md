@@ -691,6 +691,17 @@ feat(node): 获取控件信息默认收起扩展属性
 - 当前边界：自动模式的「首连定型」仍由旧的按值逻辑完成，声明停留在 `UNKNOWN`（不写 `CONCRETE`）——把定型结果写进声明属 5.2。
 - 后续：5.2 取值 / 遍历 / 派生动作的声明传播与 `ListGet`/`MapGet` 的输出类型选择；5.3 类型判断 / 转换动作；5.4 编辑器与槽位改读 `typeRef`（`[n*]` / `[n?]`）、`ANY → 具体` 被拒时的提示文案。
 
+## 63. Step 5.2（一）：`ListGet` 输出类型选择
+
+- 位置：`bean/action/list/ListGetAction.java`、`bean/pin/pin_objects/PinValueUtil.java`（新增 `convertTo`）、`res/values/string_array.xml`（`pin_output_type`）、`res/values/task_strings.xml`
+- `ListGet` 末尾追加「输出类型」针脚（自动 / 文本 / 数字 / 布尔 / 任意对象），追加在末尾保证老任务前四个针脚仍按原顺序匹配：
+  - 自动：保持原行为，按元素自身类型输出；
+  - 指定类型：运行期用 `PinValueUtil.convertTo` 转换，**转换失败输出该类型的默认值（数字 0 / 空文本 / false）并把「结果」标志置 false**（对应方案 13.11 待决 4 的建议：默认值 + 失败标志）；
+  - 任意对象：原样输出元素，`ANY` 声明。
+- 声明写入：选定具体类型时 `resultPin.markTypeConcrete(模板)`，任意对象时 `markTypeAny()`；选回自动不改声明。`onValueUpdated` 里跟随选择变化重写。
+- 待续（5.2 其余）：`MapGet` 的同款输出类型、`ListForeach`/`MapForeach` 元素针脚声明传播、`ListSubList`/`ListAppend`/`MapAppend`/`MapGetKeys`/`MapGetValues` 的「任一 ANY → ANY，全具体一致 → 该类型，否则 UNKNOWN」，以及自动模式首连定型把结果写回 `CONCRETE`。
+
+
 
 
 

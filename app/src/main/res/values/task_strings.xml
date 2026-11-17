@@ -731,6 +731,7 @@
     <string name="list_make_action">新建列表</string>
     <string name="list_make_action_desc">新建一个列表</string>
     <string name="container_type_mode_pin">类型模式</string>
+    <string name="pin_output_type">输出类型</string>
 
     <string name="list_size_action">列表长度</string>
     <string name="list_size_action_desc">获取列表长度</string>
