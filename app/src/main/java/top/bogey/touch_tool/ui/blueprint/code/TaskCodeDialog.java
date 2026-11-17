@@ -20,21 +20,31 @@ import com.google.gson.JsonObject;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import top.bogey.touch_tool.R;
+import top.bogey.touch_tool.bean.action.ActionInfo;
+import top.bogey.touch_tool.bean.action.ActionType;
 import top.bogey.touch_tool.bean.save.TagSaver;
 import top.bogey.touch_tool.bean.task.Task;
 import top.bogey.touch_tool.databinding.DialogTaskCodeBinding;
 import top.bogey.touch_tool.utils.AppUtil;
 import top.bogey.touch_tool.utils.listener.TextChangedListener;
 
-// 任务代码对话框：把整任务以 JSON 文本编辑；工具条按钮也只改文本，保存时统一校验回写
+// 任务代码对话框：整任务以 JSON 文本编辑；工具条按钮只改文本，保存时统一校验回写
 public class TaskCodeDialog {
+    public interface DocumentListener {
+        void onSave(String text) throws TaskCode.TaskCodeException;
+    }
+
+    public interface DocumentResult {
+        void onResult(JsonObject document);
+    }
+
+    // 顶层任务：保存时写回真实任务
     public static void show(Context context, Task task, Runnable onApplied) {
         if (task == null) return;
-
-        DialogTaskCodeBinding binding = DialogTaskCodeBinding.inflate(LayoutInflater.from(context));
         String code;
         try {
             code = TaskCode.dump(task);
@@ -42,6 +52,19 @@ public class TaskCodeDialog {
             Toast.makeText(context, context.getString(R.string.task_code_failed, String.valueOf(e.getMessage())), Toast.LENGTH_SHORT).show();
             return;
         }
+        showText(context, R.string.task_code, code, text -> TaskCode.apply(task, text), onApplied);
+    }
+
+    // 局部编辑：保存时只校验这一段并回吐对象，由调用方合并回上层文本
+    public static void showDocument(Context context, JsonObject document, DocumentResult result) {
+        showText(context, R.string.task_code_subtask_code, TaskCode.writeDocument(document), text -> {
+            JsonObject edited = TaskCode.validateDocument(text);
+            if (result != null) result.onResult(edited);
+        }, null);
+    }
+
+    private static void showText(Context context, int titleRes, String code, DocumentListener listener, Runnable onSaved) {
+        DialogTaskCodeBinding binding = DialogTaskCodeBinding.inflate(LayoutInflater.from(context));
         binding.codeEdit.setText(code);
         binding.codeEdit.setSelection(0);
 
@@ -55,7 +78,7 @@ public class TaskCodeDialog {
         binding.chipAction.setOnClickListener(v -> editActions(context, binding));
 
         AlertDialog dialog = new MaterialAlertDialogBuilder(context)
-                .setTitle(R.string.task_code)
+                .setTitle(titleRes)
                 .setView(binding.getRoot())
                 .setPositiveButton(R.string.save, null)
                 .setNegativeButton(R.string.cancel, null)
@@ -69,7 +92,7 @@ public class TaskCodeDialog {
                 window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
                 window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
             }
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> save(context, task, binding, dialog, onApplied));
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> saveText(context, binding, dialog, listener, onSaved));
             dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> format(context, binding));
         });
         // 编辑中的长文本误触外面就丢了，关掉外部点击关闭；取消与返回键仍可退出
@@ -156,7 +179,7 @@ public class TaskCodeDialog {
                 .show();
     }
 
-    // 变量：列出文本里的变量，可新建、重命名、删除
+    // 变量：列出文本里的变量，可新建、编辑类型/名称、删除
     private static void editVariables(Context context, DialogTaskCodeBinding binding) {
         JsonObject document = readDocument(context, binding);
         if (document == null) return;
@@ -170,7 +193,7 @@ public class TaskCodeDialog {
                 .setTitle(R.string.task_code_field_variable)
                 .setItems(items.toArray(new CharSequence[0]), (dialog, which) -> {
                     if (which == items.size() - 1) addVariable(context, binding, document);
-                    else editVariable(context, binding, document, which);
+                    else showVariableActions(context, binding, document, which);
                 })
                 .setNegativeButton(R.string.cancel, null)
                 .show();
@@ -191,20 +214,19 @@ public class TaskCodeDialog {
                 .show();
     }
 
-    private static void editVariable(Context context, DialogTaskCodeBinding binding, JsonObject document, int index) {
+    private static void showVariableActions(Context context, DialogTaskCodeBinding binding, JsonObject document, int index) {
         JsonArray variables = getArray(document, "variables");
         if (index < 0 || index >= variables.size() || !variables.get(index).isJsonObject()) return;
 
-        JsonObject variable = variables.get(index).getAsJsonObject();
         String name = variableName(variables.get(index));
         new MaterialAlertDialogBuilder(context)
                 .setTitle(name)
                 .setItems(new CharSequence[]{
-                        context.getString(R.string.task_code_variable_rename),
-                        context.getString(R.string.task_code_variable_delete)}, (dialog, which) -> {
+                        context.getString(R.string.task_code_variable_edit),
+                        context.getString(R.string.task_code_delete)}, (dialog, which) -> {
                     if (which == 0) {
-                        AppUtil.showEditDialog(context, R.string.task_code_variable_title, name, result -> {
-                            variable.addProperty("title", result == null ? "" : result.trim());
+                        TaskCodeVariableEditor.show(context, variables.get(index), edited -> {
+                            variables.set(index, edited);
                             applyDocument(binding, document);
                         });
                     } else {
@@ -216,7 +238,7 @@ public class TaskCodeDialog {
                 .show();
     }
 
-    // 子任务：列出文本里的子任务，可新建、重命名、删除
+    // 子任务：列出文本里的子任务，可新建、局部编辑、重命名、删除
     private static void editSubtasks(Context context, DialogTaskCodeBinding binding) {
         JsonObject document = readDocument(context, binding);
         if (document == null) return;
@@ -230,7 +252,7 @@ public class TaskCodeDialog {
                 .setTitle(R.string.task_code_field_subtask)
                 .setItems(items.toArray(new CharSequence[0]), (dialog, which) -> {
                     if (which == items.size() - 1) addSubtask(context, binding, document);
-                    else editSubtask(context, binding, document, which);
+                    else showSubtaskActions(context, binding, document, which);
                 })
                 .setNegativeButton(R.string.cancel, null)
                 .show();
@@ -246,7 +268,7 @@ public class TaskCodeDialog {
                 });
     }
 
-    private static void editSubtask(Context context, DialogTaskCodeBinding binding, JsonObject document, int index) {
+    private static void showSubtaskActions(Context context, DialogTaskCodeBinding binding, JsonObject document, int index) {
         JsonArray tasks = getArray(document, "tasks");
         if (index < 0 || index >= tasks.size() || !tasks.get(index).isJsonObject()) return;
 
@@ -255,9 +277,16 @@ public class TaskCodeDialog {
         new MaterialAlertDialogBuilder(context)
                 .setTitle(name)
                 .setItems(new CharSequence[]{
-                        context.getString(R.string.task_code_variable_rename),
-                        context.getString(R.string.task_code_variable_delete)}, (dialog, which) -> {
+                        context.getString(R.string.task_code_subtask_edit),
+                        context.getString(R.string.task_code_rename),
+                        context.getString(R.string.task_code_delete)}, (dialog, which) -> {
                     if (which == 0) {
+                        // 局部编辑：这段子树单独校验后合并回上层文本
+                        showDocument(context, task, edited -> {
+                            tasks.set(index, edited);
+                            applyDocument(binding, document);
+                        });
+                    } else if (which == 1) {
                         AppUtil.showEditDialog(context, R.string.task_code_subtask_title, name, result -> {
                             task.addProperty("title", result == null ? "" : result.trim());
                             applyDocument(binding, document);
@@ -271,11 +300,24 @@ public class TaskCodeDialog {
                 .show();
     }
 
-    // 动作：选择动作类型后插入一份默认模板，针脚/连线仍由画布或文本维护
+    // 动作：插入模板或管理现有动作
     private static void editActions(Context context, DialogTaskCodeBinding binding) {
         JsonObject document = readDocument(context, binding);
         if (document == null) return;
 
+        new MaterialAlertDialogBuilder(context)
+                .setTitle(R.string.task_code_field_action)
+                .setItems(new CharSequence[]{
+                        context.getString(R.string.task_code_action_insert),
+                        context.getString(R.string.task_code_action_manage)}, (dialog, which) -> {
+                    if (which == 0) insertAction(context, binding, document);
+                    else manageActions(context, binding, document);
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
+    private static void insertAction(Context context, DialogTaskCodeBinding binding, JsonObject document) {
         TaskCodeActionPicker.show(context, type -> {
             try {
                 Point pos = nextActionPos(document);
@@ -287,6 +329,173 @@ public class TaskCodeDialog {
         });
     }
 
+    private static void manageActions(Context context, DialogTaskCodeBinding binding, JsonObject document) {
+        JsonArray actions = getArray(document, "actions");
+        if (actions.isEmpty()) {
+            Toast.makeText(context, R.string.task_code_action_empty, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        List<Integer> order = sortedActionIndexes(actions);
+        List<CharSequence> items = new ArrayList<>();
+        for (int index : order) items.add(actionLabel(actions.get(index)));
+
+        new MaterialAlertDialogBuilder(context)
+                .setTitle(R.string.task_code_action_list)
+                .setItems(items.toArray(new CharSequence[0]), (dialog, which) -> {
+                    if (which < 0 || which >= order.size()) return;
+                    showActionActions(context, binding, document, order.get(which));
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
+    private static void showActionActions(Context context, DialogTaskCodeBinding binding, JsonObject document, int index) {
+        JsonArray actions = getArray(document, "actions");
+        if (index < 0 || index >= actions.size()) return;
+
+        new MaterialAlertDialogBuilder(context)
+                .setTitle(actionLabel(actions.get(index)))
+                .setItems(new CharSequence[]{
+                        context.getString(R.string.task_code_move_up),
+                        context.getString(R.string.task_code_move_down),
+                        context.getString(R.string.task_code_action_delete)}, (dialog, which) -> {
+                    if (which == 0) moveAction(context, binding, document, index, -1);
+                    else if (which == 1) moveAction(context, binding, document, index, 1);
+                    else deleteAction(context, binding, document, index);
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
+    // 上移/下移交换的是卡片坐标，画布本身按坐标排序
+    private static void moveAction(Context context, DialogTaskCodeBinding binding, JsonObject document, int index, int direction) {
+        JsonArray actions = getArray(document, "actions");
+        List<Integer> order = sortedActionIndexes(actions);
+        int from = order.indexOf(index);
+        int to = from + direction;
+        if (from < 0 || to < 0 || to >= order.size()) {
+            Toast.makeText(context, direction < 0 ? R.string.task_code_action_move_up : R.string.task_code_action_move_down, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        JsonObject first = actions.get(index).getAsJsonObject();
+        JsonObject second = actions.get(order.get(to)).getAsJsonObject();
+        JsonObject firstPos = getOrCreatePos(first);
+        JsonObject secondPos = getOrCreatePos(second);
+        int firstX = getInt(firstPos, "x", 0);
+        int firstY = getInt(firstPos, "y", 0);
+        int secondX = getInt(secondPos, "x", 0);
+        int secondY = getInt(secondPos, "y", 0);
+        firstPos.addProperty("x", secondX);
+        firstPos.addProperty("y", secondY);
+        secondPos.addProperty("x", firstX);
+        secondPos.addProperty("y", firstY);
+        applyDocument(binding, document);
+    }
+
+    // 删除动作时一起清掉指向它的连线，否则保存会被连线校验拦下
+    private static void deleteAction(Context context, DialogTaskCodeBinding binding, JsonObject document, int index) {
+        JsonArray actions = getArray(document, "actions");
+        if (index < 0 || index >= actions.size() || !actions.get(index).isJsonObject()) return;
+
+        JsonObject removed = actions.get(index).getAsJsonObject();
+        String removedActionId = getString(removed, "id");
+        Set<String> removedPinIds = new HashSet<>();
+        JsonElement removedPins = removed.get("pins");
+        if (removedPins != null && removedPins.isJsonArray()) {
+            for (JsonElement pin : removedPins.getAsJsonArray()) {
+                if (!pin.isJsonObject()) continue;
+                String pinId = getString(pin.getAsJsonObject(), "id");
+                if (pinId != null) removedPinIds.add(pinId);
+            }
+        }
+        actions.remove(index);
+
+        if (removedActionId != null || !removedPinIds.isEmpty()) {
+            for (JsonElement element : actions) {
+                if (!element.isJsonObject()) continue;
+                JsonElement pinsElement = element.getAsJsonObject().get("pins");
+                if (pinsElement == null || !pinsElement.isJsonArray()) continue;
+                for (JsonElement pin : pinsElement.getAsJsonArray()) {
+                    if (!pin.isJsonObject()) continue;
+                    JsonElement linksElement = pin.getAsJsonObject().get("links");
+                    if (linksElement == null || !linksElement.isJsonObject()) continue;
+                    JsonObject links = linksElement.getAsJsonObject();
+                    List<String> stale = new ArrayList<>();
+                    for (Map.Entry<String, JsonElement> entry : links.entrySet()) {
+                        String targetActionId = entry.getValue().isJsonPrimitive() ? entry.getValue().getAsString() : null;
+                        if (removedActionId.equals(targetActionId) || removedPinIds.contains(entry.getKey())) {
+                            stale.add(entry.getKey());
+                        }
+                    }
+                    for (String pinId : stale) links.remove(pinId);
+                }
+            }
+        }
+        applyDocument(binding, document);
+    }
+
+    private static List<Integer> sortedActionIndexes(JsonArray actions) {
+        List<Integer> indexes = new ArrayList<>();
+        for (int i = 0; i < actions.size(); i++) indexes.add(i);
+        indexes.sort((left, right) -> {
+            Point leftPos = actionPos(actions.get(left));
+            Point rightPos = actionPos(actions.get(right));
+            if (leftPos.y != rightPos.y) return Integer.compare(leftPos.y, rightPos.y);
+            return Integer.compare(leftPos.x, rightPos.x);
+        });
+        return indexes;
+    }
+
+    private static Point actionPos(JsonElement element) {
+        if (element != null && element.isJsonObject()) {
+            JsonElement pos = element.getAsJsonObject().get("pos");
+            if (pos != null && pos.isJsonObject()) {
+                return new Point(getInt(pos.getAsJsonObject(), "x", 0), getInt(pos.getAsJsonObject(), "y", 0));
+            }
+        }
+        return new Point(0, 0);
+    }
+
+    private static JsonObject getOrCreatePos(JsonObject action) {
+        JsonElement pos = action.get("pos");
+        if (pos != null && pos.isJsonObject()) return pos.getAsJsonObject();
+        JsonObject created = new JsonObject();
+        created.addProperty("x", 0);
+        created.addProperty("y", 0);
+        action.add("pos", created);
+        return created;
+    }
+
+    private static String actionLabel(JsonElement element) {
+        if (element == null || !element.isJsonObject()) return "?";
+        JsonObject object = element.getAsJsonObject();
+        String typeName = getString(object, "type");
+        ActionType type = parseType(typeName);
+        ActionInfo info = type == null ? null : ActionInfo.getActionInfo(type);
+        String typeTitle = info == null ? (typeName == null ? "?" : typeName) : displayTitle(info, typeName);
+        String custom = getString(object, "title");
+        if (custom == null || custom.isEmpty()) return typeTitle;
+        return custom + "（" + typeTitle + "）";
+    }
+
+    private static String displayTitle(ActionInfo info, String fallback) {
+        String title = info.getTitle();
+        if (title == null) return fallback;
+        title = title.replace("%s", "").replace("%d", "").replaceAll("\\s+", " ").trim();
+        return title.isEmpty() ? fallback : title;
+    }
+
+    private static ActionType parseType(String name) {
+        if (name == null || name.isEmpty()) return null;
+        try {
+            return ActionType.valueOf(name);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     private static Point nextActionPos(JsonObject document) {
         int x = 0;
         int y = 0;
@@ -296,10 +505,9 @@ public class TaskCodeDialog {
             for (JsonElement item : actions.getAsJsonArray()) {
                 if (!item.isJsonObject()) continue;
                 empty = false;
-                JsonElement pos = item.getAsJsonObject().get("pos");
-                if (pos == null || !pos.isJsonObject()) continue;
-                x = Math.max(x, getInt(pos.getAsJsonObject(), "x", 0));
-                y = Math.max(y, getInt(pos.getAsJsonObject(), "y", 0));
+                Point pos = actionPos(item);
+                x = Math.max(x, pos.x);
+                y = Math.max(y, pos.y);
             }
         }
         return empty ? new Point(0, 0) : new Point(x, y + 40);
@@ -360,10 +568,10 @@ public class TaskCodeDialog {
         }
     }
 
-    private static void save(Context context, Task task, DialogTaskCodeBinding binding, AlertDialog dialog, Runnable onApplied) {
+    private static void saveText(Context context, DialogTaskCodeBinding binding, AlertDialog dialog, DocumentListener listener, Runnable onSaved) {
         CharSequence text = binding.codeEdit.getText();
         try {
-            TaskCode.apply(task, text == null ? "" : text.toString());
+            listener.onSave(text == null ? "" : text.toString());
         } catch (TaskCode.TaskCodeException e) {
             showError(context, binding, e);
             return;
@@ -374,7 +582,7 @@ public class TaskCodeDialog {
         }
 
         dialog.dismiss();
-        if (onApplied != null) onApplied.run();
+        if (onSaved != null) onSaved.run();
     }
 
     private static void format(Context context, DialogTaskCodeBinding binding) {

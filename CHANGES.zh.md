@@ -588,3 +588,12 @@ feat(node): 获取控件信息默认收起扩展属性
 - 动作：带搜索/拼音过滤的动作选择器（按标题排序，标题里的 `%s` 占位符在列表里去掉）；选中后用 `ActionInfo.getClazz().getConstructor().newInstance()` 生成默认动作再序列化，`pos` 接在现有动作最大坐标后 40 格，避免叠卡。不复用 `SelectActionDialog`：它的「新建变量/新建任务」会直接改运行中的任务并落盘。
 - 按钮生成的文本若与动作针脚结构对不上，保存时仍会被「针脚与文本不一致」拦下；文本语法错误时点按钮会用红字报错且不改文本。
 - 真机验证：在空任务上依次用按钮把标题改 `btncheck2`、描述 `desc`、标记置 1、加变量 v1（改名 v2、再删除）、加子任务 sub1、插入「延时」动作；保存后画布标题与延时卡片正确，重开文本能看到子任务与动作、变量已删；测试用任务已删除。
+
+## 54. 任务代码期 2：变量类型、动作管理、子任务局部编辑
+
+- 位置：`ui/blueprint/code/TaskCodeDialog.java`、`ui/blueprint/code/TaskCodeVariableEditor.java`、`res/layout/dialog_task_code_variable.xml`、`ui/blueprint/code/TaskCode.java`、`res/values/strings.xml`
+- 变量：变量列表里「编辑变量类型」打开编辑框，可改名称、类型（单独 / 列表 / 字典）与列表元素、字典键/值类型；用 `Variable.setType` / `setPinInfo` / `setKeyPinInfo` / `setValuePinInfo` 按变量自身逻辑改类型并重置值，再序列化回文本（去掉 uid）。类型选项来自 `PinInfo.getCustomPinInfoMap()`，单独/列表/字典来自 `R.array.pin_simple_type`。
+- 动作：动作 Chip 变成两项——「插入动作…」仍是模板选择器；「管理动作…」按坐标列出现有动作，单项可「上移 / 下移 / 删除」。上下移交换两张卡的 `pos`（画布按坐标排序，改数组顺序无效）；删除会同时清掉其它针脚里指向该动作/针脚的连线，避免保存时被连线校验拦下。
+- 动作标题不可改：基类 `Action.getTitle()` 直接返回 `ActionInfo` 的标题，只有「执行任务 / 获取变量 / 设置变量 / 获取或设置变量」四类会读自定义 title，所以管理面板只提供移动与删除。
+- 子任务：子任务列表新增「编辑子任务代码」，把该子树当临时任务单独打开同一个代码编辑器；保存时 `TaskCode.validateDocument()` 用临时 `Task` 跑一遍 `apply` 校验并 `dumpTask` 规范化后回传，合并回上层文本；上层保存时再整体校验一次。
+- 真机验证：临时任务上把变量 v1 改成列表（元素文本）；新建子任务 sub1 后用局部编辑改成 sub2；插入两个「延时」后在管理动作里上移一个、删除一个；保存后画布只剩一张延时卡，重开文本看到变量 LIST、子任务 sub2、动作 1 个；测试任务已删除。

@@ -57,6 +57,18 @@ public class TaskCode {
         return GsonUtil.prettyGson.toJson(document);
     }
 
+    // 给子任务局部编辑用：把一段文本按任务完整校验一遍，再吐回规范化后的对象
+    public static JsonObject validateDocument(String text) throws TaskCodeException {
+        JsonObject document = parseDocument(text);
+        String id = getString(document, "id");
+        if (id == null || id.isEmpty()) throw new TaskCodeException("顶层任务缺少 id");
+
+        Task temp = new Task();
+        temp.setId(id);
+        apply(temp, text);
+        return dumpTask(temp);
+    }
+
     // 变量模板：按类型给默认值，uid 不写进文本（保存时按 id 复用原对象）
     public static JsonObject newVariable(String title, int typeIndex) {
         PinObject value = switch (typeIndex) {
