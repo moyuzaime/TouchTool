@@ -638,6 +638,19 @@ feat(node): 获取控件信息默认收起扩展属性
 - 版本兼容：`TO_JSON` 是本次新注册的动作类型，旧版本 App 打不开含该卡的任务；`PARSE_JSON` / `MAP_KEYS_VALUES` 的针脚与类型没变，旧任务照常加载。
 - 待真机验证：容器 → JSON → 解析 JSON 的往返（含嵌套列表 / 字典、数字、布尔、空容器）；旧任务里「JSON解析」卡原来对 `[...]` 解析为空，现在会得到列表；键值对列表的遍历与 `MapGet` 取值。
 
+## 58. 真机测试发现的两处修正
+
+- 位置：`bean/pin/pin_objects/PinValueUtil.java`、`ui/blueprint/selecter/pin_container/PinContainerValueDialog.java`、新增 `bean/action/list/ListToJsonAction.java`、`bean/action/map/MapToJsonAction.java`、`utils/GsonUtil.java`（`toJsonElement`）；移除 `bean/action/string/ToJsonAction.java`
+- **常量编辑器对新列表 / 新字典无效**：列表 / 字典针脚的元素类型默认是「动态」，`isTextEditable` 把动态类型判成不可编辑，行显示「对象（只读）」、值输入被禁用，等于空容器什么也填不了。改为：动态类型按文本处理（新建元素是 `PinString`、可直接输入），行首类型按元素实际类型显示；容器声明的类型仍不改，避免影响连线规则。
+- **「列表字典转JSON」连不上容器**：输入针脚是 `PinObject(DYNAMIC)`，而列表 / 字典分别是 LIST / MAP 组，`linkFromAble` 按组判等直接拒绝，等于这张卡收不到列表或字典。拆成 **列表转JSON**（`LIST_TO_JSON`，输入 `PinList`）与 **字典转JSON**（`MAP_TO_JSON`，输入 `PinMap`），转换逻辑抽到 `GsonUtil.toJsonElement`，两张卡分别放在列表 / 字典分组。
+- 真机测试记录（Redmi K70 / Android，debug 包）：
+  - 老任务加载与蓝图渲染正常（含循环、并行、条件循环的复杂任务），无崩溃、logcat 无应用层异常。
+  - 动作选择面板：列表 17 项、字典 14 项，`移除元素` / `字典是否包含` / `获取所有键或值` 已合并，`移除索引元素` / `移除元素对象` / `字典是否包含键` / `字典是否包含值` / `获取所有键` / `获取所有值` / `列表翻转` 不再出现；新增的去重 / 统计 / 连接文本 / 筛选 / 映射 / 查找首个 / 字典按键排序 / 键值互换 / 转 JSON 均正常列出并显示标题与说明。
+  - `获取元素` 卡：列表针脚显示「共0项」+ 编辑按钮，索引针脚标题为「索引(1起，负数倒数)」、默认值 -1；点编辑弹出「编辑列表」，空状态、添加行、行内上移 / 下移 / 删除、取消 / 确定均正常。
+  - 任务导入可用：手写 .tt（5 个任务，含常量列表、链路连线）导入成功；故意把字典输出接到列表输入的任务在列表页显示「针脚类型不匹配」红条，说明 `check()` 正常。
+- 仍未在真机跑通的项（需人工点运行后再看）：连接文本 / 去重 / 统计 / 转 JSON 的运行结果、遍历与排序卡在子流程里的实际表现、编辑器改动保存后重开的一致性；本轮只验证到 UI 与加载层面。
+
+
 
 
 

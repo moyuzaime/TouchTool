@@ -222,6 +222,7 @@ public enum ActionType {
     LIST_FILTER,
     LIST_MAP,
     LIST_FIND_FIRST,
+    LIST_TO_JSON,
 
     // 字典
     MAP_MAKE,
@@ -240,6 +241,7 @@ public enum ActionType {
     MAP_KEYS_VALUES,
     MAP_SORT,
     MAP_INVERT,
+    MAP_TO_JSON,
     MAP_FOREACH,
 
     // 文件

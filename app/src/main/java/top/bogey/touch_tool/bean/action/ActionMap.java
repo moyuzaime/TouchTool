@@ -144,7 +144,6 @@ public class ActionMap {
                     ActionType.FIND_OCR_TEXT,
                     ActionType.IS_OCR_TEXT_EXIST,
                     ActionType.PARSE_JSON,
-                    ActionType.TO_JSON,
                     ActionType.STRING_FROM_OBJECT,
                     ActionType.STRING_TO_SINGLE_SELECT
             ));
@@ -233,7 +232,8 @@ public class ActionMap {
                     ActionType.LIST_JOIN,
                     ActionType.LIST_FILTER,
                     ActionType.LIST_MAP,
-                    ActionType.LIST_FIND_FIRST
+                    ActionType.LIST_FIND_FIRST,
+                    ActionType.LIST_TO_JSON
             ));
 
             case MAP -> list.addAll(Arrays.asList(
@@ -249,7 +249,8 @@ public class ActionMap {
                     ActionType.MAP_CLEAR,
                     ActionType.MAP_KEYS_VALUES,
                     ActionType.MAP_SORT,
-                    ActionType.MAP_INVERT
+                    ActionType.MAP_INVERT,
+                    ActionType.MAP_TO_JSON
             ));
 
             case THREAD -> list.addAll(Arrays.asList(

@@ -469,9 +469,9 @@
     <string name="parse_json_action">JSON解析</string>
     <string name="parse_json_action_desc">解析JSON字符串</string>
 
-    <string name="to_json_action">列表字典转JSON</string>
-    <string name="to_json_action_desc">把列表或字典转换成 JSON 文本，可被「JSON解析」还原</string>
-    <string name="to_json_action_result">JSON文本</string>
+    <string name="list_to_json_action">列表转JSON</string>
+    <string name="list_to_json_action_desc">把列表转换成 JSON 文本，可被「JSON解析」还原</string>
+    <string name="list_to_json_action_result">JSON文本</string>
 
     <string name="string_to_single_select_action">新建单选</string>
     <string name="string_to_single_select_action_desc">创建一个自定义单选</string>
@@ -892,6 +892,10 @@
     <string name="map_invert_action">字典键值互换</string>
     <string name="map_invert_action_desc">把字典的键和值互换，值需要能作为键</string>
     <string name="map_invert_action_result">新字典</string>
+
+    <string name="map_to_json_action">字典转JSON</string>
+    <string name="map_to_json_action_desc">把字典转换成 JSON 文本，可被「JSON解析」还原</string>
+    <string name="map_to_json_action_result">JSON文本</string>
 
     <string name="map_foreach_action">遍历字典</string>
     <string name="map_foreach_action_desc">遍历字典中的每个键值对</string>

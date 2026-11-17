@@ -136,14 +136,16 @@ public class PinContainerValueDialog extends FrameLayout {
     }
 
     private String getTypeTitle(Row row) {
-        if (mapMode) return getTypeTitle(keyType) + " → " + getTypeTitle(valueType);
-        return getTypeTitle(valueType);
+        if (mapMode) return getTypeTitle(keyType, row.key()) + " → " + getTypeTitle(valueType, row.value());
+        return getTypeTitle(valueType, row.value());
     }
 
-    private String getTypeTitle(PinObject type) {
+    // 容器类型是动态时按元素 / 键值的实际类型显示
+    private String getTypeTitle(PinObject type, PinObject value) {
+        PinObject titleType = (type == null || type.isDynamic()) && value != null ? value : type;
         String title = "";
-        if (type != null) {
-            PinInfo info = PinInfo.getPinInfo(type);
+        if (titleType != null) {
+            PinInfo info = PinInfo.getPinInfo(titleType);
             if (info != null) title = info.getTitle();
         }
         if (PinValueUtil.isTextEditable(type)) return title;

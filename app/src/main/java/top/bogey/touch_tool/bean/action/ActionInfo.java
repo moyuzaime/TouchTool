@@ -66,6 +66,7 @@ import top.bogey.touch_tool.bean.action.list.ListSizeAction;
 import top.bogey.touch_tool.bean.action.list.ListSortAction;
 import top.bogey.touch_tool.bean.action.list.ListStatisticsAction;
 import top.bogey.touch_tool.bean.action.list.ListSubListAction;
+import top.bogey.touch_tool.bean.action.list.ListToJsonAction;
 import top.bogey.touch_tool.bean.action.list.MakeListAction;
 import top.bogey.touch_tool.bean.action.logic.ChoiceExecuteAction;
 import top.bogey.touch_tool.bean.action.logic.ForLoopAction;
@@ -93,6 +94,7 @@ import top.bogey.touch_tool.bean.action.map.MapRemoveAction;
 import top.bogey.touch_tool.bean.action.map.MapSetAction;
 import top.bogey.touch_tool.bean.action.map.MapSizeAction;
 import top.bogey.touch_tool.bean.action.map.MapSortAction;
+import top.bogey.touch_tool.bean.action.map.MapToJsonAction;
 import top.bogey.touch_tool.bean.action.node.CheckNodeValidAction;
 import top.bogey.touch_tool.bean.action.node.EditTextInputAction;
 import top.bogey.touch_tool.bean.action.node.EditTextPasteAction;
@@ -158,7 +160,6 @@ import top.bogey.touch_tool.bean.action.string.StringSplitAction;
 import top.bogey.touch_tool.bean.action.string.StringSubStringAction;
 import top.bogey.touch_tool.bean.action.string.StringToNumberAction;
 import top.bogey.touch_tool.bean.action.string.StringToSingleSelectAction;
-import top.bogey.touch_tool.bean.action.string.ToJsonAction;
 import top.bogey.touch_tool.bean.action.system.CheckCaptureReadyAction;
 import top.bogey.touch_tool.bean.action.system.ExecuteShellAction;
 import top.bogey.touch_tool.bean.action.system.GetBatteryStatusAction;
@@ -354,7 +355,6 @@ public class ActionInfo {
     private final static ActionInfo IS_OCR_TEXT_EXIST_INFO = new ActionInfo(ActionType.IS_OCR_TEXT_EXIST, IsOcrTextExistAction.class, R.drawable.icon_document_scanner, R.string.is_ocr_text_exist_action, R.string.is_ocr_text_exist_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo FIND_OCR_TEXT_INFO = new ActionInfo(ActionType.FIND_OCR_TEXT, FindOcrTextAction.class, R.drawable.icon_document_scanner, R.string.find_ocr_text_action, R.string.find_ocr_text_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo PARSE_JSON_INFO = new ActionInfo(ActionType.PARSE_JSON, ParseJsonAction.class, R.drawable.icon_text_fields, R.string.parse_json_action, R.string.parse_json_action_desc, 0, NormalActionCard.class);
-    private final static ActionInfo TO_JSON_INFO = new ActionInfo(ActionType.TO_JSON, ToJsonAction.class, R.drawable.icon_text_fields, R.string.to_json_action, R.string.to_json_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo STRING_TO_SINGLE_SELECT_INFO = new ActionInfo(ActionType.STRING_TO_SINGLE_SELECT, StringToSingleSelectAction.class, R.drawable.icon_text_fields, R.string.string_to_single_select_action, R.string.string_to_single_select_action_desc, 0, NormalActionCard.class);
 
 
@@ -446,6 +446,7 @@ public class ActionInfo {
     private final static ActionInfo LIST_FILTER_INFO = new ActionInfo(ActionType.LIST_FILTER, ListFilterAction.class, R.drawable.icon_check_circle, R.string.list_filter_action, R.string.list_filter_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo LIST_MAP_INFO = new ActionInfo(ActionType.LIST_MAP, ListMapAction.class, R.drawable.icon_swap_horiz, R.string.list_map_action, R.string.list_map_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo LIST_FIND_FIRST_INFO = new ActionInfo(ActionType.LIST_FIND_FIRST, ListFindFirstAction.class, R.drawable.icon_search, R.string.list_find_first_action, R.string.list_find_first_action_desc, 0, NormalActionCard.class);
+    private final static ActionInfo LIST_TO_JSON_INFO = new ActionInfo(ActionType.LIST_TO_JSON, ListToJsonAction.class, R.drawable.icon_text_fields, R.string.list_to_json_action, R.string.list_to_json_action_desc, 0, NormalActionCard.class);
 
 
     // Map操作
@@ -465,6 +466,7 @@ public class ActionInfo {
     private final static ActionInfo MAP_KEYS_VALUES_INFO = new ActionInfo(ActionType.MAP_KEYS_VALUES, MapKeysValuesAction.class, R.drawable.icon_data_array, R.string.map_keys_values_action, R.string.map_keys_values_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo MAP_SORT_INFO = new ActionInfo(ActionType.MAP_SORT, MapSortAction.class, R.drawable.icon_swap_horiz, R.string.map_sort_action, R.string.map_sort_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo MAP_INVERT_INFO = new ActionInfo(ActionType.MAP_INVERT, MapInvertAction.class, R.drawable.icon_swap_horiz, R.string.map_invert_action, R.string.map_invert_action_desc, 0, NormalActionCard.class);
+    private final static ActionInfo MAP_TO_JSON_INFO = new ActionInfo(ActionType.MAP_TO_JSON, MapToJsonAction.class, R.drawable.icon_text_fields, R.string.map_to_json_action, R.string.map_to_json_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo MAP_FOREACH_INFO = new ActionInfo(ActionType.MAP_FOREACH, MapForeachAction.class, R.drawable.icon_repeat, R.string.map_foreach_action, R.string.map_foreach_action_desc, 0, NormalActionCard.class);
 
     private final static ActionInfo WRITE_FILE_LINE_INFO = new ActionInfo(ActionType.WRITE_FILE_LINE, WriteFileLineAction.class, R.drawable.icon_save, R.string.file_action_write_line, R.string.file_action_write_line_desc, 0, NormalActionCard.class);
@@ -605,7 +607,6 @@ public class ActionInfo {
             case FIND_OCR_TEXT -> FIND_OCR_TEXT_INFO;
             case IS_OCR_TEXT_EXIST -> IS_OCR_TEXT_EXIST_INFO;
             case PARSE_JSON -> PARSE_JSON_INFO;
-            case TO_JSON -> TO_JSON_INFO;
             case STRING_TO_SINGLE_SELECT -> STRING_TO_SINGLE_SELECT_INFO;
 
 
@@ -692,6 +693,7 @@ public class ActionInfo {
             case LIST_FILTER -> LIST_FILTER_INFO;
             case LIST_MAP -> LIST_MAP_INFO;
             case LIST_FIND_FIRST -> LIST_FIND_FIRST_INFO;
+            case LIST_TO_JSON -> LIST_TO_JSON_INFO;
 
 
             case MAP_MAKE -> MAP_MAKE_INFO;
@@ -710,6 +712,7 @@ public class ActionInfo {
             case MAP_KEYS_VALUES -> MAP_KEYS_VALUES_INFO;
             case MAP_SORT -> MAP_SORT_INFO;
             case MAP_INVERT -> MAP_INVERT_INFO;
+            case MAP_TO_JSON -> MAP_TO_JSON_INFO;
             case MAP_FOREACH -> MAP_FOREACH_INFO;
 
             case WRITE_FILE_LINE -> WRITE_FILE_LINE_INFO;

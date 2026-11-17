@@ -14,9 +14,9 @@ import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinString;
  */
 public class PinValueUtil {
 
-    // 按声明的类型新建一个值，类型未知时复制类型对象兜底
+    // 按声明的类型新建一个值，动态类型按文本处理（空列表 / 空字典能直接填常量）
     public static PinObject newValue(PinObject type) {
-        if (type == null) return new PinObject(PinSubType.DYNAMIC);
+        if (type == null || type.isDynamic()) return new PinString();
         PinInfo info = PinInfo.getPinInfo(type);
         if (info != null) {
             PinBase value = info.newInstance();
@@ -25,9 +25,10 @@ public class PinValueUtil {
         return (PinObject) type.copy();
     }
 
-    // 能否用文本直接编辑，单选项需要选择器，这里不支持
+    // 能否用文本直接编辑：动态类型按文本处理，单选项需要选择器这里不支持
     public static boolean isTextEditable(PinObject type) {
-        if (type == null || type instanceof PinSingleSelect) return false;
+        if (type == null || type.isDynamic()) return true;
+        if (type instanceof PinSingleSelect) return false;
         return type instanceof PinString || type instanceof PinBoolean
                 || type instanceof PinInteger || type instanceof PinFloat
                 || type instanceof PinDouble || type instanceof PinLong;
@@ -35,6 +36,7 @@ public class PinValueUtil {
 
     // 新建值时的默认文本
     public static String getDefaultText(PinObject type) {
+        if (type == null || type.isDynamic()) return "";
         if (type instanceof PinBoolean) return "false";
         if (type instanceof PinNumber<?>) return "0";
         return "";
