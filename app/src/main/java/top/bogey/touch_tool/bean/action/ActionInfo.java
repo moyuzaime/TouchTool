@@ -161,6 +161,13 @@ import top.bogey.touch_tool.bean.action.string.StringSplitAction;
 import top.bogey.touch_tool.bean.action.string.StringSubStringAction;
 import top.bogey.touch_tool.bean.action.string.StringToNumberAction;
 import top.bogey.touch_tool.bean.action.string.StringToSingleSelectAction;
+import top.bogey.touch_tool.bean.action.string.TypeNameAction;
+import top.bogey.touch_tool.bean.action.bool.IsBooleanAction;
+import top.bogey.touch_tool.bean.action.bool.IsListAction;
+import top.bogey.touch_tool.bean.action.bool.IsMapAction;
+import top.bogey.touch_tool.bean.action.bool.IsNumberAction;
+import top.bogey.touch_tool.bean.action.bool.IsTextAction;
+import top.bogey.touch_tool.bean.action.number.ToNumberAction;
 import top.bogey.touch_tool.bean.action.system.CheckCaptureReadyAction;
 import top.bogey.touch_tool.bean.action.system.ExecuteShellAction;
 import top.bogey.touch_tool.bean.action.system.GetBatteryStatusAction;
@@ -356,6 +363,13 @@ public class ActionInfo {
     private final static ActionInfo IS_OCR_TEXT_EXIST_INFO = new ActionInfo(ActionType.IS_OCR_TEXT_EXIST, IsOcrTextExistAction.class, R.drawable.icon_document_scanner, R.string.is_ocr_text_exist_action, R.string.is_ocr_text_exist_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo FIND_OCR_TEXT_INFO = new ActionInfo(ActionType.FIND_OCR_TEXT, FindOcrTextAction.class, R.drawable.icon_document_scanner, R.string.find_ocr_text_action, R.string.find_ocr_text_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo PARSE_JSON_INFO = new ActionInfo(ActionType.PARSE_JSON, ParseJsonAction.class, R.drawable.icon_text_fields, R.string.parse_json_action, R.string.parse_json_action_desc, 0, NormalActionCard.class);
+    private final static ActionInfo IS_TEXT_INFO = new ActionInfo(ActionType.IS_TEXT, IsTextAction.class, R.drawable.icon_check, R.string.is_text_action, R.string.is_text_action_desc, 0, NormalActionCard.class);
+    private final static ActionInfo IS_NUMBER_INFO = new ActionInfo(ActionType.IS_NUMBER, IsNumberAction.class, R.drawable.icon_123, R.string.is_number_action, R.string.is_number_action_desc, 0, NormalActionCard.class);
+    private final static ActionInfo IS_BOOLEAN_INFO = new ActionInfo(ActionType.IS_BOOLEAN, IsBooleanAction.class, R.drawable.icon_check, R.string.is_boolean_action, R.string.is_boolean_action_desc, 0, NormalActionCard.class);
+    private final static ActionInfo IS_LIST_INFO = new ActionInfo(ActionType.IS_LIST, IsListAction.class, R.drawable.icon_data_array, R.string.is_list_action, R.string.is_list_action_desc, 0, NormalActionCard.class);
+    private final static ActionInfo IS_MAP_INFO = new ActionInfo(ActionType.IS_MAP, IsMapAction.class, R.drawable.icon_map, R.string.is_map_action, R.string.is_map_action_desc, 0, NormalActionCard.class);
+    private final static ActionInfo TO_NUMBER_INFO = new ActionInfo(ActionType.TO_NUMBER, ToNumberAction.class, R.drawable.icon_123, R.string.to_number_action, R.string.to_number_action_desc, 0, NormalActionCard.class);
+    private final static ActionInfo TYPE_NAME_INFO = new ActionInfo(ActionType.TYPE_NAME, TypeNameAction.class, R.drawable.icon_text_fields, R.string.type_name_action, R.string.type_name_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo STRING_TO_SINGLE_SELECT_INFO = new ActionInfo(ActionType.STRING_TO_SINGLE_SELECT, StringToSingleSelectAction.class, R.drawable.icon_text_fields, R.string.string_to_single_select_action, R.string.string_to_single_select_action_desc, 0, NormalActionCard.class);
 
 
@@ -609,6 +623,13 @@ public class ActionInfo {
             case FIND_OCR_TEXT -> FIND_OCR_TEXT_INFO;
             case IS_OCR_TEXT_EXIST -> IS_OCR_TEXT_EXIST_INFO;
             case PARSE_JSON -> PARSE_JSON_INFO;
+            case IS_TEXT -> IS_TEXT_INFO;
+            case IS_NUMBER -> IS_NUMBER_INFO;
+            case IS_BOOLEAN -> IS_BOOLEAN_INFO;
+            case IS_LIST -> IS_LIST_INFO;
+            case IS_MAP -> IS_MAP_INFO;
+            case TO_NUMBER -> TO_NUMBER_INFO;
+            case TYPE_NAME -> TYPE_NAME_INFO;
             case STRING_TO_SINGLE_SELECT -> STRING_TO_SINGLE_SELECT_INFO;
 
 

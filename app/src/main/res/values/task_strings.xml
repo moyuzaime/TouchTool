@@ -733,6 +733,24 @@
     <string name="container_type_mode_pin">类型模式</string>
     <string name="pin_output_type">输出类型</string>
 
+    <string name="is_text_action">是否为文本</string>
+    <string name="is_text_action_desc">判断值是否为文本</string>
+    <string name="is_number_action">是否为数字</string>
+    <string name="is_number_action_desc">判断值是否为数字（整数 / 浮点 / 长整都算数字）</string>
+    <string name="is_boolean_action">是否为布尔</string>
+    <string name="is_boolean_action_desc">判断值是否为布尔</string>
+    <string name="is_list_action">是否为列表</string>
+    <string name="is_list_action_desc">判断值是否为列表</string>
+    <string name="is_map_action">是否为字典</string>
+    <string name="is_map_action_desc">判断值是否为字典</string>
+    <string name="to_number_action">转数字</string>
+    <string name="to_number_action_desc">把文本 / 布尔 / 数字转成数字，失败输出 0 并置成功为 false</string>
+    <string name="to_number_action_result">数字</string>
+    <string name="to_number_action_success">是否成功</string>
+    <string name="type_name_action">取类型名</string>
+    <string name="type_name_action_desc">输出值的类型名：TEXT / NUMBER / BOOLEAN / LIST / MAP / OBJECT</string>
+    <string name="type_name_action_result">类型名</string>
+
     <string name="list_size_action">列表长度</string>
     <string name="list_size_action_desc">获取列表长度</string>
 

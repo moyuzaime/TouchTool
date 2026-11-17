@@ -719,6 +719,17 @@ feat(node): 获取控件信息默认收起扩展属性
 - **遍历的任意类型传播**：`ListForeach` / `MapForeach` 在容器来源是显式任意类型时，元素 / 键 / 值针脚跟着 `markTypeAny()`；具体类型的首连定型仍由 `LinkEventHandler` 写入。
 - 至此 5.2 完成。下一步 5.3：类型判断（是否文本/数字/布尔/列表/字典）与转换（转文本 / 转数字 / 取类型名）动作。
 
+## 66. Step 5.3：类型判断与转换动作
+
+- 位置：新增 `bean/action/bool/IsTextAction.java`、`IsNumberAction.java`、`IsBooleanAction.java`、`IsListAction.java`、`IsMapAction.java`、`bean/action/number/ToNumberAction.java`、`bean/action/string/TypeNameAction.java`；改动 `ActionType.java`、`ActionInfo.java`、`ActionMap.java`、`res/values/task_strings.xml`
+- **类型判断（条件 / BOOLEAN 分组）**：是否为文本 / 数字 / 布尔 / 列表 / 字典，动态输入 + 布尔输出；「是否为文本」把单选也算文本（`PinString` 的子类）。
+- **转数字（数值分组）**：文本 / 布尔 / 数字都能转，成功输出数值、`是否成功 = true`；失败输出 `0`、`是否成功 = false`（文本为空或非数字时走这条）。
+- **取类型名（文本分组）**：输出稳定英文枚举名 `TEXT / NUMBER / BOOLEAN / LIST / MAP / OBJECT`，中文说明交给界面。
+- **没有新增「转文本」**：已有的「对象转文本」（`STRING_FROM_OBJECT`）行为与方案一致，重复加一张卡没有意义；容器值受 OBJECT 组的连线规则限制本来就进不了对象针脚，容器转文本请用「列表连接文本」或「列表 / 字典转JSON」。
+- 这些动作独立于容器基类，不参与 `typeRef` 声明，可先于 Step 5 其余部分单独使用。
+- 至此 5.3 完成。剩余 5.4：编辑器与槽位改读 `typeRef`（`[n*]` / `[n?]`）、ANY 容器逐行不同类型 + 类型徽标、`ANY → 具体` 被拒时的提示文案。
+
+
 
 
 

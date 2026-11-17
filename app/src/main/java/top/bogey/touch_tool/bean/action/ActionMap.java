@@ -113,6 +113,7 @@ public class ActionMap {
             ));
 
             case NUMBER -> list.addAll(Arrays.asList(
+                    ActionType.TO_NUMBER,
                     ActionType.NUMBER_ADD,
                     ActionType.NUMBER_SUB,
                     ActionType.NUMBER_MUL,
@@ -130,6 +131,7 @@ public class ActionMap {
             ));
 
             case STRING -> list.addAll(Arrays.asList(
+                    ActionType.TYPE_NAME,
                     ActionType.STRING_TO_NUMBER,
                     ActionType.STRING_APPEND,
                     ActionType.STRING_SUBSTRING,
@@ -149,7 +151,12 @@ public class ActionMap {
             ));
 
              case BOOLEAN -> list.addAll(Arrays.asList(
-                      ActionType.BOOLEAN_AND,
+                      ActionType.IS_TEXT,
+                    ActionType.IS_NUMBER,
+                    ActionType.IS_BOOLEAN,
+                    ActionType.IS_LIST,
+                    ActionType.IS_MAP,
+                    ActionType.BOOLEAN_AND,
                        ActionType.BOOLEAN_NOT
              ));
 

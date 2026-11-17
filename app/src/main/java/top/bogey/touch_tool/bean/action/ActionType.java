@@ -133,6 +133,15 @@ public enum ActionType {
     IS_OCR_TEXT_EXIST,
     PARSE_JSON,
     TO_JSON,
+
+    // 类型判断 / 转换
+    IS_TEXT,
+    IS_NUMBER,
+    IS_BOOLEAN,
+    IS_LIST,
+    IS_MAP,
+    TO_NUMBER,
+    TYPE_NAME,
     STRING_ENCODE,
     STRING_DECODE,
     STRING_ENCRYPT,
