@@ -1,7 +1,10 @@
 package top.bogey.touch_tool.ui.blueprint.code;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.graphics.Point;
+import android.graphics.drawable.ColorDrawable;
 import android.text.Editable;
 import android.text.Layout;
 import android.view.LayoutInflater;
@@ -32,10 +35,14 @@ import top.bogey.touch_tool.bean.save.TagSaver;
 import top.bogey.touch_tool.bean.task.Task;
 import top.bogey.touch_tool.databinding.DialogTaskCodeBinding;
 import top.bogey.touch_tool.utils.AppUtil;
+import top.bogey.touch_tool.utils.DisplayUtil;
 import top.bogey.touch_tool.utils.listener.TextChangedListener;
 
 // 任务代码对话框：整任务以 JSON 文本编辑；工具条按钮只改文本，保存时统一校验回写
 public class TaskCodeDialog {
+    // 记住上次搜索词，重复点搜索时不用重新输入
+    private static String lastSearch = "";
+
     public interface DocumentListener {
         void onSave(String text) throws TaskCode.TaskCodeException;
     }
@@ -108,10 +115,11 @@ public class TaskCodeDialog {
 
     private static void showText(Context context, int titleRes, String code, String focusActionId, DocumentListener listener, Runnable onSaved) {
         DialogTaskCodeBinding binding = DialogTaskCodeBinding.inflate(LayoutInflater.from(context));
+        binding.codeTitle.setText(titleRes);
         binding.codeEdit.setText(code);
         binding.codeEdit.setSelection(0);
 
-        // 工具条只改编辑框里的文本，真正的回写仍走保存时的 TaskCode.apply
+        // 结构工具：只改编辑框里的文本，真正的回写仍走保存时的 TaskCode.apply
         binding.chipTitle.setOnClickListener(v -> editField(context, binding, "title", R.string.task_code_field_title));
         binding.chipDescription.setOnClickListener(v -> editField(context, binding, "description", R.string.task_code_field_description));
         binding.chipFlag.setOnClickListener(v -> editFlag(context, binding));
@@ -121,25 +129,29 @@ public class TaskCodeDialog {
         binding.chipAction.setOnClickListener(v -> editActions(context, binding));
         binding.chipLocate.setOnClickListener(v -> locateCard(context, binding));
 
+        // 文本工具：直接作用于编辑框文本，光标位置保留
+        binding.chipSearch.setOnClickListener(v -> searchText(context, binding));
+        binding.chipCopy.setOnClickListener(v -> copyText(context, binding));
+        binding.chipPaste.setOnClickListener(v -> pasteText(context, binding));
+        binding.chipDelete.setOnClickListener(v -> deleteText(context, binding));
+        binding.chipFormat.setOnClickListener(v -> format(context, binding));
+
         AlertDialog dialog = new MaterialAlertDialogBuilder(context)
-                .setTitle(titleRes)
                 .setView(binding.getRoot())
-                .setPositiveButton(R.string.save, null)
-                .setNegativeButton(R.string.cancel, null)
-                .setNeutralButton(R.string.task_code_format, null)
                 .create();
 
         dialog.setOnShowListener(d -> {
-            // 代码编辑需要尽量大的输入区，窗口铺满并在键盘弹出时让出空间
+            // 全屏：铺满窗口，去掉对话框圆角背景，键盘弹出时让出空间
             Window window = dialog.getWindow();
             if (window != null) {
                 window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+                window.setBackgroundDrawable(new ColorDrawable(DisplayUtil.getAttrColor(context, com.google.android.material.R.attr.colorSurface)));
                 window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
             }
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> saveText(context, binding, dialog, listener, onSaved));
-            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> format(context, binding));
+            binding.codeClose.setOnClickListener(v -> dialog.dismiss());
+            binding.codeSave.setOnClickListener(v -> saveText(context, binding, dialog, listener, onSaved));
         });
-        // 编辑中的长文本误触外面就丢了，关掉外部点击关闭；取消与返回键仍可退出
+        // 编辑中的长文本误触外面就丢了，关掉外部点击关闭；返回键仍可退出
         dialog.setCanceledOnTouchOutside(false);
 
         // 改过内容就把上一次的报错收起来，避免旧错误一直挂着
@@ -151,7 +163,6 @@ public class TaskCodeDialog {
         });
 
         dialog.show();
-
         if (focusActionId != null) {
             binding.codeEdit.post(() -> jumpToActionId(context, binding, focusActionId));
         }
@@ -530,17 +541,7 @@ public class TaskCodeDialog {
 
         binding.codeEdit.requestFocus();
         binding.codeEdit.setSelection(start);
-        binding.codeEdit.post(() -> {
-            Layout layout = binding.codeEdit.getLayout();
-            if (layout == null) {
-                binding.codeEdit.bringPointIntoView(start);
-                return;
-            }
-            int top = layout.getLineTop(layout.getLineForOffset(start));
-            int padding = binding.codeEdit.getPaddingTop() + binding.codeEdit.getPaddingBottom();
-            int height = Math.max(1, binding.codeEdit.getHeight() - padding);
-            binding.codeEdit.scrollTo(0, Math.max(0, top - height / 3));
-        });
+        binding.codeEdit.post(() -> scrollToOffset(binding, start));
     }
 
     // 找出形如 "id": "<actionId>" 的键位置（连线的值也含动作 id，不能直接 indexOf）
@@ -564,8 +565,7 @@ public class TaskCodeDialog {
     }
 
     // 从位置往外找最小的完整 JSON 对象范围，用于选中整张卡片的代码
-    private static int[] findEnclosingObjectSpan(String text, int index) {
-        int bestStart = -1;
+    private static int[] findEnclosingObjectSpan(String text, int index) {        int bestStart = -1;
         int bestEnd = -1;
         List<Integer> stack = new ArrayList<>();
         boolean inString = false;
@@ -591,6 +591,187 @@ public class TaskCodeDialog {
             }
         }
         return bestStart < 0 ? null : new int[]{bestStart, bestEnd};
+    }
+
+    // 搜索：从光标后找下一处，找不到就从头再找
+    private static void searchText(Context context, DialogTaskCodeBinding binding) {
+        String text = currentText(binding);
+        int selectionStart = binding.codeEdit.getSelectionStart();
+        int selectionEnd = binding.codeEdit.getSelectionEnd();
+        String selected = selectionStart >= 0 && selectionEnd > selectionStart
+                ? text.substring(Math.min(selectionStart, text.length()), Math.min(selectionEnd, text.length())) : "";
+        String query = lastSearch.isEmpty() ? selected : lastSearch;
+
+        AppUtil.showEditDialog(context, R.string.task_code_search, query, result -> {
+            if (result == null || result.isEmpty()) return;
+            lastSearch = result;
+            int from = Math.max(binding.codeEdit.getSelectionEnd(), 0);
+            int index = text.indexOf(result, Math.min(from, text.length()));
+            if (index < 0) index = text.indexOf(result);
+            if (index < 0) {
+                Toast.makeText(context, R.string.task_code_search_not_found, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            binding.codeEdit.requestFocus();
+            binding.codeEdit.setSelection(index, index + result.length());
+            final int found = index;
+            binding.codeEdit.post(() -> scrollToOffset(binding, found));
+        });
+    }
+
+    // 复制：优先复制选中内容，否则复制光标所在的整张卡片，再否则复制全文
+    private static void copyText(Context context, DialogTaskCodeBinding binding) {
+        String text = currentText(binding);
+        int start = binding.codeEdit.getSelectionStart();
+        int end = binding.codeEdit.getSelectionEnd();
+
+        String copied;
+        if (start >= 0 && end > start) {
+            copied = text.substring(Math.min(start, text.length()), Math.min(end, text.length()));
+        } else {
+            int index = Math.max(0, Math.min(start, text.length() - 1));
+            int[] span = findActionSpanAt(text, index);
+            copied = span == null ? text : text.substring(span[0], span[1]);
+        }
+        if (copied.isEmpty()) {
+            Toast.makeText(context, R.string.task_code_copy_empty, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        ClipboardManager manager = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+        if (manager != null) manager.setPrimaryClip(ClipData.newPlainText("task_code", copied));
+        Toast.makeText(context, context.getString(R.string.task_code_copied, copied.length()), Toast.LENGTH_SHORT).show();
+    }
+
+    // 粘贴：在光标处插入剪贴板文本，光标停在新内容之后
+    private static void pasteText(Context context, DialogTaskCodeBinding binding) {
+        String clip = readClipboard(context);
+        if (clip.isEmpty()) {
+            Toast.makeText(context, R.string.task_code_paste_empty, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String text = currentText(binding);
+        int start = Math.max(0, Math.min(binding.codeEdit.getSelectionStart(), text.length()));
+        int end = Math.max(start, Math.min(binding.codeEdit.getSelectionEnd(), text.length()));
+        String newText = text.substring(0, start) + clip + text.substring(end);
+        int cursor = Math.min(start + clip.length(), newText.length());
+
+        binding.codeEdit.setText(newText);
+        binding.codeEdit.setSelection(cursor);
+        binding.codeEdit.post(() -> scrollToOffset(binding, cursor));
+        hideError(binding);
+    }
+
+    // 删除：有选中就删选中，否则删光标所在的整张卡片（含前后逗号）
+    private static void deleteText(Context context, DialogTaskCodeBinding binding) {
+        String text = currentText(binding);
+        int start = binding.codeEdit.getSelectionStart();
+        int end = binding.codeEdit.getSelectionEnd();
+        if (start < 0) return;
+
+        if (start == end) {
+            int index = Math.max(0, Math.min(start, text.length() - 1));
+            int[] span = findActionSpanAt(text, index);
+            if (span == null) {
+                Toast.makeText(context, R.string.task_code_delete_nothing, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            int[] range = expandForRemoval(text, span[0], span[1]);
+            start = range[0];
+            end = range[1];
+        }
+        if (end <= start) return;
+
+        String newText = text.substring(0, Math.min(start, text.length())) + text.substring(Math.min(end, text.length()));
+        int cursor = Math.min(start, newText.length());
+        binding.codeEdit.setText(newText);
+        binding.codeEdit.setSelection(cursor);
+        binding.codeEdit.post(() -> scrollToOffset(binding, cursor));
+        hideError(binding);
+    }
+
+    private static String currentText(DialogTaskCodeBinding binding) {
+        CharSequence text = binding.codeEdit.getText();
+        return text == null ? "" : text.toString();
+    }
+
+    private static String readClipboard(Context context) {
+        ClipboardManager manager = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+        if (manager == null || !manager.hasPrimaryClip()) return "";
+        ClipData clip = manager.getPrimaryClip();
+        if (clip == null || clip.getItemCount() == 0) return "";
+        CharSequence text = clip.getItemAt(0).coerceToText(context);
+        return text == null ? "" : text.toString();
+    }
+
+    private static void scrollToOffset(DialogTaskCodeBinding binding, int offset) {
+        int clamped = Math.max(0, Math.min(offset, binding.codeEdit.length()));
+        Layout layout = binding.codeEdit.getLayout();
+        if (layout == null) {
+            binding.codeEdit.bringPointIntoView(clamped);
+            return;
+        }
+        int top = layout.getLineTop(layout.getLineForOffset(clamped));
+        int padding = binding.codeEdit.getPaddingTop() + binding.codeEdit.getPaddingBottom();
+        int height = Math.max(1, binding.codeEdit.getHeight() - padding);
+        binding.codeEdit.scrollTo(0, Math.max(0, top - height / 3));
+    }
+
+    // 光标所在动作（含子任务里的动作）的代码范围
+    private static int[] findActionSpanAt(String text, int index) {
+        JsonObject document;
+        try {
+            document = TaskCode.parseDocument(text);
+        } catch (TaskCode.TaskCodeException e) {
+            return null;
+        }
+
+        Set<String> actionIds = new HashSet<>();
+        collectActionIds(document, actionIds);
+        int[] best = null;
+        for (String actionId : actionIds) {
+            int key = findIdFieldIndex(text, actionId);
+            if (key < 0) continue;
+            int[] span = findEnclosingObjectSpan(text, key);
+            if (span == null || span[0] > index || index > span[1]) continue;
+            if (best == null || span[0] > best[0]) best = span;
+        }
+        return best;
+    }
+
+    private static void collectActionIds(JsonObject task, Set<String> ids) {
+        JsonElement actionsElement = task.get("actions");
+        if (actionsElement != null && actionsElement.isJsonArray()) {
+            for (JsonElement item : actionsElement.getAsJsonArray()) {
+                if (!item.isJsonObject()) continue;
+                String id = getString(item.getAsJsonObject(), "id");
+                if (id != null) ids.add(id);
+            }
+        }
+
+        JsonElement tasksElement = task.get("tasks");
+        if (tasksElement != null && tasksElement.isJsonArray()) {
+            for (JsonElement item : tasksElement.getAsJsonArray()) {
+                if (item.isJsonObject()) collectActionIds(item.getAsJsonObject(), ids);
+            }
+        }
+    }
+
+    // 删除一个对象时顺带处理前后的逗号，保证剩下的 JSON 依然合法
+    private static int[] expandForRemoval(String text, int start, int end) {
+        int i = end;
+        while (i < text.length() && Character.isWhitespace(text.charAt(i))) i++;
+        if (i < text.length() && text.charAt(i) == ',') {
+            i++;
+            while (i < text.length() && Character.isWhitespace(text.charAt(i))) i++;
+            return new int[]{start, i};
+        }
+
+        int j = start - 1;
+        while (j >= 0 && Character.isWhitespace(text.charAt(j))) j--;
+        if (j >= 0 && text.charAt(j) == ',') return new int[]{j, end};
+        return new int[]{start, end};
     }
 
     private static List<Integer> sortedActionIndexes(JsonArray actions) {

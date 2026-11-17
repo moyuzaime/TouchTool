@@ -3,25 +3,51 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
     android:orientation="vertical"
     android:paddingHorizontal="?attr/defaultPadding"
     android:paddingBottom="?attr/defaultPadding">
 
-    <TextView
-        android:id="@+id/codeTips"
+    <!-- 顶栏：关闭 / 标题 / 保存 -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingBottom="8dp"
-        android:text="@string/task_code_tips"
-        android:textColor="?attr/colorOnSurfaceVariant"
-        android:textSize="12sp" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingVertical="6dp">
 
+        <ImageButton
+            android:id="@+id/codeClose"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/close"
+            android:src="@drawable/icon_close" />
+
+        <TextView
+            android:id="@+id/codeTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+            android:textColor="?attr/colorOnSurface" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/codeSave"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/save" />
+    </LinearLayout>
+
+    <!-- 结构工具：任务字段与增删 -->
     <HorizontalScrollView
         android:id="@+id/codeToolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:overScrollMode="never"
-        android:paddingBottom="8dp"
         android:scrollbars="none">
 
         <LinearLayout
@@ -116,6 +142,75 @@
 
         </LinearLayout>
     </HorizontalScrollView>
+
+    <!-- 文本工具：等分一排 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingTop="4dp"
+        android:paddingBottom="8dp">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipSearch"
+            style="@style/Widget.Material3.Chip.Assist"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:checkable="false"
+            android:text="@string/task_code_search"
+            app:ensureMinTouchTargetSize="false" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipCopy"
+            style="@style/Widget.Material3.Chip.Assist"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            android:checkable="false"
+            android:text="@string/task_code_copy"
+            app:ensureMinTouchTargetSize="false" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipPaste"
+            style="@style/Widget.Material3.Chip.Assist"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            android:checkable="false"
+            android:text="@string/task_code_paste"
+            app:ensureMinTouchTargetSize="false" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipDelete"
+            style="@style/Widget.Material3.Chip.Assist"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            android:checkable="false"
+            android:text="@string/task_code_delete_text"
+            app:ensureMinTouchTargetSize="false" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="20dp"
+            android:layout_marginHorizontal="4dp"
+            android:background="?attr/colorOutlineVariant" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipFormat"
+            style="@style/Widget.Material3.Chip.Assist"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:checkable="false"
+            android:text="@string/task_code_format"
+            app:ensureMinTouchTargetSize="false" />
+    </LinearLayout>
 
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
