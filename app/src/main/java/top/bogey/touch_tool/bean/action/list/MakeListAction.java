@@ -13,10 +13,13 @@ import top.bogey.touch_tool.bean.action.ActionType;
 import top.bogey.touch_tool.bean.action.parent.DynamicPinsAction;
 import top.bogey.touch_tool.bean.pin.Pin;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinAdd;
+import top.bogey.touch_tool.bean.pin.pin_objects.PinBase;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinObject;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinSubType;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinTypeUtil;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_list.PinList;
+import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinSingleSelect;
+import top.bogey.touch_tool.bean.pin.special_pin.NotLinkAblePin;
 import top.bogey.touch_tool.bean.task.Task;
 import top.bogey.touch_tool.service.TaskRunnable;
 
@@ -24,23 +27,47 @@ public class MakeListAction extends ListCalculateAction implements DynamicPinsAc
     private final transient Pin morePin = new Pin(new PinObject(PinSubType.DYNAMIC), R.string.pin_object);
     private final transient Pin addPin = new Pin(new PinAdd(morePin), R.string.pin_add_pin);
     private final transient Pin listPin = new Pin(new PinList(), true);
+    // 类型模式：自动（首连定型）/ 任意类型，追加在针脚列表末尾
+    private final transient Pin modePin = new NotLinkAblePin(new PinSingleSelect(R.array.container_type_mode), R.string.container_type_mode_pin);
 
     public MakeListAction() {
         super(ActionType.LIST_MAKE);
         Pin firstPin = new Pin(new PinObject(PinSubType.DYNAMIC), R.string.pin_object, false, true);
-        addPins(firstPin, addPin, listPin);
+        addPins(firstPin, addPin, listPin, modePin);
+        applyTypeMode();
     }
 
     public MakeListAction(JsonObject jsonObject) {
         super(jsonObject);
+        // 老任务没有类型模式针脚，保持 typeRef 为 null 走兼容回退
+        boolean hasModePin = tmpPins.stream().anyMatch(pin -> pin.isSameClass(modePin));
         reAddPins(morePin, false);
         reAddPins(addPin, listPin);
+        reAddPin(modePin);
+        if (hasModePin) applyTypeMode();
 
         // 添加针脚的默认对象类型要符合列表
         PinObject valueType = listPin.getValue(PinList.class).getValueType();
         ArrayList<Pin> list = new ArrayList<>();
         list.add(new Pin(valueType.copy(), R.string.pin_object));
         addPin.getValue(PinAdd.class).setPins(list);
+    }
+
+    // 按类型模式写容器与元素针脚的声明：任意类型 → ANY，自动 → UNKNOWN 等首连定型
+    private void applyTypeMode() {
+        boolean any = modePin.getValue(PinSingleSelect.class).getIndex() == 1;
+        for (Pin pin : getDynamicPins()) {
+            if (any) pin.markTypeAny();
+            else pin.markTypeUnknown();
+        }
+        if (any) listPin.markTypeAny();
+        else listPin.markTypeUnknown();
+    }
+
+    @Override
+    public void onValueUpdated(Task task, Pin origin, PinBase value) {
+        super.onValueUpdated(task, origin, value);
+        if (origin == modePin) applyTypeMode();
     }
 
     @Override

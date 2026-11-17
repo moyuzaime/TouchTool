@@ -268,6 +268,17 @@ public class Pin extends Identity {
         return typeRef == null ? null : typeRef.getTemplate();
     }
 
+    // 字典声明里模板是一个 PinMap，键 / 值类型从这里取
+    public PinObject getTypeKeyTemplate() {
+        PinObject template = getTypeTemplate();
+        return template instanceof PinMap map ? map.getKeyType() : null;
+    }
+
+    public PinObject getTypeValueTemplate() {
+        PinObject template = getTypeTemplate();
+        return template instanceof PinMap map ? map.getValueType() : null;
+    }
+
     public void markTypeAny() {
         typeRef = PinTypeRef.any();
     }

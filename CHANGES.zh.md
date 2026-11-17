@@ -679,6 +679,19 @@ feat(node): 获取控件信息默认收起扩展属性
 - 现状与边界：目前还没有动作写 `typeRef`（5.1 起由新建列表/新建字典的类型模式针脚与 `LinkEventHandler` 写入），因此本轮行为与旧版一致，属纯增量。
 - **实现时发现的模型缺口（需要先定）**：方案 13.2 的 `template` 是单个 `PinObject`，但字典针脚的声明要同时表达「键类型」和「值类型」。建议二选一：`template` 存一个「键-值」模板 `PinMap`，或在 `PinTypeRef` 上再加 `keyTemplate` / `valueTemplate`。这一点定了 5.1 才好写。
 
+## 62. Step 5.1：容器「任意类型」模式与类型模式针脚
+
+- 位置：`bean/action/list/MakeListAction.java`、`bean/action/map/MakeMapAction.java`、`bean/action/list/ListActionLinkEventHandler.java`、`bean/action/map/MapActionLinkEventHandler.java`、`bean/pin/Pin.java`、`res/values/string_array.xml`、`res/values/task_strings.xml`
+- **统一模型**：字典沿用 `PinTypeRef.template` 存一个 `PinMap` 模板（键 / 值类型都在里面），`Pin` 新增 `getTypeKeyTemplate()` / `getTypeValueTemplate()` 取用；列表的模板就是元素类型。字典与列表共用同一套声明与连线规则。
+- **类型模式针脚**：新建列表 / 新建字典末尾追加「类型模式」（`R.array.container_type_mode`：自动 / 任意类型），默认自动，老任务匹配不到即自动。
+  - 任意类型：输出针脚与元素 / 键 / 值针脚全部 `markTypeAny()`；此时 `ANY → 具体` 拒绝连线，`ANY → ANY / UNKNOWN`、`具体 → ANY` 允许（Step 5.0 的规则生效）。
+  - 自动：声明写 `UNKNOWN` 等首连定型；老任务（存下来的针脚里没有类型模式）**保持 `typeRef = null`**，完全走旧的按值逻辑。
+  - 切换模式：`onValueUpdated` 里检测模式针脚变化后重写声明，不清空已填的常量。
+- **连线处理器**：`origin` 是显式任意类型时整段跳过首连定型（不再给值重新定型、不再递归传播），避免「声明 ANY、值却被改成某个具体类型」的打架。
+- 当前边界：自动模式的「首连定型」仍由旧的按值逻辑完成，声明停留在 `UNKNOWN`（不写 `CONCRETE`）——把定型结果写进声明属 5.2。
+- 后续：5.2 取值 / 遍历 / 派生动作的声明传播与 `ListGet`/`MapGet` 的输出类型选择；5.3 类型判断 / 转换动作；5.4 编辑器与槽位改读 `typeRef`（`[n*]` / `[n?]`）、`ANY → 具体` 被拒时的提示文案。
+
+
 
 
 

@@ -467,6 +467,11 @@
         <item>按键降序</item>
     </string-array>
 
+    <string-array name="container_type_mode">
+        <item>自动</item>
+        <item>任意类型</item>
+    </string-array>
+
     <string-array name="list_remove_mode">
         <item>按索引</item>
         <item>按对象</item>

@@ -19,6 +19,8 @@ public class ListActionLinkEventHandler {
     }
 
     public static void onLinkedTo(List<Pin> valuePins, Task task, Pin origin, Pin to, boolean direct) {
+        // 显式任意类型不做首连定型，交给类型判断/转换与带类型选择的取值
+        if (origin.isTypeAny()) return;
         if (!direct) {
             // 判断当前连接的针脚是否可以确定动态针脚类型
             int count = 0;
