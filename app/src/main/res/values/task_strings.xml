@@ -473,6 +473,10 @@
     <string name="list_to_json_action_desc">把列表转换成 JSON 文本，可被「JSON解析」还原</string>
     <string name="list_to_json_action_result">JSON文本</string>
 
+    <string name="json_to_list_action">JSON转列表</string>
+    <string name="json_to_list_action_desc">把 JSON 数组文本解析成列表，与「列表转JSON」配对</string>
+    <string name="json_to_list_action_result">结果列表</string>
+
     <string name="string_to_single_select_action">新建单选</string>
     <string name="string_to_single_select_action_desc">创建一个自定义单选</string>
     <string name="string_to_single_select_action_options">选项(可为空)</string>

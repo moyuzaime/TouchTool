@@ -223,6 +223,7 @@ public enum ActionType {
     LIST_MAP,
     LIST_FIND_FIRST,
     LIST_TO_JSON,
+    JSON_TO_LIST,
 
     // 字典
     MAP_MAKE,

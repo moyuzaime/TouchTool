@@ -24,7 +24,9 @@ import top.bogey.touch_tool.bean.pin.Pin;
 import top.bogey.touch_tool.bean.pin.PinInfo;
 import top.bogey.touch_tool.bean.pin.PinListener;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinBase;
+import top.bogey.touch_tool.bean.pin.pin_objects.PinMap;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinObject;
+import top.bogey.touch_tool.bean.pin.pin_objects.pin_list.PinList;
 import top.bogey.touch_tool.bean.pin.special_pin.AlwaysShowPin;
 import top.bogey.touch_tool.bean.pin.special_pin.NotShowPin;
 import top.bogey.touch_tool.bean.task.Task;
@@ -161,9 +163,13 @@ public abstract class PinView extends FrameLayout implements PinListener {
 
         TextView textView = getTitleView();
         if (textView != null) {
+            String title = pin.getTitle();
+            if (title == null) title = "";
+            // 容器针脚在标题后补长度，槽位只有 18dp 放不下文字
+            title = title + getContainerCount();
             textView.setVisibility(VISIBLE);
-            textView.setText(pin.getTitle());
-            if (pin.getTitle() == null || pin.getTitle().isEmpty()) {
+            textView.setText(title);
+            if (title.isEmpty()) {
                 if (pin.isVertical()) {
                     textView.setText(R.string.pin_execute);
                 } else {
@@ -198,8 +204,15 @@ public abstract class PinView extends FrameLayout implements PinListener {
         }
     }
 
-    public void refreshCopyButton() {
-        MaterialButton button = (MaterialButton) getCopyAndPasteButton();
+    // 列表显示 [n]、字典显示 {n}，空容器不显示
+    private String getContainerCount() {
+        PinBase value = pin.getValue();
+        if (value instanceof PinList list) return list.isEmpty() ? "" : "[" + list.size() + "]";
+        if (value instanceof PinMap map) return map.isEmpty() ? "" : "{" + map.size() + "}";
+        return "";
+    }
+
+    public void refreshCopyButton() {        MaterialButton button = (MaterialButton) getCopyAndPasteButton();
         if (button == null) return;
 
         boolean visible = (pin.getValue() instanceof PinObject) && (!pin.isLinked());

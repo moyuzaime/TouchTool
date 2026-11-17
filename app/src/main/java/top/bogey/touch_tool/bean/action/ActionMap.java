@@ -233,7 +233,8 @@ public class ActionMap {
                     ActionType.LIST_FILTER,
                     ActionType.LIST_MAP,
                     ActionType.LIST_FIND_FIRST,
-                    ActionType.LIST_TO_JSON
+                    ActionType.LIST_TO_JSON,
+                    ActionType.JSON_TO_LIST
             ));
 
             case MAP -> list.addAll(Arrays.asList(

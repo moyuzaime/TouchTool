@@ -55,6 +55,7 @@ import top.bogey.touch_tool.bean.action.list.ListForeachAction;
 import top.bogey.touch_tool.bean.action.list.ListGetAction;
 import top.bogey.touch_tool.bean.action.list.ListIndexOfAction;
 import top.bogey.touch_tool.bean.action.list.ListIsEmptyAction;
+import top.bogey.touch_tool.bean.action.list.JsonToListAction;
 import top.bogey.touch_tool.bean.action.list.ListJoinAction;
 import top.bogey.touch_tool.bean.action.list.ListMapAction;
 import top.bogey.touch_tool.bean.action.list.ListRemoveAction;
@@ -447,6 +448,7 @@ public class ActionInfo {
     private final static ActionInfo LIST_MAP_INFO = new ActionInfo(ActionType.LIST_MAP, ListMapAction.class, R.drawable.icon_swap_horiz, R.string.list_map_action, R.string.list_map_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo LIST_FIND_FIRST_INFO = new ActionInfo(ActionType.LIST_FIND_FIRST, ListFindFirstAction.class, R.drawable.icon_search, R.string.list_find_first_action, R.string.list_find_first_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo LIST_TO_JSON_INFO = new ActionInfo(ActionType.LIST_TO_JSON, ListToJsonAction.class, R.drawable.icon_text_fields, R.string.list_to_json_action, R.string.list_to_json_action_desc, 0, NormalActionCard.class);
+    private final static ActionInfo JSON_TO_LIST_INFO = new ActionInfo(ActionType.JSON_TO_LIST, JsonToListAction.class, R.drawable.icon_data_array, R.string.json_to_list_action, R.string.json_to_list_action_desc, 0, NormalActionCard.class);
 
 
     // Map操作
@@ -694,6 +696,7 @@ public class ActionInfo {
             case LIST_MAP -> LIST_MAP_INFO;
             case LIST_FIND_FIRST -> LIST_FIND_FIRST_INFO;
             case LIST_TO_JSON -> LIST_TO_JSON_INFO;
+            case JSON_TO_LIST -> JSON_TO_LIST_INFO;
 
 
             case MAP_MAKE -> MAP_MAKE_INFO;
