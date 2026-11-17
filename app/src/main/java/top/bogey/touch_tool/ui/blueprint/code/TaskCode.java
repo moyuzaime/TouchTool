@@ -12,12 +12,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import top.bogey.touch_tool.bean.action.Action;
 import top.bogey.touch_tool.bean.action.ActionInfo;
 import top.bogey.touch_tool.bean.action.ActionType;
 import top.bogey.touch_tool.bean.pin.Pin;
+import top.bogey.touch_tool.bean.pin.pin_objects.PinBoolean;
+import top.bogey.touch_tool.bean.pin.pin_objects.PinMap;
+import top.bogey.touch_tool.bean.pin.pin_objects.PinObject;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinType;
+import top.bogey.touch_tool.bean.pin.pin_objects.pin_list.PinList;
+import top.bogey.touch_tool.bean.pin.pin_objects.pin_number.PinDouble;
+import top.bogey.touch_tool.bean.pin.pin_objects.pin_number.PinInteger;
+import top.bogey.touch_tool.bean.pin.pin_objects.pin_string.PinString;
 import top.bogey.touch_tool.bean.task.Task;
 import top.bogey.touch_tool.bean.task.Variable;
 import top.bogey.touch_tool.utils.GsonUtil;
@@ -36,6 +44,61 @@ public class TaskCode {
     public static String format(String text) throws TaskCodeException {
         JsonElement element = parse(text);
         return GsonUtil.prettyGson.toJson(element);
+    }
+
+    // 把编辑框文本解析成任务对象：只检查语法与最外层类型，内容校验交给 apply
+    public static JsonObject parseDocument(String text) throws TaskCodeException {
+        JsonElement root = parse(text);
+        if (!root.isJsonObject()) throw new TaskCodeException("最外层必须是任务对象 { … }");
+        return root.getAsJsonObject();
+    }
+
+    public static String writeDocument(JsonObject document) {
+        return GsonUtil.prettyGson.toJson(document);
+    }
+
+    // 变量模板：按类型给默认值，uid 不写进文本（保存时按 id 复用原对象）
+    public static JsonObject newVariable(String title, int typeIndex) {
+        PinObject value = switch (typeIndex) {
+            case 1 -> new PinDouble(0);
+            case 2 -> new PinInteger(0);
+            case 3 -> new PinBoolean(false);
+            case 4 -> new PinList(new PinString(""));
+            case 5 -> new PinMap(new PinString(""), new PinString(""));
+            default -> new PinString("");
+        };
+        Variable variable = new Variable(value);
+        variable.setTitle(title);
+        JsonObject object = GsonUtil.prettyGson.toJsonTree(variable).getAsJsonObject();
+        object.remove("uid");
+        return object;
+    }
+
+    // 子任务模板：空任务，字段与任务对象一致
+    public static JsonObject newSubtask(String title) {
+        JsonObject object = new JsonObject();
+        object.addProperty("id", UUID.randomUUID().toString());
+        object.addProperty("title", title);
+        object.addProperty("description", "");
+        object.addProperty("flag", 0);
+        object.add("tags", new JsonArray());
+        object.add("variables", new JsonArray());
+        object.add("tasks", new JsonArray());
+        object.add("actions", new JsonArray());
+        return object;
+    }
+
+    // 动作模板：用真实类生成默认针脚，手写 JSON 容易与针脚顺序/类型对不上
+    public static JsonObject newAction(ActionType type, int x, int y) throws TaskCodeException {
+        ActionInfo info = ActionInfo.getActionInfo(type);
+        if (info == null) throw new TaskCodeException("类型未注册：" + type);
+        try {
+            Action action = info.getClazz().getConstructor().newInstance();
+            action.setPos(x, y);
+            return GsonUtil.prettyGson.toJsonTree(action).getAsJsonObject();
+        } catch (Exception e) {
+            throw new TaskCodeException("动作模板生成失败：" + shortError(e));
+        }
     }
 
     // 校验文本并把整个任务写回；任何一步校验失败都不改动任务

@@ -577,3 +577,14 @@ feat(node): 获取控件信息默认收起扩展属性
 - 变量 JSON 不含 `uid`（按 id 复用原对象，改 uid 不生效）；空动作数组合法，可直接清空任务的动作。
 - 弹窗体验：编辑区最小 16 行、长文本铺满窗口，关掉点击外部关闭（取消与返回键仍可退出），避免长文本误触丢失。
 - 真机验证：任务的 `flag` 由 0 改 1 保存后，任务菜单「记录日志细节」开关变为开启，改回 0 后恢复；带一个 STRING 变量的任务保存后变量 id 与值不变；新建空任务里把 `"tasks": []` 改成含一个空子任务的对象，保存后重开文本能看到该子任务；改根任务 id 保存时红字提示「顶层任务的 id 必须保持 …」，任务与画布不变；测试用的临时任务已删除。
+
+## 53. 任务代码工具条：标题、描述、标记、标签、变量、子任务、动作
+
+- 位置：`res/layout/dialog_task_code.xml`、`ui/blueprint/code/TaskCodeDialog.java`、`ui/blueprint/code/TaskCodeActionPicker.java`、`ui/blueprint/code/TaskCode.java`、`res/layout/dialog_task_code_action.xml`、`res/layout/item_task_code_action.xml`、`res/values/strings.xml`、`res/values/string_array.xml`
+- 编辑框上方加一行横向滚动的 Chip：标题 / 描述 / 标记 / 标签 │ 变量 / 子任务 / 动作；按钮只改编辑框里的 JSON 文本（`parseDocument` → 改 JsonObject → `writeDocument`），不碰任务对象，保存时仍走 `TaskCode.apply` 的整树校验与回写，取消即整体丢弃。
+- 标题/描述：`AppUtil.showEditDialog` 输入后写 `title`/`description`；标记：勾选「记录日志细节」，按 `Task.FLAG_DEBUG` 位写 `flag`（保留其它位）；标签：多选 `TagSaver` 已有标签写 `tags`，没有标签时 Toast 提示。
+- 变量：列出文本里的变量，可新建（文本 / 数字 / 整数 / 布尔 / 列表（文本） / 字典（文本 → 文本）六种默认值）、重命名、删除；新建项由 `new Variable(Pin…)` 序列化生成并去掉 uid。
+- 子任务：列出文本里的子任务，可新建（空任务模板 + uuid）、重命名、删除；删除时整棵子树一起从文本移除，保存后随任务生效。
+- 动作：带搜索/拼音过滤的动作选择器（按标题排序，标题里的 `%s` 占位符在列表里去掉）；选中后用 `ActionInfo.getClazz().getConstructor().newInstance()` 生成默认动作再序列化，`pos` 接在现有动作最大坐标后 40 格，避免叠卡。不复用 `SelectActionDialog`：它的「新建变量/新建任务」会直接改运行中的任务并落盘。
+- 按钮生成的文本若与动作针脚结构对不上，保存时仍会被「针脚与文本不一致」拦下；文本语法错误时点按钮会用红字报错且不改文本。
+- 真机验证：在空任务上依次用按钮把标题改 `btncheck2`、描述 `desc`、标记置 1、加变量 v1（改名 v2、再删除）、加子任务 sub1、插入「延时」动作；保存后画布标题与延时卡片正确，重开文本能看到子任务与动作、变量已删；测试用任务已删除。

@@ -98,6 +98,29 @@
     <string name="task_code_error_action">第 %1$d 个动作：%2$s</string>
     <string name="task_code_failed">应用失败：%1$s</string>
 
+    <string name="task_code_field_title">标题</string>
+    <string name="task_code_field_description">描述</string>
+    <string name="task_code_field_flag">标记</string>
+    <string name="task_code_field_tags">标签</string>
+    <string name="task_code_field_variable">变量</string>
+    <string name="task_code_field_subtask">子任务</string>
+    <string name="task_code_field_action">动作</string>
+    <string name="task_code_flag_debug">记录日志细节</string>
+    <string name="task_code_tags_empty">还没有可选的标签</string>
+    <string name="task_code_variable_add">新建变量…</string>
+    <string name="task_code_variable_rename">重命名</string>
+    <string name="task_code_variable_delete">删除</string>
+    <string name="task_code_variable_title">变量名</string>
+    <string name="task_code_variable_type">变量类型</string>
+    <string name="task_code_variable_name_default">新变量</string>
+    <string name="task_code_subtask_add">新建子任务…</string>
+    <string name="task_code_subtask_title">子任务名</string>
+    <string name="task_code_subtask_name_default">新子任务</string>
+    <string name="task_code_action_pick">插入动作</string>
+    <string name="task_code_action_search">搜索动作</string>
+    <string name="task_code_action_empty">没有匹配的动作</string>
+    <string name="task_code_action_create_failed">动作模板生成失败</string>
+
     <string name="select_action_group_global">全局</string>
     <string name="select_action_group_private">自有</string>
 
