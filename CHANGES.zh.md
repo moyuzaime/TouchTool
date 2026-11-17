@@ -582,3 +582,17 @@ feat(node): 获取控件信息默认收起扩展属性
 - 兼容：排序卡方式缺省走自定义比较；遍历快照属于行为变更——旧版在循环体内改容器是实时读取（可能跳过元素或崩溃），新版按进入循环时的内容遍历。
 - 待真机验证：老任务排序卡仍按自定义比较排；数字/文本列表升降序、字典列表按键排序；比较结果未写或比较器不一致时不崩溃且有日志提示；`ListForeach` / `MapForeach` 循环体内增删同一容器不崩溃；1000 / 10000 元素列表在快速模式与自定义比较下的耗时对比。
 
+## 53. 列表 / 字典常量编辑器与索引提示（方案 Step 3）
+
+- 位置：新增 `ui/blueprint/pin_widget/PinWidgetListValue.java`、`PinWidgetMapValue.java`、`ui/blueprint/selecter/pin_container/PinContainerValueDialog.java`、`bean/pin/pin_objects/PinValueUtil.java`、`res/layout/pin_widget_container_value.xml`、`res/layout/dialog_pin_container_value.xml`、`res/layout/item_pin_value_row.xml`；改动 `bean/pin/PinInfo.java`、`bean/pin/Pin.java`、`bean/action/list/ListAddAction.java`、`res/values/strings.xml`、`res/values/task_strings.xml`
+- 注册方式：`PinInfo` 的 `LIST_INFO` / `MAP_INFO` 从「没有编辑器」改为分别挂 `PinWidgetListValue` / `PinWidgetMapValue`，`DYNAMIC_OBJECT_INFO` 保持无编辑器。
+- 显示条件：编辑器只在「输入针脚、未连线、值是列表 / 字典」时出现（已连线的输入针脚运行期会被来源值覆盖，输出针脚没有常量语义），其余情况控件隐藏、不占高度。
+- 编辑流程：针脚上显示「共 N 项」和一个编辑按钮；点开是弹窗，每行「类型（只读）+ 值输入 + 上移 / 下移 / 删除」，底部「添加」；字典行是键 / 值双列。改的都是副本，点「确定」才写回，取消不改原值。
+- 可编辑类型：文本、整数 / 浮点 / 双精度 / 长整数、布尔；单选项、图片、控件、区域等只读，行首的类型后面标「只读」，顶部提示「其它类型只能用动作生成」。
+- 字典重复键：确定时若有重复键，弹「覆盖 / 跳过 / 取消」——覆盖保留后面的、跳过保留前面的；键的重复判定用 `PinString` 等值比较。
+- 槽位摘要：列表 / 字典的槽位本身只有 18dp，放不下文字，改为在自动生成的针脚标题后补长度（如「文本列表[3]」「文本-数字[2]」），标题随值变化刷新；编辑器行首另显示「共 N 项」。
+- 索引提示：`ListGet` / `ListSet` / `ListRemove` 等共用「索引」、`ListAdd` 的「位置」、`ListSubList` 的起止索引标题统一补「(1起，负数倒数)」；`ListAdd` 的位置针脚不再默认隐藏，老任务里存下来的隐藏标记在加载时也一并取消。
+- 未做：方案 Step 3 的可选项「针脚长按菜单增加清空 / 复制为常量」。
+- 待真机验证：新建列表 / 字典常量 → 增删改 → 确定 → 保存任务 → 重开内容一致；取消后原值不变；已连线输入针脚看不到编辑器；行上移 / 下移 / 删除后确定的结果；字典键重复时覆盖 / 跳过结果；老任务列表 / 字典针脚标题多出的 `[n]` 观感是否可接受；弹窗高度在行多时是否正常滚动。
+
+

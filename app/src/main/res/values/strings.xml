@@ -156,6 +156,21 @@
 
     <string name="pin_map">字典</string>
 
+    <!-- 列表 / 字典常量编辑器 -->
+    <string name="pin_container_count">共%d项</string>
+    <string name="pin_container_edit_list">编辑列表</string>
+    <string name="pin_container_edit_map">编辑字典</string>
+    <string name="pin_container_add">添加</string>
+    <string name="pin_container_key">键</string>
+    <string name="pin_container_value">值</string>
+    <string name="pin_container_empty">还没有内容</string>
+    <string name="pin_container_read_only">%1$s（只读）</string>
+    <string name="pin_container_hint">文本、数字、布尔可以直接改；其它类型只能用动作生成，这里只读</string>
+    <string name="pin_container_duplicate_title">键重复</string>
+    <string name="pin_container_duplicate_tip">有%d个键重复，覆盖保留后面的，跳过保留前面的</string>
+    <string name="pin_container_overwrite">覆盖</string>
+    <string name="pin_container_skip">跳过</string>
+
     <string name="pin_string">文本</string>
     <string name="pin_string_url">链接</string>
     <string name="pin_string_shortcut">快捷方式</string>

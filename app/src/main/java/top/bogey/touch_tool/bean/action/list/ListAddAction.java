@@ -25,7 +25,7 @@ public class ListAddAction extends ListExecuteAction {
     private final transient Pin listPin = new Pin(new PinList());
     private final transient Pin elementPin = new Pin(new PinObject(PinSubType.DYNAMIC), R.string.pin_object);
     private final transient Pin resultPin = new Pin(new PinBoolean(), R.string.pin_boolean_result, true);
-    private final transient Pin indexPin = new Pin(new PinInteger(-1), R.string.list_add_action_index, false, false, true);
+    private final transient Pin indexPin = new Pin(new PinInteger(-1), R.string.list_add_action_index);
 
     public ListAddAction() {
         super(ActionType.LIST_ADD);
@@ -37,6 +37,8 @@ public class ListAddAction extends ListExecuteAction {
         reAddPin(listPin);
         reAddPin(elementPin, true);
         reAddPins(resultPin, indexPin);
+        // 老任务里位置针脚存的是默认隐藏，这里统一取消隐藏，让按位置插入可见
+        indexPin.setHide(false);
     }
 
     @Override

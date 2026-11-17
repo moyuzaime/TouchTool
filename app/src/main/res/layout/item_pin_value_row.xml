@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingVertical="?attr/defaultOffset">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/typeText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="@style/TextAppearance.Material3.LabelSmall" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/upButton"
+            style="?attr/iconButton"
+            app:icon="@drawable/icon_keyboard_arrow_up" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/downButton"
+            style="?attr/iconButton"
+            app:icon="@drawable/icon_keyboard_arrow_down" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/removeButton"
+            style="?attr/iconButton"
+            app:icon="@drawable/icon_delete" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/keyBox"
+            style="?attr/textInputOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="@string/pin_container_key"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Large">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/keyText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:maxLines="1" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/valueBox"
+            style="?attr/textInputOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="?attr/defaultOffset"
+            android:layout_weight="1"
+            android:hint="@string/pin_container_value"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Large">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/valueText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:maxLines="1" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

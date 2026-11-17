@@ -324,17 +324,22 @@ public class Pin extends Identity {
             if (isSameClass(PinList.class)) {
                 PinList list = getValue();
                 PinInfo info = PinInfo.getPinInfo(list.getValueType());
-                if (info != null) return info.getTitle() + MainApplication.getInstance().getString(R.string.pin_list);
+                if (info != null) return info.getTitle() + MainApplication.getInstance().getString(R.string.pin_list) + countSuffix(list.size());
             }
             if (isSameClass(PinMap.class)) {
                 PinMap map = getValue();
                 PinInfo keyInfo = PinInfo.getPinInfo(map.getKeyType());
                 PinInfo valueInfo = PinInfo.getPinInfo(map.getValueType());
-                if (keyInfo != null && valueInfo != null) return keyInfo.getTitle() + "-" + valueInfo.getTitle();
+                if (keyInfo != null && valueInfo != null) return keyInfo.getTitle() + "-" + valueInfo.getTitle() + countSuffix(map.size());
             }
             return "";
         }
         return MainApplication.getInstance().getString(titleId);
+    }
+
+    // 容器针脚在标题后补长度，槽位只有 18dp 放不下文字
+    private String countSuffix(int size) {
+        return size > 0 ? "[" + size + "]" : "";
     }
 
     @Override
