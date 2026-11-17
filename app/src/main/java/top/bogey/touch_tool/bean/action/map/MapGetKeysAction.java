@@ -12,6 +12,7 @@ import top.bogey.touch_tool.R;
 import top.bogey.touch_tool.bean.action.ActionType;
 import top.bogey.touch_tool.bean.pin.Pin;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinMap;
+import top.bogey.touch_tool.bean.pin.pin_objects.PinObject;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_list.PinList;
 import top.bogey.touch_tool.service.TaskRunnable;
 
@@ -32,8 +33,10 @@ public class MapGetKeysAction extends MapCalculateAction {
     @Override
     public void calculate(TaskRunnable runnable, Pin pin) {
         PinMap map = getPinValue(runnable, mapPin);
-        PinList list = keysPin.getValue();
+        // 结果列表继承字典的键类型，避免派生结果一直是动态类型
+        PinList list = new PinList((PinObject) map.getKeyType().copy());
         list.addAll(map.keySet());
+        keysPin.setValue(list);
     }
 
     @Override

@@ -557,3 +557,16 @@ feat(node): 获取控件信息默认收起扩展属性
 - 16 个扩展属性针脚标记 `hide`，只在全展开或已连线时显示；新建卡片跟随全局「卡片展开状态」设置（全展开就全展开、半展开只显示常用），老卡片保留自己保存的展开状态。
 - 顺带把上游标了 `hide` 的 控件ID / 描述 / 是否可用 / 是否可见 / 控件身份 改成半展开也显示，半展开的常用集合与改造前一致。
 - 真机验证：新建卡片跟随全局「全展开」显示 24 个输出；点眼睛切到半展开是 8 个输出 + 控件输入，状态随卡片保存。
+
+## 51. 列表 / 字典值对象与派生动作用类型修补（方案 Step 1）
+
+- 位置：`bean/pin/pin_objects/pin_list/PinList.java`、`bean/pin/pin_objects/PinMap.java`、`bean/pin/pin_objects/PinTypeUtil.java`、`bean/action/map/MapGetAction.java`、`MapGetKeysAction.java`、`MapGetValuesAction.java`、`MapAppendAction.java`、`MakeMapAction.java`、`MapSetAction.java`、`bean/action/list/ListSubListAction.java`、`ListAppendAction.java`、`MakeListAction.java`、`ListAddAction.java`、`ListSetAction.java`、`res/values/task_strings.xml`、`res/values/strings.xml`
+- 相等判断：`PinList.equals` 改为 `getValueType()` 按内容比较（原来用 `==` 比类型对象，内容相同但类型对象不是同一实例的列表判不相等），`PinMap` 的 `keyType` / `valueType` 同理；两者的 `hashCode`、`isDynamic()` 都加了类型对象为 null 的兜底，反序列化缺字段或写成 null 时按动态类型处理。列表/字典嵌套比较、容器作字典 key 的判定因此变宽松。
+- 坏数据：`PinMap` 反序列化按 2 步配对扁平数组，长度不是偶数时丢弃末尾多余项并记一条日志，不再越界崩溃；数组里成对的 null 直接跳过。
+- 容器作 key：`PinMap.put` 对 `PinList` / `PinMap` 键先拷贝再放入（`putAll` 也走 `put`），来源内容被改后不再破坏哈希。
+- 派生结果类型：`MapGetKeys` / `MapGetValues` 的结果列表分别继承字典的键类型 / 值类型，`ListSubList` 继承源列表的元素类型，`ListAppend` / `MapAppend` 继承第一个非空输入的元素类型 / 键值类型；`MakeList` 重建结果列表时保留元素类型（原实现每次运行都换回动态列表，运行一次类型就丢）。
+- `MapGet` 默认值：末尾新增「默认值」输入针脚，未命中时输出默认值，`existPin` 显式给 `false`；默认值针脚追加在针脚列表最后，老任务前四个针脚按原顺序匹配，未设默认值时输出空对象，与原版未命中表现一致。默认值针脚同时在 `getDynamicTypePins` / `getDynamicValueTypePins` 里，字典来源带类型时会跟着定型。
+- 软类型校验：新增 `PinTypeUtil` 作为统一入口（元素能否放进声明类型的容器，动态类型一律放行）。`MakeList` / `MakeMap` / `ListAdd` / `ListSet` / `MapSet` 共用它：运行期类型不一致只记一条日志、元素照常放入，卡片 `check()` 追加一条警告，不自动断开连线。默认 warn-only，不改变已有任务的运行结果。
+- `PinList.containsAll` 去掉每次 `new HashSet<>` 的分配。
+- 兼容：`equals` 放宽只影响容器作 key、容器包含判断与去重，不改变已有运行结果；类型继承只让原本是动态类型的派生结果变具体，下游不兼容时 `check()` 报错但不自动清链。
+- 待真机验证：老任务（含新建列表/新建字典、获取所有键、排序、获取值）加载与运行结果不变；列表里包含结构相同的另一个列表时「包含」判断正确；手改任务把字典的 `values` 改成奇数长度后能正常加载；`MapGet` 命中输出值、未命中输出默认值；`MapGetKeys → 遍历列表` 的元素针脚显示具体类型。

@@ -136,6 +136,7 @@
     <string name="check_may_need_use_pos_pin_warning">可能需要使用位置针脚做偏移</string>
     <string name="check_need_notification_warning">需要开启通知权限</string>
     <string name="check_not_global_task_warning">非全局任务</string>
+    <string name="check_container_element_type_warning">元素类型与容器声明类型不一致</string>
 
 
     <!-- 任务 -->

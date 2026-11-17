@@ -9,11 +9,14 @@ import java.util.Collections;
 import java.util.List;
 
 import top.bogey.touch_tool.R;
+import top.bogey.touch_tool.bean.action.ActionCheckResult;
 import top.bogey.touch_tool.bean.action.ActionType;
 import top.bogey.touch_tool.bean.pin.Pin;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinMap;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinObject;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinSubType;
+import top.bogey.touch_tool.bean.pin.pin_objects.PinTypeUtil;
+import top.bogey.touch_tool.bean.task.Task;
 import top.bogey.touch_tool.service.TaskRunnable;
 
 public class MapSetAction extends MapExecuteAction {
@@ -40,8 +43,17 @@ public class MapSetAction extends MapExecuteAction {
         PinMap map = getPinValue(runnable, mapPin);
         PinObject key = getPinValue(runnable, keyPin);
         PinObject value = getPinValue(runnable, valuePin);
+        // 键值类型与容器声明不一致时只记日志，不改变写入结果
+        PinTypeUtil.warnRuntime(map.getKeyType(), key);
+        PinTypeUtil.warnRuntime(map.getValueType(), value);
         lastPin.setValue(map.put(key, value));
         executeNext(runnable, outPin);
+    }
+
+    @Override
+    public void check(ActionCheckResult result, Task task) {
+        super.check(result, task);
+        PinTypeUtil.checkMapPins(result, mapPin, keyPin, valuePin, task);
     }
 
     @NonNull

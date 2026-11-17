@@ -8,12 +8,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import top.bogey.touch_tool.R;
+import top.bogey.touch_tool.bean.action.ActionCheckResult;
 import top.bogey.touch_tool.bean.action.ActionType;
 import top.bogey.touch_tool.bean.action.parent.DynamicPinsAction;
 import top.bogey.touch_tool.bean.pin.Pin;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinAdd;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinObject;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinSubType;
+import top.bogey.touch_tool.bean.pin.pin_objects.PinTypeUtil;
 import top.bogey.touch_tool.bean.pin.pin_objects.pin_list.PinList;
 import top.bogey.touch_tool.bean.task.Task;
 import top.bogey.touch_tool.service.TaskRunnable;
@@ -47,15 +49,25 @@ public class MakeListAction extends ListCalculateAction implements DynamicPinsAc
 
     @Override
     public void calculate(TaskRunnable runnable, Pin pin) {
+        PinList list = listPin.getValue(PinList.class);
         for (Pin dynamicPin : getDynamicPins()) {
             PinObject value = getPinValue(runnable, dynamicPin);
-            listPin.getValue(PinList.class).add(value);
+            // 元素类型与容器声明不一致时只记日志，不丢弃元素
+            PinTypeUtil.warnRuntime(list.getValueType(), value);
+            list.add(value);
         }
     }
 
     @Override
     public void resetReturnValue(TaskRunnable runnable, Pin pin) {
-        listPin.setValue(new PinList());
+        // 重建列表时保留元素类型，否则每次运行都会退回动态类型
+        listPin.setValue(new PinList((PinObject) listPin.getValue(PinList.class).getValueType().copy()));
+    }
+
+    @Override
+    public void check(ActionCheckResult result, Task task) {
+        super.check(result, task);
+        PinTypeUtil.checkListPins(result, listPin, getDynamicPins(), task);
     }
 
     @NonNull

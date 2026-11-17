@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import top.bogey.touch_tool.R;
+import top.bogey.touch_tool.bean.action.ActionCheckResult;
 import top.bogey.touch_tool.bean.action.ActionType;
 import top.bogey.touch_tool.bean.action.parent.DynamicPinsAction;
 import top.bogey.touch_tool.bean.pin.Pin;
@@ -16,6 +17,7 @@ import top.bogey.touch_tool.bean.pin.pin_objects.PinAdd;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinMap;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinObject;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinSubType;
+import top.bogey.touch_tool.bean.pin.pin_objects.PinTypeUtil;
 import top.bogey.touch_tool.bean.task.Task;
 import top.bogey.touch_tool.service.TaskRunnable;
 
@@ -69,8 +71,17 @@ public class MakeMapAction extends MapCalculateAction implements DynamicPinsActi
             Pin valuePin = dynamicPins.get(i + 1);
             PinObject keyObject = getPinValue(runnable, keyPin);
             PinObject valueObject = getPinValue(runnable, valuePin);
+            // 键值类型与容器声明不一致时只记日志，不丢弃键值对
+            PinTypeUtil.warnRuntime(map.getKeyType(), keyObject);
+            PinTypeUtil.warnRuntime(map.getValueType(), valueObject);
             map.put(keyObject, valueObject);
         }
+    }
+
+    @Override
+    public void check(ActionCheckResult result, Task task) {
+        super.check(result, task);
+        PinTypeUtil.checkMapPairs(result, mapPin, getDynamicPins(), task);
     }
 
     @NonNull

@@ -58,7 +58,7 @@ public class ListSubListAction extends ListCalculateAction {
         int toIndex = end;
         List<PinObject> subList = list.subList(fromIndex, toIndex);
 
-        PinList result = new PinList();
+        PinList result = new PinList((PinObject) list.getValueType().copy());
         for (PinObject obj : subList) {
             result.add((PinObject) obj.copy());
         }

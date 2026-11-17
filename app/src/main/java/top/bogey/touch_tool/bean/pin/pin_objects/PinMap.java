@@ -15,8 +15,11 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
+import top.bogey.touch_tool.bean.pin.pin_objects.pin_list.PinList;
+import top.bogey.touch_tool.utils.AppLog;
 import top.bogey.touch_tool.utils.GsonUtil;
 
 public class PinMap extends PinObject implements Map<PinObject, PinObject> {
@@ -36,8 +39,11 @@ public class PinMap extends PinObject implements Map<PinObject, PinObject> {
 
     public PinMap(JsonObject jsonObject) {
         super(jsonObject);
-        keyType = (PinObject) GsonUtil.getAsObject(jsonObject, "keyType", PinBase.class, new PinObject(PinSubType.DYNAMIC));
-        valueType = (PinObject) GsonUtil.getAsObject(jsonObject, "valueType", PinBase.class, new PinObject(PinSubType.DYNAMIC));
+        // 历史数据可能缺类型或写成 null，统一兜底成动态类型
+        PinObject keyType = (PinObject) GsonUtil.getAsObject(jsonObject, "keyType", PinBase.class, null);
+        this.keyType = keyType == null ? new PinObject(PinSubType.DYNAMIC) : keyType;
+        PinObject valueType = (PinObject) GsonUtil.getAsObject(jsonObject, "valueType", PinBase.class, null);
+        this.valueType = valueType == null ? new PinObject(PinSubType.DYNAMIC) : valueType;
         List<PinObject> values = GsonUtil.getAsObject(jsonObject, "values", TypeToken.getParameterized(List.class, PinBase.class).getType(), new ArrayList<>());
         valueMap = getValueMap(values);
     }
@@ -140,36 +146,37 @@ public class PinMap extends PinObject implements Map<PinObject, PinObject> {
 
     @Override
     public boolean isDynamic() {
-        return keyType.isDynamic() && valueType.isDynamic();
+        return (keyType == null || keyType.isDynamic()) && (valueType == null || valueType.isDynamic());
     }
 
     public boolean isHalfDynamic() {
-        return keyType.isDynamic() || valueType.isDynamic();
+        return (keyType == null || keyType.isDynamic()) || (valueType == null || valueType.isDynamic());
     }
 
     public boolean isDynamicKey() {
-        return keyType.isDynamic();
+        return keyType == null || keyType.isDynamic();
     }
 
     public boolean isDynamicValue() {
-        return valueType.isDynamic();
+        return valueType == null || valueType.isDynamic();
     }
 
 
+    // 类型对象按内容比较，否则两份结构相同的字典会判不相等
     @Override
     public final boolean equals(Object object) {
         if (this == object) return true;
         if (!(object instanceof PinMap pinMap)) return false;
         if (!super.equals(object)) return false;
 
-        return getKeyType() == pinMap.getKeyType() && getValueType() == pinMap.getValueType() && valueMap.equals(pinMap.valueMap);
+        return Objects.equals(getKeyType(), pinMap.getKeyType()) && Objects.equals(getValueType(), pinMap.getValueType()) && valueMap.equals(pinMap.valueMap);
     }
 
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + getKeyType().hashCode();
-        result = 31 * result + getValueType().hashCode();
+        result = 31 * result + Objects.hashCode(getKeyType());
+        result = 31 * result + Objects.hashCode(getValueType());
         result = 31 * result + valueMap.hashCode();
         return result;
     }
@@ -203,7 +210,13 @@ public class PinMap extends PinObject implements Map<PinObject, PinObject> {
     @Nullable
     @Override
     public PinObject put(PinObject key, PinObject value) {
-        return valueMap.put(key, value);
+        return valueMap.put(snapshotKey(key), value);
+    }
+
+    // 容器键先拷贝再放入，避免来源内容被改动后哈希失效
+    private static PinObject snapshotKey(PinObject key) {
+        if (key instanceof PinList || key instanceof PinMap) return (PinObject) key.copy();
+        return key;
     }
 
     @Nullable
@@ -214,7 +227,7 @@ public class PinMap extends PinObject implements Map<PinObject, PinObject> {
 
     @Override
     public void putAll(@NonNull Map<? extends PinObject, ? extends PinObject> m) {
-        valueMap.putAll(m);
+        m.forEach(this::put);
     }
 
     @Override
@@ -261,10 +274,20 @@ public class PinMap extends PinObject implements Map<PinObject, PinObject> {
         return list;
     }
 
+    // 扁平数组按「键, 值」配对；长度不是偶数时丢弃末尾多余项，避免坏数据加载崩溃
     private static Map<PinObject, PinObject> getValueMap(List<PinObject> list) {
         Map<PinObject, PinObject> map = new LinkedHashMap<>();
-        for (int i = 0; i < list.size(); i += 2) {
-            map.put(list.get(i), list.get(i + 1));
+        if (list == null) return map;
+        int count = list.size();
+        if (count % 2 != 0) {
+            AppLog.d("字典", "键值对数量为奇数，丢弃末尾多余项，共 " + count + " 项");
+            count--;
+        }
+        for (int i = 0; i < count; i += 2) {
+            PinObject key = list.get(i);
+            PinObject value = list.get(i + 1);
+            if (key == null || value == null) continue;
+            map.put(key, value);
         }
         return map;
     }

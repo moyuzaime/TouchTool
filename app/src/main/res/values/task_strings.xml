@@ -813,6 +813,7 @@
 
     <string name="map_get_action">获取值</string>
     <string name="map_get_action_desc">从字典中获取值</string>
+    <string name="map_get_action_default">默认值</string>
 
     <string name="map_set_action">添加或替换值</string>
     <string name="map_set_action_desc">向字典中添加或替换值</string>
