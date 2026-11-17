@@ -33,6 +33,7 @@
             android:imeOptions="flagNoExtractUi"
             android:importantForAutofill="no"
             android:inputType="textMultiLine|textNoSuggestions"
+            android:minLines="16"
             android:overScrollMode="never"
             android:padding="12dp"
             android:saveEnabled="false"

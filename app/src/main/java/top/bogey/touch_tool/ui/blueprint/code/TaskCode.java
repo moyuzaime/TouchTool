@@ -19,28 +19,151 @@ import top.bogey.touch_tool.bean.action.ActionType;
 import top.bogey.touch_tool.bean.pin.Pin;
 import top.bogey.touch_tool.bean.pin.pin_objects.PinType;
 import top.bogey.touch_tool.bean.task.Task;
+import top.bogey.touch_tool.bean.task.Variable;
 import top.bogey.touch_tool.utils.GsonUtil;
 
-// 任务动作清单与 JSON 文本互转：生成文本，校验后整体替换任务的动作
+// 任务与 JSON 文本互转：生成整任务文本（标题、标签、变量、子任务、动作），校验后回写
 public class TaskCode {
     private TaskCode() {
     }
 
-    // 生成当前任务的动作清单文本
+    // 生成当前任务的文本：根任务 id 只读，其余字段可改
     public static String dump(Task task) {
-        return GsonUtil.toPrettyJson(new ArrayList<>(task.getActions()));
+        return GsonUtil.prettyGson.toJson(dumpTask(task));
     }
 
-    // 只做缩进格式化，不校验动作内容
+    // 只做缩进格式化，不校验内容
     public static String format(String text) throws TaskCodeException {
         JsonElement element = parse(text);
         return GsonUtil.prettyGson.toJson(element);
     }
 
-    // 校验文本并把动作整体写回任务；校验不通过时不改动任务
+    // 校验文本并把整个任务写回；任何一步校验失败都不改动任务
     public static void apply(Task task, String text) throws TaskCodeException {
-        JsonArray array = parseActions(text);
+        JsonElement root = parse(text);
+        if (!root.isJsonObject()) throw new TaskCodeException("最外层必须是任务对象 { … }");
 
+        Set<String> taskIds = new HashSet<>();
+        Set<String> variableIds = new HashSet<>();
+        ParsedTask parsed = parseTask(root.getAsJsonObject(), task.getId(), true, taskIds, variableIds);
+        applyTask(task, parsed);
+    }
+
+    // 逐层解析并校验，不触碰运行中的任务对象
+    private static ParsedTask parseTask(JsonObject object, String rootId, boolean root, Set<String> taskIds, Set<String> variableIds) throws TaskCodeException {
+        String id = getString(object, "id");
+        if (id == null || id.isEmpty()) throw new TaskCodeException(root ? "顶层任务缺少 id" : "子任务缺少 id");
+        if (!taskIds.add(id)) throw new TaskCodeException("任务 id 重复：" + id);
+        if (root && !id.equals(rootId)) {
+            throw new TaskCodeException("顶层任务的 id 必须保持 " + rootId + "（改 id 会断掉任务引用）");
+        }
+
+        ParsedTask parsed = new ParsedTask();
+        parsed.id = id;
+        parsed.title = getStringOrDefault(object, "title", "");
+        parsed.description = getStringOrDefault(object, "description", "");
+        parsed.flag = getIntOrDefault(object, "flag", 0);
+        parsed.tags = getStrings(object, "tags");
+        parsed.variables = parseVariables(object, variableIds);
+
+        JsonElement actionsElement = object.get("actions");
+        if (actionsElement == null || !actionsElement.isJsonArray()) throw new TaskCodeException("缺少动作数组 actions");
+        parsed.actions = parseActions(actionsElement.getAsJsonArray());
+
+        JsonElement tasksElement = object.get("tasks");
+        if (tasksElement != null && !tasksElement.isJsonNull()) {
+            if (!tasksElement.isJsonArray()) throw new TaskCodeException("tasks 必须是数组");
+            for (JsonElement childElement : tasksElement.getAsJsonArray()) {
+                if (!childElement.isJsonObject()) throw new TaskCodeException("子任务不是 JSON 对象");
+                String childId = getString(childElement.getAsJsonObject(), "id");
+                try {
+                    parsed.tasks.add(parseTask(childElement.getAsJsonObject(), null, false, taskIds, variableIds));
+                } catch (TaskCodeException e) {
+                    String prefix = childId == null || childId.isEmpty() ? "子任务" : "子任务 " + childId;
+                    throw new TaskCodeException(e.getIndex(), prefix + " 里：" + e.getMessage());
+                }
+            }
+        }
+        return parsed;
+    }
+
+    private static List<Variable> parseVariables(JsonObject object, Set<String> variableIds) throws TaskCodeException {
+        List<Variable> variables = new ArrayList<>();
+        JsonElement element = object.get("variables");
+        if (element == null || element.isJsonNull()) return variables;
+        if (!element.isJsonArray()) throw new TaskCodeException("variables 必须是数组");
+        for (JsonElement item : element.getAsJsonArray()) {
+            if (!item.isJsonObject()) throw new TaskCodeException("变量不是 JSON 对象");
+            String varId = getString(item.getAsJsonObject(), "id");
+            if (varId == null || varId.isEmpty()) throw new TaskCodeException("变量缺少 id");
+            if (!variableIds.add(varId)) throw new TaskCodeException("变量 id 重复：" + varId);
+
+            Variable variable;
+            try {
+                variable = GsonUtil.prettyGson.fromJson(item, Variable.class);
+            } catch (Exception e) {
+                throw new TaskCodeException("变量 " + varId + " 反序列化失败：" + shortError(e));
+            }
+            if (variable == null || !varId.equals(variable.getId())) {
+                throw new TaskCodeException("变量 " + varId + " 反序列化失败，检查字段名与取值");
+            }
+            variables.add(variable);
+        }
+        return variables;
+    }
+
+    private static void applyTask(Task task, ParsedTask parsed) {
+        task.setTitle(parsed.title);
+        task.setDescription(parsed.description);
+        task.setFlag(parsed.flag);
+        task.setTags(new ArrayList<>(parsed.tags));
+
+        // 动作整体替换
+        for (Action action : new ArrayList<>(task.getActions())) {
+            task.removeAction(action.getId());
+        }
+        for (Action action : parsed.actions) {
+            task.addAction(action);
+        }
+
+        // 变量按 id 复用原对象，只同步可改字段，避免外部还拿着旧对象
+        Map<String, Variable> existingVariables = new HashMap<>();
+        for (Variable variable : task.getVariables()) existingVariables.put(variable.getId(), variable);
+        for (Variable variable : new ArrayList<>(task.getVariables())) {
+            task.removeVariable(variable.getId());
+        }
+        for (Variable variable : parsed.variables) {
+            Variable live = existingVariables.get(variable.getId());
+            if (live == null) {
+                task.addVariable(variable);
+                continue;
+            }
+            live.setTitle(variable.getTitle());
+            live.setDescription(variable.getDescription());
+            live.setValue(variable.getValue());
+            live.setSaveValue(variable.getSaveValue());
+            live.setTags(new ArrayList<>(variable.getTags()));
+            task.addVariable(live);
+        }
+
+        // 子任务按 id 复用原对象，文本顺序即新的排列顺序；文本里没有的移除
+        Map<String, Task> existingTasks = new HashMap<>();
+        for (Task child : task.getTasks()) existingTasks.put(child.getId(), child);
+        for (Task child : new ArrayList<>(task.getTasks())) {
+            task.removeTask(child.getId());
+        }
+        for (ParsedTask child : parsed.tasks) {
+            Task live = existingTasks.get(child.id);
+            if (live == null) {
+                live = new Task();
+                live.setId(child.id);
+            }
+            task.addTask(live);
+            applyTask(live, child);
+        }
+    }
+
+    private static List<Action> parseActions(JsonArray array) throws TaskCodeException {
         // 第一遍：结构、类型、id、针脚值、连线目标
         Map<String, JsonObject> actionObjects = new HashMap<>();
         Map<String, Integer> actionIndexes = new HashMap<>();
@@ -129,7 +252,7 @@ public class TaskCode {
         // 第三遍：真正反序列化，类型或字段不对会在这里落空
         List<Action> actions;
         try {
-            actions = GsonUtil.prettyGson.fromJson(text, new TypeToken<List<Action>>() {
+            actions = GsonUtil.prettyGson.fromJson(array, new TypeToken<List<Action>>() {
             }.getType());
         } catch (Exception e) {
             throw new TaskCodeException("动作反序列化失败：" + shortError(e));
@@ -180,22 +303,36 @@ public class TaskCode {
                 }
             }
         }
-
-        // 校验全部通过才替换，失败时任务保持原样
-        for (Action action : new ArrayList<>(task.getActions())) {
-            task.removeAction(action.getId());
-        }
-        for (Action action : actions) {
-            task.addAction(action);
-        }
+        return actions;
     }
 
-    private static JsonArray parseActions(String text) throws TaskCodeException {
-        JsonElement root = parse(text);
-        if (!root.isJsonArray()) throw new TaskCodeException("最外层必须是动作数组，例如 [ {…}, {…} ]");
-        JsonArray array = root.getAsJsonArray();
-        if (array.isEmpty()) throw new TaskCodeException("动作数组不能为空，至少保留一个动作");
-        return array;
+    // 生成一个任务的文本结构：id、标题、描述、标记、标签、变量、子任务、动作
+    private static JsonObject dumpTask(Task task) {
+        JsonObject object = new JsonObject();
+        object.addProperty("id", task.getId());
+        object.addProperty("title", task.getTitle() == null ? "" : task.getTitle());
+        object.addProperty("description", task.getDescription() == null ? "" : task.getDescription());
+        object.addProperty("flag", task.getFlag());
+
+        JsonArray tags = new JsonArray();
+        for (String tag : task.getTags()) tags.add(tag);
+        object.add("tags", tags);
+
+        JsonArray variables = new JsonArray();
+        for (Variable variable : task.getVariables()) {
+            JsonObject variableObject = GsonUtil.prettyGson.toJsonTree(variable).getAsJsonObject();
+            // uid 不在文本里：变量按 id 复用原对象，改 uid 也不会生效
+            variableObject.remove("uid");
+            variables.add(variableObject);
+        }
+        object.add("variables", variables);
+
+        JsonArray tasks = new JsonArray();
+        for (Task child : task.getTasks()) tasks.add(dumpTask(child));
+        object.add("tasks", tasks);
+
+        object.add("actions", GsonUtil.prettyGson.toJsonTree(new ArrayList<>(task.getActions())));
+        return object;
     }
 
     private static JsonElement parse(String text) throws TaskCodeException {
@@ -256,6 +393,38 @@ public class TaskCode {
         }
     }
 
+    private static String getStringOrDefault(JsonObject object, String key, String defaultValue) throws TaskCodeException {
+        JsonElement element = object.get(key);
+        if (element == null || element.isJsonNull()) return defaultValue;
+        if (!element.isJsonPrimitive() || !element.getAsJsonPrimitive().isString()) {
+            throw new TaskCodeException(key + " 必须是字符串");
+        }
+        return element.getAsString();
+    }
+
+    private static int getIntOrDefault(JsonObject object, String key, int defaultValue) throws TaskCodeException {
+        JsonElement element = object.get(key);
+        if (element == null || element.isJsonNull()) return defaultValue;
+        if (!element.isJsonPrimitive() || !element.getAsJsonPrimitive().isNumber()) {
+            throw new TaskCodeException(key + " 必须是数字");
+        }
+        return element.getAsInt();
+    }
+
+    private static List<String> getStrings(JsonObject object, String key) throws TaskCodeException {
+        List<String> strings = new ArrayList<>();
+        JsonElement element = object.get(key);
+        if (element == null || element.isJsonNull()) return strings;
+        if (!element.isJsonArray()) throw new TaskCodeException(key + " 必须是字符串数组");
+        for (JsonElement item : element.getAsJsonArray()) {
+            if (!item.isJsonPrimitive() || !item.getAsJsonPrimitive().isString()) {
+                throw new TaskCodeException(key + " 里只能是字符串");
+            }
+            strings.add(item.getAsString());
+        }
+        return strings;
+    }
+
     private static String join(Set<String> ids) {
         StringBuilder builder = new StringBuilder();
         int count = 0;
@@ -268,6 +437,18 @@ public class TaskCode {
             }
         }
         return builder.toString();
+    }
+
+    // 解析出来的任务结构，校验全部通过后才用于回写
+    private static class ParsedTask {
+        private String id;
+        private String title;
+        private String description;
+        private int flag;
+        private List<String> tags = new ArrayList<>();
+        private List<Variable> variables = new ArrayList<>();
+        private List<Action> actions = new ArrayList<>();
+        private final List<ParsedTask> tasks = new ArrayList<>();
     }
 
     // 带有动作序号的校验错误，序号从 1 开始，0 表示整体错误

@@ -50,6 +50,8 @@ public class TaskCodeDialog {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> save(context, task, binding, dialog, onApplied));
             dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> format(context, binding));
         });
+        // 编辑中的长文本误触外面就丢了，关掉外部点击关闭；取消与返回键仍可退出
+        dialog.setCanceledOnTouchOutside(false);
 
         // 改过内容就把上一次的报错收起来，避免旧错误一直挂着
         binding.codeEdit.addTextChangedListener(new TextChangedListener() {

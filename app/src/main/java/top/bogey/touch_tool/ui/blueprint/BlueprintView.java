@@ -267,12 +267,12 @@ public class BlueprintView extends Fragment {
             dismissPopup(menu.getRoot());
             showTaskCapture();
         });
-        // 任务代码：把当前任务的动作清单当文本（JSON）编辑，保存后整表替换并重载画布
+        // 任务代码：把整个任务（标题、标签、变量、子任务、动作清单）当文本（JSON）编辑，保存后回写并重载画布
         menu.rowTaskCode.setOnClickListener(v -> {
             dismissPopup(menu.getRoot());
             TaskCodeDialog.show(requireContext(), currTask, () -> {
                 currTask.save();
-                binding.cardLayout.setTask(currTask);
+                setTask(currTask);
                 Toast.makeText(requireContext(), R.string.task_code_applied, Toast.LENGTH_SHORT).show();
             });
         });
