@@ -742,6 +742,11 @@
     <string name="list_remove_object_action">移除元素对象</string>
     <string name="list_remove_object_action_desc">按对象从列表中移除元素</string>
 
+    <string name="list_remove_by_action">移除元素</string>
+    <string name="list_remove_by_action_desc">按索引或按对象移除列表中的元素</string>
+    <string name="list_remove_by_action_mode">移除方式</string>
+    <string name="list_remove_by_action_object">移除的对象</string>
+
     <string name="list_append_action">列表拼接</string>
     <string name="list_append_action_desc">将两个列表拼接</string>
 
@@ -805,6 +810,10 @@
     <string name="map_contain_value_action">字典是否包含值</string>
     <string name="map_contain_value_action_desc">判断字典是否包含值</string>
 
+    <string name="map_contain_by_action">字典是否包含</string>
+    <string name="map_contain_by_action_desc">判断字典是否包含指定的键或值</string>
+    <string name="map_contain_by_action_mode">判断方式</string>
+
 
     <string name="map_remove_action">移除键值对</string>
     <string name="map_remove_action_desc">从字典中移除键值对</string>
@@ -828,6 +837,11 @@
 
     <string name="map_values_action">获取所有值</string>
     <string name="map_values_action_desc">获取字典中的所有值</string>
+
+    <string name="map_keys_values_action">获取所有键或值</string>
+    <string name="map_keys_values_action_desc">获取字典中的所有键或所有值</string>
+    <string name="map_keys_values_action_mode">获取方式</string>
+    <string name="map_keys_values_action_result">结果列表</string>
 
     <string name="map_foreach_action">遍历字典</string>
     <string name="map_foreach_action_desc">遍历字典中的每个键值对</string>

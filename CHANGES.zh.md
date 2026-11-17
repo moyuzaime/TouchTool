@@ -595,4 +595,17 @@ feat(node): 获取控件信息默认收起扩展属性
 - 未做：方案 Step 3 的可选项「针脚长按菜单增加清空 / 复制为常量」。
 - 待真机验证：新建列表 / 字典常量 → 增删改 → 确定 → 保存任务 → 重开内容一致；取消后原值不变；已连线输入针脚看不到编辑器；行上移 / 下移 / 删除后确定的结果；字典键重复时覆盖 / 跳过结果；老任务列表 / 字典针脚标题多出的 `[n]` 观感是否可接受；弹窗高度在行多时是否正常滚动。
 
+## 54. 列表 / 字典动作合并（方案 Step 4 前半）
+
+- 位置：新增 `bean/action/list/ListRemoveByAction.java`、`bean/action/map/MapContainByAction.java`、`MapKeysValuesAction.java`；改动 `bean/action/ActionType.java`、`ActionInfo.java`、`ActionMap.java`、`bean/action/list/ListSortAction.java`、`res/values/string_array.xml`、`res/values/task_strings.xml`
+- 合并规则（旧类型只从选择面板隐藏，类与 `ActionType` 都保留，老任务照常加载、运行、导出导入）：
+  - 「移除索引元素」+「移除元素对象」→ **移除元素**（`LIST_REMOVE_BY`）：方式「按索引 / 按对象」；按索引时复用原来的索引规则，「移除的对象」针脚输出被移除的元素，按对象时不使用该针脚。
+  - 「字典是否包含键」+「字典是否包含值」→ **字典是否包含**（`MAP_CONTAIN_BY`）：方式「键 / 值」。元素针脚保持动态类型，避免被单侧键 / 值类型拦住连线。
+  - 「获取所有键」+「获取所有值」→ **获取所有键或值**（`MAP_KEYS_VALUES`）：方式「键 / 值」，结果列表继承字典的键类型或值类型（沿用 Step 1 的类型继承）。
+  - 「列表翻转」并入**列表排序**的方式（`R.array.list_sort_mode` 末尾追加「反转」，前四个下标不变），`LIST_REVERSE` 卡从面板移除。
+- 面板：列表动作 20 → 17、字典 16 → 14；`ActionMap` 的 LIST / MAP 分组列表替换为合并后的类型。
+- 版本兼容：合并卡是新 `ActionType`，用旧版本 App 打开含新卡的任务会加载不出该卡；旧卡在新版不受影响。
+- 待真机验证：三个合并卡的两种方式各自的运行结果；按索引移除时「移除的对象」输出正确；排序卡「反转」与旧「列表翻转」结果一致；老任务里的旧卡仍能加载、运行、导出再导入；动作选择面板只剩合并后的卡。
+
+
 

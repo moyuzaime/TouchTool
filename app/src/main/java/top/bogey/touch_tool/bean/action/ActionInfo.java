@@ -53,6 +53,7 @@ import top.bogey.touch_tool.bean.action.list.ListGetAction;
 import top.bogey.touch_tool.bean.action.list.ListIndexOfAction;
 import top.bogey.touch_tool.bean.action.list.ListIsEmptyAction;
 import top.bogey.touch_tool.bean.action.list.ListRemoveAction;
+import top.bogey.touch_tool.bean.action.list.ListRemoveByAction;
 import top.bogey.touch_tool.bean.action.list.ListRemoveObjectAction;
 import top.bogey.touch_tool.bean.action.list.ListReverseAction;
 import top.bogey.touch_tool.bean.action.list.ListSetAction;
@@ -72,12 +73,14 @@ import top.bogey.touch_tool.bean.action.logic.WhileLoopAction;
 import top.bogey.touch_tool.bean.action.map.MakeMapAction;
 import top.bogey.touch_tool.bean.action.map.MapAppendAction;
 import top.bogey.touch_tool.bean.action.map.MapClearAction;
+import top.bogey.touch_tool.bean.action.map.MapContainByAction;
 import top.bogey.touch_tool.bean.action.map.MapContainKeyAction;
 import top.bogey.touch_tool.bean.action.map.MapContainValueAction;
 import top.bogey.touch_tool.bean.action.map.MapForeachAction;
 import top.bogey.touch_tool.bean.action.map.MapGetAction;
 import top.bogey.touch_tool.bean.action.map.MapGetKeysAction;
 import top.bogey.touch_tool.bean.action.map.MapGetValuesAction;
+import top.bogey.touch_tool.bean.action.map.MapKeysValuesAction;
 import top.bogey.touch_tool.bean.action.map.MapIsEmptyAction;
 import top.bogey.touch_tool.bean.action.map.MapRemoveAction;
 import top.bogey.touch_tool.bean.action.map.MapSetAction;
@@ -417,6 +420,7 @@ public class ActionInfo {
     private final static ActionInfo LIST_ADD_INFO = new ActionInfo(ActionType.LIST_ADD, ListAddAction.class, R.drawable.icon_add, R.string.list_add_action, R.string.list_add_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo LIST_REMOVE_INFO = new ActionInfo(ActionType.LIST_REMOVE, ListRemoveAction.class, R.drawable.icon_remove, R.string.list_remove_action, R.string.list_remove_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo LIST_REMOVE_OBJECT_INFO = new ActionInfo(ActionType.LIST_REMOVE_OBJECT, ListRemoveObjectAction.class, R.drawable.icon_remove, R.string.list_remove_object_action, R.string.list_remove_object_action_desc, 0, NormalActionCard.class);
+    private final static ActionInfo LIST_REMOVE_BY_INFO = new ActionInfo(ActionType.LIST_REMOVE_BY, ListRemoveByAction.class, R.drawable.icon_remove, R.string.list_remove_by_action, R.string.list_remove_by_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo LIST_APPEND_INFO = new ActionInfo(ActionType.LIST_APPEND, ListAppendAction.class, R.drawable.icon_add, R.string.list_append_action, R.string.list_append_action_desc, 0, DynamicPinsActionCard.class);
     private final static ActionInfo LIST_CLEAR_INFO = new ActionInfo(ActionType.LIST_CLEAR, ListClearAction.class, R.drawable.icon_delete, R.string.list_clear_action, R.string.list_clear_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo LIST_GET_INFO = new ActionInfo(ActionType.LIST_GET, ListGetAction.class, R.drawable.icon_upload, R.string.list_get_action, R.string.list_get_action_desc, 0, NormalActionCard.class);
@@ -434,6 +438,7 @@ public class ActionInfo {
     private final static ActionInfo MAP_IS_EMPTY_INFO = new ActionInfo(ActionType.MAP_IS_EMPTY, MapIsEmptyAction.class, R.drawable.icon_check, R.string.map_is_empty_action, R.string.map_is_empty_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo MAP_CONTAIN_KEY_INFO = new ActionInfo(ActionType.MAP_CONTAIN_KEY, MapContainKeyAction.class, R.drawable.icon_check, R.string.map_contain_key_action, R.string.map_contain_key_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo MAP_CONTAIN_VALUE_INFO = new ActionInfo(ActionType.MAP_CONTAIN_VALUE, MapContainValueAction.class, R.drawable.icon_check, R.string.map_contain_value_action, R.string.map_contain_value_action_desc, 0, NormalActionCard.class);
+    private final static ActionInfo MAP_CONTAIN_BY_INFO = new ActionInfo(ActionType.MAP_CONTAIN_BY, MapContainByAction.class, R.drawable.icon_check, R.string.map_contain_by_action, R.string.map_contain_by_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo MAP_SET_INFO = new ActionInfo(ActionType.MAP_SET, MapSetAction.class, R.drawable.icon_add, R.string.map_set_action, R.string.map_set_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo MAP_REMOVE_INFO = new ActionInfo(ActionType.MAP_REMOVE, MapRemoveAction.class, R.drawable.icon_remove, R.string.map_remove_action, R.string.map_remove_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo MAP_APPEND_INFO = new ActionInfo(ActionType.MAP_APPEND, MapAppendAction.class, R.drawable.icon_add, R.string.map_append_action, R.string.map_append_action_desc, 0, DynamicPinsActionCard.class);
@@ -441,6 +446,7 @@ public class ActionInfo {
     private final static ActionInfo MAP_GET_INFO = new ActionInfo(ActionType.MAP_GET, MapGetAction.class, R.drawable.icon_upload, R.string.map_get_action, R.string.map_get_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo MAP_KEYS_INFO = new ActionInfo(ActionType.MAP_KEYS, MapGetKeysAction.class, R.drawable.icon_data_array, R.string.map_keys_action, R.string.map_keys_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo MAP_VALUES_INFO = new ActionInfo(ActionType.MAP_VALUES, MapGetValuesAction.class, R.drawable.icon_data_array, R.string.map_values_action, R.string.map_values_action_desc, 0, NormalActionCard.class);
+    private final static ActionInfo MAP_KEYS_VALUES_INFO = new ActionInfo(ActionType.MAP_KEYS_VALUES, MapKeysValuesAction.class, R.drawable.icon_data_array, R.string.map_keys_values_action, R.string.map_keys_values_action_desc, 0, NormalActionCard.class);
     private final static ActionInfo MAP_FOREACH_INFO = new ActionInfo(ActionType.MAP_FOREACH, MapForeachAction.class, R.drawable.icon_repeat, R.string.map_foreach_action, R.string.map_foreach_action_desc, 0, NormalActionCard.class);
 
     private final static ActionInfo WRITE_FILE_LINE_INFO = new ActionInfo(ActionType.WRITE_FILE_LINE, WriteFileLineAction.class, R.drawable.icon_save, R.string.file_action_write_line, R.string.file_action_write_line_desc, 0, NormalActionCard.class);
@@ -651,6 +657,7 @@ public class ActionInfo {
             case LIST_ADD -> LIST_ADD_INFO;
             case LIST_REMOVE -> LIST_REMOVE_INFO;
             case LIST_REMOVE_OBJECT -> LIST_REMOVE_OBJECT_INFO;
+            case LIST_REMOVE_BY -> LIST_REMOVE_BY_INFO;
             case LIST_APPEND -> LIST_APPEND_INFO;
             case LIST_CLEAR -> LIST_CLEAR_INFO;
             case LIST_GET -> LIST_GET_INFO;
@@ -667,6 +674,7 @@ public class ActionInfo {
             case MAP_IS_EMPTY -> MAP_IS_EMPTY_INFO;
             case MAP_CONTAIN_KEY -> MAP_CONTAIN_KEY_INFO;
             case MAP_CONTAIN_VALUE -> MAP_CONTAIN_VALUE_INFO;
+            case MAP_CONTAIN_BY -> MAP_CONTAIN_BY_INFO;
             case MAP_REMOVE -> MAP_REMOVE_INFO;
             case MAP_APPEND -> MAP_APPEND_INFO;
             case MAP_CLEAR -> MAP_CLEAR_INFO;
@@ -674,6 +682,7 @@ public class ActionInfo {
             case MAP_SET -> MAP_SET_INFO;
             case MAP_KEYS -> MAP_KEYS_INFO;
             case MAP_VALUES -> MAP_VALUES_INFO;
+            case MAP_KEYS_VALUES -> MAP_KEYS_VALUES_INFO;
             case MAP_FOREACH -> MAP_FOREACH_INFO;
 
             case WRITE_FILE_LINE -> WRITE_FILE_LINE_INFO;

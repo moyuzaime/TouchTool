@@ -221,14 +221,12 @@ public class ActionMap {
                     ActionType.LIST_SIZE,
                     ActionType.LIST_IS_EMPTY,
                     ActionType.LIST_CONTAIN,
-                    ActionType.LIST_REMOVE,
-                    ActionType.LIST_REMOVE_OBJECT,
+                    ActionType.LIST_REMOVE_BY,
                     ActionType.LIST_APPEND,
                     ActionType.LIST_CLEAR,
                     ActionType.LIST_INDEX_OF,
                     ActionType.LIST_SUBLIST,
-                    ActionType.LIST_SORT,
-                    ActionType.LIST_REVERSE
+                    ActionType.LIST_SORT
             ));
 
             case MAP -> list.addAll(Arrays.asList(
@@ -237,14 +235,12 @@ public class ActionMap {
                     ActionType.MAP_GET,
                     ActionType.MAP_SIZE,
                     ActionType.MAP_IS_EMPTY,
-                    ActionType.MAP_CONTAIN_KEY,
-                    ActionType.MAP_CONTAIN_VALUE,
+                    ActionType.MAP_CONTAIN_BY,
                     ActionType.MAP_SET,
                     ActionType.MAP_REMOVE,
                     ActionType.MAP_APPEND,
                     ActionType.MAP_CLEAR,
-                    ActionType.MAP_KEYS,
-                    ActionType.MAP_VALUES
+                    ActionType.MAP_KEYS_VALUES
             ));
 
             case THREAD -> list.addAll(Arrays.asList(

@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import com.google.gson.JsonObject;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import top.bogey.touch_tool.MainApplication;
@@ -26,11 +27,12 @@ import top.bogey.touch_tool.service.TaskRunnable;
 import top.bogey.touch_tool.utils.AppLog;
 
 public class ListSortAction extends ListExecuteAction {
-    // 排序方式：按元素自身升/降序、按字典键、自定义比较流程
+    // 排序方式：按元素自身升/降序、按字典键、自定义比较流程、反转
     public static final int MODE_ASC = 0;
     public static final int MODE_DESC = 1;
     public static final int MODE_KEY = 2;
     public static final int MODE_CUSTOM = 3;
+    public static final int MODE_REVERSE = 4;
     // 自定义比较的次数上限，超出后中止排序，避免逐对跑子流程把任务拖死
     private static final int MAX_COMPARE_COUNT = 20000;
 
@@ -69,6 +71,7 @@ public class ListSortAction extends ListExecuteAction {
             case MODE_ASC -> sortBySelf(runnable, list, 1);
             case MODE_DESC -> sortBySelf(runnable, list, -1);
             case MODE_KEY -> sortByKey(runnable, list);
+            case MODE_REVERSE -> Collections.reverse(list);
             default -> sortByCompare(runnable, list);
         }
         executeNext(runnable, outPin);

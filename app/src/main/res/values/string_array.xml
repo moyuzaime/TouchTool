@@ -463,6 +463,22 @@
         <item>降序</item>
         <item>按字典键</item>
         <item>自定义比较</item>
+        <item>反转</item>
+    </string-array>
+
+    <string-array name="list_remove_mode">
+        <item>按索引</item>
+        <item>按对象</item>
+    </string-array>
+
+    <string-array name="map_contain_mode">
+        <item>键</item>
+        <item>值</item>
+    </string-array>
+
+    <string-array name="map_keys_values_mode">
+        <item>键</item>
+        <item>值</item>
     </string-array>
 
     <string-array name="file_write_mode">
